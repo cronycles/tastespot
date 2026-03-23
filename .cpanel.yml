@@ -2,7 +2,7 @@
 deployment:
   tasks:
     - find /home/crointhe/repositories/tastespot/backend -mindepth 1 -maxdepth 1 ! -name storage -exec cp -rf {} /home/crointhe/public_html/tastespot/ \;
-    - test -f /home/crointhe/bin/composer || (mkdir -p /home/crointhe/bin && curl -sS https://getcomposer.org/installer | /opt/cpanel/ea-php84/root/usr/bin/php -- --install-dir=/home/crointhe/bin --filename=composer)
+    - rm -f /home/crointhe/bin/composer && mkdir -p /home/crointhe/bin && curl -sS https://getcomposer.org/installer | /opt/cpanel/ea-php84/root/usr/bin/php -- --install-dir=/home/crointhe/bin --filename=composer
     - cd /home/crointhe/public_html/tastespot && /opt/cpanel/ea-php84/root/usr/bin/php /home/crointhe/bin/composer install --no-dev --optimize-autoloader --no-interaction
     - cd /home/crointhe/public_html/tastespot && /opt/cpanel/ea-php84/root/usr/bin/php artisan migrate --force
     - cd /home/crointhe/public_html/tastespot && /opt/cpanel/ea-php84/root/usr/bin/php artisan optimize:clear
