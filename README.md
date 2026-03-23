@@ -161,6 +161,7 @@ Autenticazione: header `Authorization: Bearer <token>` (🔒 = richiesto)
 | POST | `/activities` | Crea attività 🔒 |
 | GET  | `/activities/:id` | Dettaglio attività 🔒 |
 | PUT  | `/activities/:id` | Modifica attività 🔒 |
+| GET  | `/ping` | Health check — risponde `{"status":"ok","version":"x.x.x"}` |
 | DELETE | `/activities/:id` | Elimina attività → 204 No Content 🔒 |
 | POST | `/activities/:id/favorite` | Toggle preferito 🔒 |
 | PUT  | `/activities/:id/viewed` | Aggiorna last_viewed_at 🔒 |
@@ -243,6 +244,6 @@ git push origin main
 
 **Verifica deploy:**
 ```bash
-curl https://tastespot.crointhemorning.com/api/v1/auth/login
-# Risposta attesa: {"message":"The email field is required.",...}
+curl -s https://tastespot.crointhemorning.com/api/v1/ping
+# Risposta attesa: {"status":"ok","version":"1.0.4"}
 ```

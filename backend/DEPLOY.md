@@ -24,15 +24,23 @@ Ogni push su `main` che tocca file in `backend/`, `.cpanel.yml`, o `.github/work
 ```
 git push origin main
     → GitHub Actions (.github/workflows/deploy.yml)
-        1. chiama cPanel UAPI: VersionControl/update  → git pull sul server
-        2. sleep 15 secondi (aspetta che il pull finisca)
+        1. chiama cPanel UAPI: VersionControl/update
+        2. sleep 15 secondi
         3. chiama cPanel UAPI: VersionControlDeployment/create → esegue .cpanel.yml
             → bash scripts/deploy.sh
-                1. find+cp: copia backend/ → public_html/tastespot/ (esclude storage/)
-                2. php artisan migrate --force
-                3. php artisan optimize:clear + config:cache + route:cache
-                4. chmod -R 775 storage/ bootstrap/cache/
+                Step 0: rm -f error_log + git reset --hard + git clean -fd + git pull
+                Step 1: find+cp: copia backend/ → public_html/tastespot/ (esclude storage/)
+                Step 2: php artisan migrate --force
+                        php artisan optimize:clear (|| true — non blocca se fallisce)
+                        php artisan config:cache
+                        php artisan route:cache
+                        php artisan storage:link
+                Step 3: chmod -R 775 storage/ bootstrap/cache/
 ```
+
+**Il `deploy.sh` fa `git pull` da solo** — anche se cPanel non aggiorna il repo, lo script lo aggiorna lui prima di copiare i file.
+
+**`optimize:clear` non blocca il deploy** — usa `|| true` perché sul server manca la tabella `cache` (usa MySQL, non ha la tabella di cache SQLite).
 
 **`.env` sul server non viene mai toccato** — esiste solo sul server, non è in git.
 
@@ -151,8 +159,16 @@ git push origin main
 ### Verificare che il deploy sia andato a buon fine
 
 1. GitHub → **Actions** → clicca sull'ultimo workflow → controlla che sia verde
-2. `curl https://tastespot.crointhemorning.com/api/v1/auth/login`  
-   Risposta attesa: `{"message":"The email field is required.",...}`
+2. Controlla l'endpoint di health check:
+   ```bash
+   curl -s https://tastespot.crointhemorning.com/api/v1/ping
+   # Risposta attesa: {"status":"ok","version":"1.0.4"}
+   ```
+3. Oppure testa il login:
+   ```bash
+   curl -s https://tastespot.crointhemorning.com/api/v1/auth/login
+   # Risposta attesa: {"message":"The email field is required.",...}
+   ```
 
 ### Vedere i log di errore sul server
 
@@ -206,13 +222,18 @@ Alternativamente: cPanel → **SSL/TLS** → **Manage SSL Sites** → seleziona 
 
 ### `error_log` compare nel repo sul server
 
-Dopo ogni operazione cPanel (es. "Update From Remote"), può comparire un file `error_log` nella cartella del repo. Questo **blocca il prossimo deploy** perché cPanel considera il working tree sporco.
+Dopo ogni operazione cPanel (es. "Update From Remote"), può comparire un file `error_log` nella cartella del repo.
 
-Soluzione: dal **Terminale cPanel**, prima di fare il deploy manuale:
+**Questo è gestito automaticamente dal `deploy.sh`** — lo script fa `rm -f error_log` + `git reset --hard` + `git clean -fd` prima di ogni pull.
+
+Se dovessi fare un deploy manuale e trovare il repo sporco:
 ```bash
-rm -f /home/crointhe/repositories/tastespot/error_log
+cd /home/crointhe/repositories/tastespot
+rm -f error_log
+git reset --hard
+git pull origin main
+bash scripts/deploy.sh
 ```
-I deploy automatici via GitHub Actions non sono affetti (chiamano direttamente le API UAPI).
 
 ### `allow_url_fopen=0` sul server
 
