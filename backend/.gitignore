@@ -1,5 +1,7 @@
-/vendor/
 /node_modules/
+
+# vendor/ è committato nel repo per evitare problemi con allow_url_fopen su hosting condiviso
+# /vendor/
 
 # Env locali — NON committare mai credenziali
 .env
