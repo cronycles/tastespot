@@ -1,3 +1,4 @@
+---
 deployment:
   tasks:
     - bash /home/crointhe/repositories/tastespot/scripts/deploy.sh
