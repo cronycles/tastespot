@@ -47,7 +47,7 @@ git push origin main
 ### Checklist infrastruttura (stato attuale: tutto completato)
 
 - [x] Sottodominio `tastespot.crointhemorning.com` → document root `/home/crointhe/public_html/tastespot/public`
-- [x] DNS: A record `tastespot` → `144.76.85.27` in cPanel Zone Editor
+- [x] DNS: A record `tastespot` → `144.76.85.27` su **Cloudflare** (non cPanel Zone Editor!)
 - [x] Database MySQL `crointhe_tastespot` + utente `crointhe_ts` con tutti i privilegi
 - [x] PHP 8.4 impostato nel MultiPHP Manager per il sottodominio
 - [x] Estensioni PHP abilitate: `pdo_mysql`, `mysqli`, `fileinfo`, `exif`
@@ -177,6 +177,32 @@ git push origin main
 ---
 
 ## Gotcha e problemi noti
+
+### DNS gestito da Cloudflare, non da cPanel
+
+Il dominio `crointhemorning.com` usa **Cloudflare come nameserver** (NS: `chase.ns.cloudflare.com`, `kia.ns.cloudflare.com`). Qualsiasi record DNS va aggiunto su **Cloudflare** — il Zone Editor di cPanel è completamente ignorato.
+
+Per aggiungere o modificare il sottodominio:
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → `crointhemorning.com` → **DNS** → **Records**
+2. Type: `A`, Name: `tastespot`, IPv4: `144.76.85.27`
+3. **Proxy status: grigio (DNS only)** — NON arancione. Con il proxy arancione Cloudflare fa da intermediario e rompe cPanel/SSL.
+
+Propagazione con Cloudflare: quasi istantanea (30 secondi - 2 minuti).
+
+---
+
+### Certificato SSL (errore di privacy nel browser)
+
+Dopo aver aggiunto il record DNS su Cloudflare, il browser mostra un avviso SSL perché cPanel non ha ancora un certificato valido per `tastespot.crointhemorning.com`.
+
+**Soluzione — AutoSSL di cPanel (Let's Encrypt gratuito):**
+1. cPanel → cerca **"SSL/TLS Status"**
+2. Clicca **Run AutoSSL** — rileva automaticamente tutti i sottodomini e genera i certificati
+3. Aspetta 1-2 minuti → ricarica la pagina nel browser
+
+Alternativamente: cPanel → **SSL/TLS** → **Manage SSL Sites** → seleziona il sottodominio → installa il cert generato da AutoSSL.
+
+---
 
 ### `error_log` compare nel repo sul server
 
