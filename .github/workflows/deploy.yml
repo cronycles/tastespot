@@ -15,7 +15,31 @@ jobs:
     steps:
       - name: Chiama cPanel UAPI per aggiornare e deployare il repo
         run: |
-          curl -k --fail -s \
+          RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
             -u "${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-            "https://crointhemorning.com:2083/execute/VersionControl/update?working_copy_root=/home/crointhe/repositories/tastespot" \
-            | python3 -c "import sys, json; r=json.load(sys.stdin); print('OK' if r.get('status') == 1 else r)"
+            "https://crointhemorning.com:2083/execute/VersionControl/update?working_copy_root=/home/crointhe/repositories/tastespot")
+
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+
+          echo "HTTP status: $HTTP_CODE"
+          echo "Response body: $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Errore: il server ha risposto con HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "$BODY" | python3 -c "
+          import sys, json
+          try:
+            r = json.load(sys.stdin)
+            if r.get('status') == 1:
+              print('Deploy completato con successo')
+            else:
+              print('Deploy fallito:', r)
+              sys.exit(1)
+          except Exception as e:
+            print('Risposta non JSON:', sys.stdin.read() if hasattr(sys.stdin, 'read') else str(e))
+            sys.exit(1)
+          "
