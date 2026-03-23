@@ -25,6 +25,9 @@ jobs:
           echo "HTTP: $HTTP_CODE | Body: $BODY"
           if [ "$HTTP_CODE" != "200" ]; then echo "Errore HTTP $HTTP_CODE" && exit 1; fi
 
+      - name: Aspetta che il git pull sia completato
+        run: sleep 15
+
       - name: Esegui deploy (.cpanel.yml tasks)
         run: |
           RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
