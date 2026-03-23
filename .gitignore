@@ -2,6 +2,10 @@
 .DS_Store
 .AppleDouble
 
+# Log files generati da Apache/cPanel nel repo clonato
+error_log
+*.log
+
 # Chiavi private e certificati
 *.pem
 *.key
