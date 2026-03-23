@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+.AppleDouble
+
+# Cartella di bootstrap Laravel creata prima del backend reale — non serve più
+backend-fresh/
+
+# Chiavi private e certificati
+*.pem
+*.key
+*.p12
+*.p8
+*.mobileprovision
+
+# IDE
+.idea/
+.vscode/settings.json

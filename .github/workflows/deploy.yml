@@ -1,0 +1,21 @@
+name: Deploy backend → produzione
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.cpanel.yml'
+
+jobs:
+  deploy:
+    name: Trigger cPanel Git deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Chiama cPanel UAPI per aggiornare e deployare il repo
+        run: |
+          curl -k --fail -s \
+            -u "${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+            "https://crointhemorning.com:2083/execute/VersionControl/update?working_copy_root=/home/crointhe/repositories/tastespot" \
+            | python3 -c "import sys, json; r=json.load(sys.stdin); print('OK' if r.get('status') == 1 else r)"
