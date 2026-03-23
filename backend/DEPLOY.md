@@ -1,15 +1,34 @@
-# Deploy TasteSpot API — SupportHost (cPanel)
+# Deploy TasteSpot Backend — SupportHost (cPanel)
 
-## Stato checklist infrastruttura
+## Come funziona il deploy automatico
+
+Ogni push su `main` che modifica `backend/` scatena automaticamente:
+1. GitHub Actions chiama l'API cPanel
+2. cPanel esegue `git pull` sul repo clonato in `/home/crointhe/repositories/tastespot`
+3. cPanel esegue i task nel file `.cpanel.yml` alla radice del repo:
+   - Copia `backend/` → `/home/crointhe/public_html/tastespot/` (esclude `.env`, `vendor/`, `storage/`)
+   - `composer install --no-dev`
+   - `php artisan migrate --force`
+   - Rebuild cache config/route
+   - Fix permessi storage
+
+**`.env` sul server non viene mai sovrascritto** — va creato una volta sola a mano (vedi Setup iniziale).
+
+---
+
+## Setup iniziale (una volta sola)
+
+### Checklist infrastruttura
 
 - [x] Sottodominio `tastespot.crointhemorning.com` → document root `/home/crointhe/public_html/tastespot/public`
 - [x] Database MySQL `crointhe_tastespot` + utente `crointhe_ts`
 - [x] PHP 8.2+ nel MultiPHP Manager
-- [ ] SSH abilitato (Step 0 — vedi sotto)
-- [ ] Laravel installato (Step A)
-- [ ] File backend copiati (Step B)
-- [ ] Migrazione database (Step C)
-- [ ] Verifica (Step D)
+- [ ] Composer disponibile sul server (Step 1)
+- [ ] Repo clonato in `repositories/tastespot` (Step 2)
+- [ ] `.env` creato in `public_html/tastespot/` (Step 3)
+- [ ] Primo deploy manuale (Step 4)
+- [ ] Migrazioni applicate (Step 4)
+- [ ] GitHub Actions secret configurati (Step 5)
 
 ---
 
