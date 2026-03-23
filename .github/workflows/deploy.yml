@@ -6,6 +6,8 @@ on:
     paths:
       - 'backend/**'
       - '.cpanel.yml'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:   # permette di lanciarlo manualmente da GitHub
 
 jobs:
   deploy:
