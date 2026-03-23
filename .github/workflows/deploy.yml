@@ -19,7 +19,7 @@ jobs:
         run: |
           RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
             -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-            "https://crointhemorning.com:2083/execute/VersionControl/update?working_copy_root=/home/crointhe/repositories/tastespot")
+            "https://crointhemorning.com:2083/execute/VersionControl/update?repository_root=/home/crointhe/repositories/tastespot")
 
           HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
           BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
