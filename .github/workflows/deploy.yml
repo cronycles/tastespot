@@ -15,23 +15,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Chiama cPanel UAPI per aggiornare e deployare il repo
+      - name: Pull aggiornamenti nel repo cPanel
         run: |
           RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
             -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
             "https://crointhemorning.com:2083/execute/VersionControl/update?repository_root=/home/crointhe/repositories/tastespot")
-
           HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
           BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+          echo "HTTP: $HTTP_CODE | Body: $BODY"
+          if [ "$HTTP_CODE" != "200" ]; then echo "Errore HTTP $HTTP_CODE" && exit 1; fi
 
-          echo "HTTP status: $HTTP_CODE"
-          echo "Response body: $BODY"
-
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "Errore: il server ha risposto con HTTP $HTTP_CODE"
-            exit 1
-          fi
-
+      - name: Esegui deploy (.cpanel.yml tasks)
+        run: |
+          RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
+            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+            "https://crointhemorning.com:2083/execute/VersionControlDeployment/create?repository_root=/home/crointhe/repositories/tastespot")
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+          echo "HTTP: $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" != "200" ]; then echo "Errore HTTP $HTTP_CODE" && exit 1; fi
           echo "$BODY" | python3 -c "
           import sys, json
           try:
@@ -42,6 +45,6 @@ jobs:
               print('Deploy fallito:', r)
               sys.exit(1)
           except Exception as e:
-            print('Risposta non JSON:', sys.stdin.read() if hasattr(sys.stdin, 'read') else str(e))
+            print('Errore parsing risposta:', e)
             sys.exit(1)
           "
