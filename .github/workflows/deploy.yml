@@ -18,7 +18,7 @@ jobs:
       - name: Chiama cPanel UAPI per aggiornare e deployare il repo
         run: |
           RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
-            -u "${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
             "https://crointhemorning.com:2083/execute/VersionControl/update?working_copy_root=/home/crointhe/repositories/tastespot")
 
           HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
