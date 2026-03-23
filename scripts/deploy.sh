@@ -20,7 +20,7 @@ find "$REPO/backend" -mindepth 1 -maxdepth 1 ! -name storage -exec cp -rf {} "$D
 echo "=== Step 2: Laravel setup ==="
 cd "$DEST"
 $PHP artisan migrate --force
-$PHP artisan optimize:clear
+$PHP artisan optimize:clear || true
 $PHP artisan config:cache
 $PHP artisan route:cache
 $PHP artisan storage:link 2>/dev/null || true
