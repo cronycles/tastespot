@@ -243,7 +243,7 @@ export default function HomeScreen() {
         onLongPress={handleLongPress}
         compassEnabled
         compassViewPosition={3}
-        compassViewMargins={{ x: theme.spacing.lg, y: insets.bottom + theme.spacing.lg + 56 + 8 + 44 + 8 }}
+        compassViewMargins={{ x: theme.spacing.md, y: insets.bottom + theme.spacing.sm + 56 + 8 + 44 + 8 }}
         logoEnabled={false}
         attributionEnabled={false}
       >
@@ -404,31 +404,29 @@ export default function HomeScreen() {
       </View>
 
       {/*
-        Right-side FAB stack (bottom to top):
-          [+]    add activity   — bottom + 24          h=56  → top = bottom+80
-          [-]    zoom out       — bottom + 88           h=44  → top = bottom+132
-          [+]    zoom in        — bottom + 140          h=44  → top = bottom+184
-          [◎]   locate          — bottom + 192          h=44  → top = bottom+236
+        Right-side FAB stack — right: md (16px from right edge), centers aligned.
+        fabAdd (w56) center = 16+28 = 44px from right.
+        fabCenter (w44) needs right: 16+6 = 22px → center = 22+22 = 44px. ✓
       */}
       <TouchableOpacity
-        style={[styles.fabAdd, { bottom: insets.bottom + theme.spacing.lg }]}
+        style={[styles.fabAdd, { bottom: insets.bottom + theme.spacing.sm }]}
         onPress={() => router.push('/activity/add')}
         activeOpacity={0.85}
       >
         <Ionicons name="add" size={28} color={theme.colors.surface} />
       </TouchableOpacity>
 
-      {/* Locate — above fabAdd */}
+      {/* Locate — above fabAdd, right offset by +6 to center-align with fabAdd */}
       <TouchableOpacity
-        style={[styles.fabCenter, { bottom: insets.bottom + theme.spacing.lg + 56 + 8 }]}
+        style={[styles.fabCenter, { bottom: insets.bottom + theme.spacing.sm + 56 + 8, right: theme.spacing.md + 6 }]}
         onPress={handleCenterOnUser}
         activeOpacity={0.85}
       >
         <Ionicons name="locate" size={20} color={theme.colors.primary} />
       </TouchableOpacity>
 
-      {/* Zoom pill — horizontal, centered at bottom */}
-      <View style={[styles.zoomRow, { bottom: insets.bottom + theme.spacing.lg }]}>
+      {/* Zoom pill — horizontal, centered, closer to tab bar */}
+      <View style={[styles.zoomRow, { bottom: insets.bottom + theme.spacing.sm }]}>
         <TouchableOpacity
           style={styles.zoomBtn}
           onPress={() => {
@@ -591,7 +589,7 @@ const styles = StyleSheet.create({
 
   fabAdd: {
     position: 'absolute',
-    right: theme.spacing.lg,
+    right: theme.spacing.md,
     width: 56,
     height: 56,
     borderRadius: theme.borderRadius.full,
@@ -675,7 +673,7 @@ const styles = StyleSheet.create({
   },
   fabCenter: {
     position: 'absolute',
-    right: theme.spacing.lg,
+    right: theme.spacing.md,
     width: 44,
     height: 44,
     borderRadius: theme.borderRadius.full,
