@@ -29,6 +29,16 @@ npm run ios:device
 
 > La prima volta serve il cavo USB e autorizzare il certificato in Impostazioni → Generali → VPN e gestione dispositivo.
 
+**Rinnovo certificato (ogni 7 giorni):**
+
+Con un Apple ID gratuito (senza abbonamento Apple Developer da 99€/anno), il certificato di firma scade ogni 7 giorni e l'app smette di avviarsi sul telefono. Per rinnovarlo:
+
+1. Collega l'iPhone al Mac via USB
+2. Lancia `npm run ios:device` — Xcode ri-firma e reinstalla automaticamente
+3. Non serve aprire Xcode manualmente
+
+> Per eliminare la scadenza dei 7 giorni occorre iscriversi all'[Apple Developer Program](https://developer.apple.com/programs/) (99€/anno). Con l'account a pagamento il certificato dura 1 anno e l'app può essere distribuita anche tramite App Store o TestFlight.
+
 ---
 
 ## Stack
