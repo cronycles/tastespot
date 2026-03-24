@@ -464,7 +464,10 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: theme.fontWeight.medium,
   },
-  tagInputRow:
+  tagInputRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
   tagChip: {
     flexDirection: 'row',
     alignItems: 'center',
