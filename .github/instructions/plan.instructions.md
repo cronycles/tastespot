@@ -93,7 +93,16 @@ applyTo: "**"
 
 ### Fase 16 — Bug fix e miglioramenti post-testing
 
-- Da definire dopo il periodo di test sull'iPhone reale
+#### Mappa — UI bottoni e bussola
+- Rimuovere il bottone floating "Vicino a me" dalla mappa (è già presente nella quicklink bar in basso)
+- Spostare i due bottoni zoom (+/−) in orizzontale nella zona liberata, oppure riposizionarli in modo da non coprire la bussola MapLibre
+- Assicurarsi che la bussola sia visibile, cliccabile e allineata verticalmente con i bottoni zoom
+- I controlli devono essere visivamente puliti e allineati
+
+#### Bug — Condivisione da Google Maps non mostra TasteSpot
+- Verificare che l'intent filter Android `ACTION_SEND` / `text/plain` sia registrato correttamente in `app.json`
+- Verificare che `CFBundleURLTypes` per iOS includa lo scheme `tastespot://`
+- Testare il flusso: Google Maps → Condividi → deve apparire TasteSpot nella lista app
 
 ---
 
