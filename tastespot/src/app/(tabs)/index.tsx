@@ -243,7 +243,7 @@ export default function HomeScreen() {
         onLongPress={handleLongPress}
         compassEnabled
         compassViewPosition={3}
-        compassViewMargins={{ x: theme.spacing.md, y: insets.bottom + theme.spacing.sm + 56 + 8 + 44 + 8 }}
+        compassViewMargins={{ x: theme.spacing.md + 8, y: insets.bottom + theme.spacing.sm + 56 + 8 + 44 + 8 }}
         logoEnabled={false}
         attributionEnabled={false}
       >
