@@ -279,7 +279,7 @@ export default function EditActivityScreen() {
           {typesError ? <Text style={styles.errorText}>{typesError}</Text> : null}
         </View>
 
-        {/* NOTE */
+        {/* NOTE */}
         <View style={styles.section}>
           <Text style={styles.label}>Note</Text>
           <TextInput
