@@ -6,8 +6,8 @@ applyTo: "**"
 
 ## Stato attuale
 
-**Ultima fase completata: 12 — Errori di validazione uniformi su tutti i form** ✅  
-**Prossima fase: 13 — Condivisione verso TasteSpot da Google Maps**
+**Ultima fase completata: 13 — Condivisione verso TasteSpot da Google Maps** ✅  
+**Prossima fase: 14 — Configurazione pesi punteggio e valori smile**
 
 ---
 
@@ -54,6 +54,7 @@ applyTo: "**"
 - **Fase 10** ✅ — `DEFAULT_ICON_KEY = 'storefront-outline'` in `src/types/index.ts`; add/edit attività reindirizzano a `/private/types` per creazione tipologie (no più inline)
 - **Fase 11** ✅ — Banner di benvenuto post-registrazione: `isNewUser` in `authStore`, banner in `(tabs)/index.tsx`, `dismissWelcome()` al tap su chiudi
 - **Fase 12** ✅ — Errori di validazione inline sotto i campi in `add.tsx` e `edit/[id].tsx`; rimossi tutti gli `Alert` di validazione; `saveError` banner per errori backend
+- **Fase 13** ✅ — URL scheme `tastespot://` + Android `ACTION_SEND` intent filter; handler in `_layout.tsx` con `expo-linking` che parsifica il testo condiviso da Google Maps, estrae nome/coordinate e naviga a `activity/[id]` se esiste o a `activity/add` pre-compilato
 
 ---
 
