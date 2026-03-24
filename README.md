@@ -10,18 +10,19 @@ App mobile iOS/Android per valutare e scoprire attività di ristorazione (bar, r
 
 ## Avvio quotidiano (TL;DR)
 
-**Terminale 1 — Backend locale:**
+**Tutto insieme dalla root (consigliato):**
 ```bash
-cd backend && php artisan serve --port=8000
+npm start
+# avvia backend e app in parallelo, output colorato
 ```
 
-**Terminale 2 — App:**
+**Oppure separati:**
 ```bash
-cd tastespot && npx expo start
-# i = simulatore iOS  |  a = Android  |  r = reload
+npm run backend   # solo Laravel su http://localhost:8000
+npm run app       # solo Expo (i = iOS | a = Android | r = reload)
 ```
 
-> La prima volta sul simulatore iOS serve `npx expo run:ios` (vedi Setup da zero).
+> La prima volta sul simulatore iOS serve `npx expo run:ios` nella cartella `tastespot/` (vedi Setup da zero).
 
 ---
 
