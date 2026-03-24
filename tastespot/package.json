@@ -6,7 +6,7 @@
     "local:start": "expo start",
     "local:android": "expo run:android",
     "local:ios": "expo run:ios",
-    "ios:device": "expo run:ios -d 00008150-001A7CD90ADA401C --configuration Release",
+    "ios:device": "EXPO_PUBLIC_API_URL=https://tastespot.crointhemorning.com expo run:ios -d 00008150-001A7CD90ADA401C --configuration Release",
     "local:web": "expo start --web"
   },
   "dependencies": {
