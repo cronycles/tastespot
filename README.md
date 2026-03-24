@@ -85,6 +85,7 @@ TasteSpot/                         ← radice del monorepo Git
     │   ├── components/            ← ActivityCard, FilterPanel, FavoriteButton, ...
     │   ├── stores/                ← Zustand: authStore, activitiesStore, typesStore, reviewsStore
     │   ├── lib/                   ← api.ts (client HTTP), logger.ts
+    │   ├── config/                ← Costanti configurabili (scoring.ts: SMILE_VALUES, CATEGORY_WEIGHTS)
     │   ├── types/                 ← TypeScript types condivisi (index.ts)
     │   └── theme/                 ← Colori, spaziature, font (index.ts)
     ├── .env                       ← EXPO_PUBLIC_API_URL (locale o produzione) — NON in git
