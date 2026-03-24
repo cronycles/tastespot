@@ -225,7 +225,20 @@ cd tastespot
 npm install
 ```
 
-Il file `tastespot/.env` è già configurato con `EXPO_PUBLIC_API_URL=http://localhost:8000`.
+Crea i file di configurazione ambiente (non sono in git):
+
+```bash
+# Copia il template e inserisci le credenziali reali
+cp .env.example .env
+# Poi in .env imposta EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY e EXPO_PUBLIC_API_URL=https://tastespot.crointhemorning.com
+
+# Crea il file locale per lo sviluppo (sovrascrive solo EXPO_PUBLIC_API_URL)
+echo "EXPO_PUBLIC_API_URL=http://localhost:8000" > .env.local
+```
+
+> `.env` → usato sempre come base (punta a produzione)  
+> `.env.local` → usato in sviluppo locale, sovrascrive solo `EXPO_PUBLIC_API_URL`  
+> `npm run ios:device` → forza sempre l'URL di produzione anche se `.env.local` esiste
 
 ### 3. Prima build iOS (solo la prima volta — ~5 minuti)
 
