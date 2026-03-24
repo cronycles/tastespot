@@ -55,8 +55,7 @@ TasteSpot/                         ← radice del monorepo Git
 ├── docs/                          ← Documentazione di progetto (non specifica di frontend/backend)
 │   ├── TasteSpot - Documento dei requisiti.md
 │   ├── TasteSpot_Plan.md
-│   ├── TasteSpot_FasiSeguenti.md
-│   └── supabase-legacy/           ← Migrazioni Supabase (progetto precedente, solo archivio)
+│   └── TasteSpot_FasiSeguenti.md
 ├── scripts/
 │   └── deploy.sh                  ← Script bash eseguito da cPanel al deploy
 ├── .cpanel.yml                    ← Entry point deploy cPanel (richiama deploy.sh)
