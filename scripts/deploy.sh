@@ -23,6 +23,7 @@ $PHP artisan migrate --force
 $PHP artisan optimize:clear || true
 $PHP artisan config:cache
 $PHP artisan route:cache
+rm -f "$DEST/public/storage"
 $PHP artisan storage:link 2>/dev/null || true
 
 echo "=== Step 3: Permessi ==="
