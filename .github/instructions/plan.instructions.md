@@ -100,9 +100,8 @@ applyTo: "**"
 - I controlli devono essere visivamente puliti e allineati
 
 #### Bug — Condivisione da Google Maps non mostra TasteSpot
-- Verificare che l'intent filter Android `ACTION_SEND` / `text/plain` sia registrato correttamente in `app.json`
-- Verificare che `CFBundleURLTypes` per iOS includa lo scheme `tastespot://`
-- Testare il flusso: Google Maps → Condividi → deve apparire TasteSpot nella lista app
+- **Android**: l'intent filter `ACTION_SEND` / `text/plain` è già registrato in `app.json`. TasteSpot appare nel share sheet di Google Maps su Android dopo una build Android. Il handler in `_layout.tsx` usa `Linking.getInitialURL()` che però **non riceve `EXTRA_TEXT` dagli intent SEND** — per ricevere il testo condiviso serve un approccio nativo (es. `react-native-receive-sharing-intent`).
+- **iOS**: apparire nel share sheet di Google Maps richiede una **Share Extension** nativa (target separato in Xcode). Non è realizzabile con Expo senza eject. Le URL scheme (`tastespot://`) gestiscono solo deep link, non il flusso "Condividi". → **Rimandato come idea futura.**
 
 ---
 

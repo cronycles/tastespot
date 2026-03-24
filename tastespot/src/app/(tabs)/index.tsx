@@ -243,7 +243,7 @@ export default function HomeScreen() {
         onLongPress={handleLongPress}
         compassEnabled
         compassViewPosition={3}
-        compassViewMargins={{ x: theme.spacing.md, y: searchBarTop + 56 + theme.spacing.sm }}
+        compassViewMargins={{ x: theme.spacing.lg, y: insets.bottom + theme.spacing.lg + 56 + 8 + 44 + 8 }}
         logoEnabled={false}
         attributionEnabled={false}
       >
@@ -418,47 +418,41 @@ export default function HomeScreen() {
         <Ionicons name="add" size={28} color={theme.colors.surface} />
       </TouchableOpacity>
 
+      {/* Locate — above fabAdd */}
       <TouchableOpacity
         style={[styles.fabCenter, { bottom: insets.bottom + theme.spacing.lg + 56 + 8 }]}
-        onPress={() => {
-          const next = Math.max(zoomLevel - 1, 1)
-          setZoomLevel(next)
-          cameraRef.current?.setCamera({ zoomLevel: next, animationMode: 'none', animationDuration: 0 })
-        }}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="remove" size={22} color={theme.colors.primary} />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.fabCenter, { bottom: insets.bottom + theme.spacing.lg + 56 + 8 + 44 + 4 }]}
-        onPress={() => {
-          const next = Math.min(zoomLevel + 1, 20)
-          setZoomLevel(next)
-          cameraRef.current?.setCamera({ zoomLevel: next, animationMode: 'none', animationDuration: 0 })
-        }}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="add" size={22} color={theme.colors.primary} />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.fabCenter, { bottom: insets.bottom + theme.spacing.lg + 56 + 8 + 44 + 4 + 44 + 4 }]}
         onPress={handleCenterOnUser}
         activeOpacity={0.85}
       >
         <Ionicons name="locate" size={20} color={theme.colors.primary} />
       </TouchableOpacity>
 
-      {/* FAB lista vicino a me */}
-      <TouchableOpacity
-        style={[styles.fabList, { bottom: insets.bottom + theme.spacing.lg }]}
-        onPress={() => router.push('/(tabs)/nearby')}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="list" size={20} color={theme.colors.primary} />
-        <Text style={styles.fabListText}>Vicino a me</Text>
-      </TouchableOpacity>
+      {/* Zoom pill — horizontal, centered at bottom */}
+      <View style={[styles.zoomRow, { bottom: insets.bottom + theme.spacing.lg }]}>
+        <TouchableOpacity
+          style={styles.zoomBtn}
+          onPress={() => {
+            const next = Math.max(zoomLevel - 1, 1)
+            setZoomLevel(next)
+            cameraRef.current?.setCamera({ zoomLevel: next, animationMode: 'none', animationDuration: 0 })
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="remove" size={22} color={theme.colors.primary} />
+        </TouchableOpacity>
+        <View style={styles.zoomDivider} />
+        <TouchableOpacity
+          style={styles.zoomBtn}
+          onPress={() => {
+            const next = Math.min(zoomLevel + 1, 20)
+            setZoomLevel(next)
+            cameraRef.current?.setCamera({ zoomLevel: next, animationMode: 'none', animationDuration: 0 })
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={22} color={theme.colors.primary} />
+        </TouchableOpacity>
+      </View>
 
       {/* Banner benvenuto — mostrato solo dopo la registrazione */}
       {isNewUser && (
@@ -651,14 +645,12 @@ const styles = StyleSheet.create({
   welcomeClose: {
     marginLeft: theme.spacing.sm,
   },
-  fabList: {
+  zoomRow: {
     position: 'absolute',
     left: '50%',
-    transform: [{ translateX: -60 }],
+    transform: [{ translateX: -44 }],
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
     height: 44,
     borderRadius: theme.borderRadius.full,
     backgroundColor: theme.colors.surface,
@@ -668,11 +660,18 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
     zIndex: 10,
+    overflow: 'hidden',
   },
-  fabListText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.primary,
+  zoomBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoomDivider: {
+    width: StyleSheet.hairlineWidth,
+    height: 24,
+    backgroundColor: theme.colors.border,
   },
   fabCenter: {
     position: 'absolute',
