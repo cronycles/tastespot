@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { api } from '@/lib/api'
 import { Review } from '@/types'
+import { SMILE_VALUES, CATEGORY_WEIGHTS } from '@/config/scoring'
 
 export type ReviewWithType = Review & {
   type_name: string | null
@@ -32,15 +33,26 @@ export function calcAvgScore(review: Review): number | null {
   return scores.reduce((a, b) => a + b, 0) / scores.length
 }
 
-// Returns avg across all reviews for an activity (all types combined)
+// Returns avg across all reviews for an activity, weighted by CATEGORY_WEIGHTS
 export function calcActivityAvgScore(reviews: Review[]): number | null {
-  const allScores = reviews.flatMap((r) =>
-    [r.score_location, r.score_food, r.score_service, r.score_price].filter(
-      (s): s is number => s !== null
-    )
-  )
-  if (allScores.length === 0) return null
-  return allScores.reduce((a, b) => a + b, 0) / allScores.length
+  let weightedSum = 0
+  let totalWeight = 0
+  for (const r of reviews) {
+    const pairs: [number | null, number][] = [
+      [r.score_location, CATEGORY_WEIGHTS.location],
+      [r.score_food, CATEGORY_WEIGHTS.food],
+      [r.score_service, CATEGORY_WEIGHTS.service],
+      [r.score_price, CATEGORY_WEIGHTS.price],
+    ]
+    for (const [score, weight] of pairs) {
+      if (score !== null) {
+        weightedSum += score * weight
+        totalWeight += weight
+      }
+    }
+  }
+  if (totalWeight === 0) return null
+  return weightedSum / totalWeight
 }
 
 // Returns per-category avg across all reviews for an activity
@@ -65,14 +77,14 @@ export function calcCategoryAvgs(reviews: Review[]): {
 // Maps a 1-10 score to a smile index 0-4
 export function scoreToSmileIndex(score: number): number {
   if (score <= 1) return 0
-  if (score <= 3) return 1
-  if (score <= 5.5) return 2
-  if (score <= 7.5) return 3
+  if (score <= 3.5) return 1
+  if (score <= 6) return 2
+  if (score <= 8) return 3
   return 4
 }
 
-// Smile values: index → numeric score
-export const SMILE_VALUES = [1, 3, 5.5, 7.5, 10] as const
+// Re-export SMILE_VALUES so existing consumers keep working
+export { SMILE_VALUES } from '@/config/scoring'
 
 type ReviewsState = {
   // Map of activity_id → reviews for that activity

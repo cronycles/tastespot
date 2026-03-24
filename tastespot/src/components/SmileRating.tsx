@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { theme } from '@/theme'
-import { SMILE_VALUES } from '@/stores/reviewsStore'
+import { SMILE_VALUES } from '@/config/scoring'
 
 const SMILES = ['😞', '😕', '😐', '🙂', '😛'] as const
 
