@@ -6,8 +6,8 @@ applyTo: "**"
 
 ## Stato attuale
 
-**Ultima fase completata: 14 — Configurazione pesi punteggio e valori smile** ✅  
-**Prossima fase: 15 — Sentry & EAS Build**
+**Ultima fase completata: 15 — Build iOS su dispositivo fisico** ✅  
+**Prossima fase: 16 — Bug fix e miglioramenti post-testing**
 
 ---
 
@@ -56,6 +56,7 @@ applyTo: "**"
 - **Fase 12** ✅ — Errori di validazione inline sotto i campi in `add.tsx` e `edit/[id].tsx`; rimossi tutti gli `Alert` di validazione; `saveError` banner per errori backend
 - **Fase 13** ✅ — URL scheme `tastespot://` + Android `ACTION_SEND` intent filter; handler in `_layout.tsx` con `expo-linking` che parsifica il testo condiviso da Google Maps, estrae nome/coordinate e naviga a `activity/[id]` se esiste o a `activity/add` pre-compilato
 - **Fase 14** ✅ — Creato `src/config/scoring.ts` con `SMILE_VALUES=[1,3.5,6,8,10]` e `CATEGORY_WEIGHTS={location:1,food:3,service:2,price:2}`; `calcActivityAvgScore` ora usa i pesi; `SmileRating` importa da `scoring.ts`
+- **Fase 15** ✅ — Build iOS su dispositivo fisico tramite `npx expo prebuild --clean` + `npx expo run:ios -d <UDID>`; fix `ENABLE_USER_SCRIPT_SANDBOXING = NO` in `project.pbxproj`; certificato firma con Apple ID personale (Team XTJUVKVSY5); Metro bundler su porta 8081
 
 ---
 
@@ -90,10 +91,9 @@ applyTo: "**"
 - `calcActivityAvgScore` aggiornata per usare i pesi da questo file
 - Rimpiazza costanti hardcoded in `reviewsStore.ts` e `SmileRating.tsx`
 
-### Fase 15 — Sentry & EAS Build
+### Fase 16 — Bug fix e miglioramenti post-testing
 
-- `@sentry/react-native` installato + DSN configurato; `logger.error()` integra `Sentry.captureException()` in produzione (il TODO in `logger.ts` è già pronto)
-- `eas.json` con profili `development`, `preview`, `production`; prima build APK + IPA con EAS
+- Da definire dopo il periodo di test sull'iPhone reale
 
 ---
 
