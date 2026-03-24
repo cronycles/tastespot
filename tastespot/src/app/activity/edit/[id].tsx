@@ -45,10 +45,7 @@ export default function EditActivityScreen() {
   const [selectedTypeIds, setSelectedTypeIds] = useState<string[]>(activity?.type_ids ?? [])
   const [saving, setSaving] = useState(false)
 
-  // Inline new-type creation
-  const [newTypeName, setNewTypeName] = useState('')
-  const [savingType, setSavingType] = useState(false)
-  const { create: createType } = useTypesStore()
+
 
   const [showAddressResults, setShowAddressResults] = useState(false)
   const addressInputRef = useRef<TextInput>(null)
@@ -263,49 +260,14 @@ export default function EditActivityScreen() {
             </View>
           )}
 
-          {/* Crea nuova tipologia inline */}
-          <View style={styles.newTypeRow}>
-            <TextInput
-              style={[styles.input, styles.newTypeInput]}
-              value={newTypeName}
-              onChangeText={setNewTypeName}
-              placeholder="Nuova tipologia (es. Pizzeria)"
-              placeholderTextColor={theme.colors.textSecondary}
-              autoCapitalize="words"
-              returnKeyType="done"
-              onSubmitEditing={async () => {
-                if (!newTypeName.trim() || savingType) return
-                setSavingType(true)
-                const err = await createType(newTypeName.trim(), null, 'restaurant-outline')
-                setSavingType(false)
-                if (!err) {
-                  const created = useTypesStore.getState().types.at(-1)
-                  if (created) setSelectedTypeIds((prev) => [...prev, created.id])
-                  setNewTypeName('')
-                }
-              }}
-            />
-            <TouchableOpacity
-              style={[styles.tagAddBtn, savingType && { opacity: 0.5 }]}
-              disabled={savingType}
-              onPress={async () => {
-                if (!newTypeName.trim() || savingType) return
-                setSavingType(true)
-                const err = await createType(newTypeName.trim(), null, 'restaurant-outline')
-                setSavingType(false)
-                if (!err) {
-                  const created = useTypesStore.getState().types.at(-1)
-                  if (created) setSelectedTypeIds((prev) => [...prev, created.id])
-                  setNewTypeName('')
-                }
-              }}
-              activeOpacity={0.8}
-            >
-              {savingType
-                ? <ActivityIndicator size="small" color={theme.colors.surface} />
-                : <Ionicons name="add" size={20} color={theme.colors.surface} />}
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.manageTypesLink}
+            onPress={() => router.push('/private/types')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="settings-outline" size={14} color={theme.colors.primary} />
+            <Text style={styles.manageTypesText}>Gestisci tipologie</Text>
+          </TouchableOpacity>
         </View>
 
         {/* NOTE */}
@@ -490,14 +452,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  newTypeRow: {
+  manageTypesLink: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    alignItems: 'center',
+    gap: 4,
     marginTop: theme.spacing.sm,
+    alignSelf: 'flex-start',
   },
-  newTypeInput: {
-    flex: 1,
+  manageTypesText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.medium,
   },
+  tagInputRow:
   tagChip: {
     flexDirection: 'row',
     alignItems: 'center',

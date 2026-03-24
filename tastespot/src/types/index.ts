@@ -63,7 +63,7 @@ export type SmileScore = 1 | 3 | 5.5 | 7.5 | 10
 
 export const SMILE_VALUES: SmileScore[] = [1, 3, 5.5, 7.5, 10]
 
-export const DEFAULT_ICON_KEY = 'restaurant-outline'
+export const DEFAULT_ICON_KEY = 'storefront-outline'
 
 export const AVAILABLE_ICONS = [
   'restaurant-outline',

@@ -1,8 +1,8 @@
 # TasteSpot — Piano di sviluppo
 
 ## Stato attuale
-**Fase completata: 9 — Migrazione backend self-hosted (Laravel)** ✅
-**Prossima fase: 10 — Icona tipologia e default**
+**Fase completata: 10 — Icona tipologia e default** ✅
+**Prossima fase: 11 — Messaggio di benvenuto post-registrazione**
 
 Per riprendere in una nuova sessione: apri VS Code, apri una chat in modalità Agent e scrivi:
 > "Leggi il file docs/TasteSpot_Plan.md e riprendi lo sviluppo dalla prossima fase"
