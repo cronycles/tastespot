@@ -34,7 +34,8 @@ git push origin main
                         php artisan optimize:clear (|| true — non blocca se fallisce)
                         php artisan config:cache
                         php artisan route:cache
-                        php artisan storage:link
+                        rm -f public/storage          ← rimuove eventuale symlink sbagliato
+                        php artisan storage:link       ← ricrea symlink corretto sul server
                 Step 3: chmod -R 775 storage/ bootstrap/cache/
 ```
 
@@ -162,8 +163,9 @@ git push origin main
 2. Controlla l'endpoint di health check:
    ```bash
    curl -s https://tastespot.crointhemorning.com/api/v1/ping
-   # Risposta attesa: {"status":"ok","version":"1.0.4"}
+   # Risposta attesa: {"status":"ok","version":"1.0.5"}
    ```
+   > La root URL (`https://tastespot.crointhemorning.com`) restituisce `{"message":"The route / could not be found."}` — è normale, è un'API pura.
 3. Oppure testa il login:
    ```bash
    curl -s https://tastespot.crointhemorning.com/api/v1/auth/login
@@ -269,9 +271,16 @@ cPanel → **Select PHP Extensions** → abilitare `mysqli` e `pdo_mysql`
 ```bash
 ls -la /home/crointhe/public_html/tastespot/public/storage
 # Deve mostrare: storage -> /home/crointhe/public_html/tastespot/storage/app/public
-# Se non c'è:
-/opt/cpanel/ea-php84/root/usr/bin/php artisan storage:link
 ```
+
+Se il symlink punta a un path locale del Mac (es. `/Users/cronycles/...`) o è assente:
+```bash
+rm /home/crointhe/public_html/tastespot/public/storage
+ln -s /home/crointhe/public_html/tastespot/storage/app/public \
+      /home/crointhe/public_html/tastespot/public/storage
+```
+
+> Il `deploy.sh` fa già `rm -f public/storage` + `artisan storage:link` ad ogni deploy, quindi questo problema non dovrebbe ripresentarsi. Il symlink **non è tracciato in git** (`backend/public/.gitignore` lo esclude).
 
 ### "Class not found" o errori autoload
 ```bash

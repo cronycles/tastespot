@@ -2,7 +2,9 @@
 
 App mobile iOS/Android per valutare e scoprire attività di ristorazione (bar, ristoranti, gelaterie, pizzerie, ecc.) con un sistema di valutazione per categoria (location, cibo, servizio, prezzo).
 
-**Produzione:** https://tastespot.crointhemorning.com
+**API produzione:** `https://tastespot.crointhemorning.com/api/v1/`
+
+> Aprire l'URL base nel browser restituisce `{"message":"The route / could not be found."}` — è corretto, è un'API pura senza homepage. L'endpoint di health check è `/api/v1/ping`.
 
 ---
 
@@ -38,6 +40,7 @@ cd tastespot && npx expo start
 - **SQLite** — database locale (`backend/database/database.sqlite`)
 - **MySQL** — database di produzione su SupportHost cPanel
 - **Laravel Storage** — foto in `backend/storage/app/public/photos/`, esposte via `/storage/photos/...`
+- **Symlink storage** — `public/storage → storage/app/public`, ricreato automaticamente ad ogni deploy (non committato in git)
 
 ---
 
@@ -144,6 +147,8 @@ DELETE FROM activities WHERE id = 'xxx';
 
 Base URL locale: `http://localhost:8000/api/v1/`
 Base URL produzione: `https://tastespot.crointhemorning.com/api/v1/`
+
+> L'URL radice (`/`) non esiste — è un'API pura. Usa `/api/v1/ping` per verificare che il server sia su.
 Autenticazione: header `Authorization: Bearer <token>` (🔒 = richiesto)
 
 | Metodo | Path | Descrizione |
@@ -245,5 +250,5 @@ git push origin main
 **Verifica deploy:**
 ```bash
 curl -s https://tastespot.crointhemorning.com/api/v1/ping
-# Risposta attesa: {"status":"ok","version":"1.0.4"}
+# Risposta attesa: {"status":"ok","version":"1.0.5"}
 ```
