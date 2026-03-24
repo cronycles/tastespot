@@ -92,7 +92,7 @@ export default function EditActivityScreen() {
       return
     }
     if (selectedTypeIds.length === 0) {
-      Alert.alert('Campo obbligatorio', 'Seleziona almeno una tipologia. Puoi crearne una nuova usando il campo qui sopra.')
+      Alert.alert('Campo obbligatorio', 'Seleziona almeno una tipologia. Puoi aggiungerne una dal menu Tipologie nel tuo profilo.')
       return
     }
 
