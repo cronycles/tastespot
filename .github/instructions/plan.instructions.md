@@ -6,8 +6,8 @@ applyTo: "**"
 
 ## Stato attuale
 
-**Ultima fase completata: 10 — Icona tipologia e default** ✅  
-**Prossima fase: 11 — Messaggio di benvenuto post-registrazione**
+**Ultima fase completata: 11 — Messaggio di benvenuto post-registrazione** ✅  
+**Prossima fase: 12 — Errori di validazione uniformi su tutti i form**
 
 ---
 
@@ -52,6 +52,7 @@ applyTo: "**"
 - **Fase 8** ✅ — Logger centralizzato (`src/lib/logger.ts`), `console.log` rimossi
 - **Fase 9** ✅ — Migrazione da Supabase a Laravel (MySQL, Sanctum, storage foto, deploy auto GitHub Actions)
 - **Fase 10** ✅ — `DEFAULT_ICON_KEY = 'storefront-outline'` in `src/types/index.ts`; add/edit attività reindirizzano a `/private/types` per creazione tipologie (no più inline)
+- **Fase 11** ✅ — Banner di benvenuto post-registrazione: `isNewUser` in `authStore`, banner in `(tabs)/index.tsx`, `dismissWelcome()` al tap su chiudi
 
 ---
 
