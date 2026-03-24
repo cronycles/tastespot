@@ -2,7 +2,7 @@
 
 ## Stato attuale
 **Fase completata: 9 — Migrazione backend self-hosted (Laravel)** ✅
-**Prossima fase: 10 — UX & Polish**
+**Prossima fase: 10 — Icona tipologia e default**
 
 Per riprendere in una nuova sessione: apri VS Code, apri una chat in modalità Agent e scrivi:
 > "Leggi il file docs/TasteSpot_Plan.md e riprendi lo sviluppo dalla prossima fase"
@@ -470,42 +470,109 @@ File da creare nel progetto Laravel:
 - Fase 7: lista paginata, filtri e ordinamenti funzionano
 - Fase 8: logger attivo, `console.log` rimossi dalla codebase
 - Fase 9: app funziona identicamente senza nessuna dipendenza da servizi terzi a pagamento
-- Fase 10: icona default tipologia, messaggio benvenuto, errori sotto i campi, pesi punteggio, condivisione
-- Fase 11: Sentry attivo in produzione, build APK e IPA generate con EAS
+- Fase 10: picker icona integrato nel flusso di creazione tipologia, icona default `storefront-outline`
+- Fase 11: banner benvenuto mostrato una volta sola dopo la registrazione
+- Fase 12: tutti i form mostrano errori sotto i campi, nessun Alert di validazione
+- Fase 13: TasteSpot appare nel "Condividi con" di Google Maps, deep link gestito
+- Fase 14: `src/config/scoring.ts` con `SMILE_VALUES` e `CATEGORY_WEIGHTS`; smile centrale = 6
+- Fase 15: Sentry attivo in produzione, build APK e IPA generate con EAS
 
 ---
 
-### Fase 10 — UX & Polish
+### Fase 10 — Icona tipologia e default
 
-**10a — Selezione icona al momento della creazione tipologia**
-- Al tap su "Aggiungi tipologia" si naviga direttamente alla schermata di creazione con il picker icona integrato
-- Se l'utente non sceglie un'icona, viene assegnata una icona generica di default (non quella del ristorante)
-
-**10b — Messaggio di benvenuto post-registrazione**
-- Dopo la registrazione, la home mostra un messaggio di benvenuto (es. banner o card) la prima volta che l'utente accede
-
-**10c — Errori di validazione uniformi**
-- Tutti i form dell'app mostrano gli errori **sotto i campi** (come già nel login), non con popup/Alert
-- Da correggere in particolare: form inserimento attività
-
-**10d — Algoritmo punteggio medio**
-- Valutare se dare più peso alla categoria "cibo" rispetto alle altre nel calcolo del punteggio medio complessivo
-- Definire i pesi e aggiornare `calcActivityAvgScore`
-
-**10e — Condivisione / deep link Google Maps**
-- Pulsante "Condividi" nel dettaglio attività che apre Google Maps o genera un link
-- Il link apre TasteSpot e naviga direttamente all'attività (deep link); se l'attività non esiste ancora, pre-compila il form di aggiunta
+Oggi aggiungere una tipologia non mostra subito il picker icona. Si vuole che:
+- Quando l'utente clicca "Aggiungi tipologia", viene portato direttamente alla schermata tipologie dove può scegliere il nome **e** l'icona nello stesso flusso
+- Se non sceglie un'icona, viene assegnata automaticamente una icona generica di default che rappresenti un'attività ristorativa senza essere specifica (es. `restaurant-outline` è troppo specifica — usare `storefront-outline` che indica genericamente un locale/esercizio commerciale)
+- L'icona di default va definita come costante in `src/theme/index.ts` o in un file di configurazione
 
 ---
 
-### Fase 11 — Sentry & EAS Build
+### Fase 11 — Messaggio di benvenuto post-registrazione
 
-**11a — Sentry error tracking**
+- Dopo una registrazione andata a buon fine, l'utente viene reindirizzato alla home
+- La home mostra un banner o card di benvenuto la **prima volta** (es. "Benvenuto in TasteSpot! Inizia aggiungendo la tua prima attività")
+- Il messaggio scompare dopo che l'utente lo chiude o naviga via; non deve riapparire ai login successivi
+- Implementazione: flag `isNewUser` settato nel `authStore` al momento della registrazione, resettato al dismiss
+
+---
+
+### Fase 12 — Errori di validazione uniformi su tutti i form
+
+Situazione attuale:
+- Form login: errori mostrati **sotto i campi** ✅
+- Form inserimento attività: errori mostrati con `Alert` popup ❌
+
+Obiettivo: tutti i form dell'app adottano lo stesso pattern del login — messaggio di errore in rosso sotto il campo interessato, nessun popup.
+
+Form da uniformare:
+- `activity/add.tsx` — nome obbligatorio, almeno una tipologia
+- `activity/edit/[id].tsx` — stesse validazioni
+- Qualsiasi altro form con Alert di validazione
+
+---
+
+### Fase 13 — Condivisione verso TasteSpot da Google Maps
+
+> **Fattibilità**: sì, è possibile tramite **deep link** su React Native con Expo. Quando un'altra app (Google Maps, browser, ecc.) condivide un link o testo, se
+TasteSpot è registrata come handler di un URL scheme (`tastespot://`) oppure di un universal link, il sistema mostra TasteSpot come destinazione del "Condividi con".
+
+Implementazione:
+- Registrare uno **URL scheme** personalizzato (`tastespot://`) in `app.json` → `scheme`
+- Registrare un **intent filter Android** per rispondere al `Share` di Google Maps (testo con nome luogo + coordinate o URL)
+- Su iOS: `CFBundleURLTypes` in Info.plist (gestito da Expo via `app.json`)
+- Handler in `src/app/_layout.tsx` con `expo-linking`: intercetta l'URL in ingresso, estrae nome/coordinate, e:
+  - Se un'attività con quelle coordinate è già esistente → naviga a `activity/[id]`
+  - Altrimenti → naviga a `activity/add` con nome e coordinate pre-compilati
+
+---
+
+### Fase 14 — Configurazione pesi punteggio e valori smile
+
+Situazione attuale:
+- I 5 smile valgono: 1, 3, **5.5**, 7.5, 10
+- Tutte le categorie (location, cibo, servizio, prezzo) hanno lo stesso peso nel calcolo della media
+
+Modifiche:
+- Lo smile centrale (😐) deve valere **6**, non 5.5 — valori aggiornati: 1, 3, **6**, 7.5, 10
+- Le categorie avranno pesi differenti (da decidere insieme) — es. il cibo conta di più
+- **Tutto in un file di configurazione** `src/config/scoring.ts` (costanti esportate, facilmente modificabili):
+  ```ts
+  export const SMILE_VALUES = [1, 3, 6, 7.5, 10]
+  export const CATEGORY_WEIGHTS = {
+    location: 1,
+    food: 2,     // il cibo conta doppio (da decidere)
+    service: 1,
+    price: 1,
+  }
+  ```
+- `calcActivityAvgScore` aggiornata per usare i pesi dal file di config
+
+> **Nota**: prima di implementare, decidere i pesi insieme (vedi sotto).
+
+#### Proposta pesi (da discutere)
+
+Categorie e peso suggerito su scala 1–3:
+
+| Categoria | Peso suggerito | Motivazione |
+|---|---|---|
+| Cibo | 3 | È il motivo principale per cui si va in un posto |
+| Servizio | 2 | Importante ma non decisivo |
+| Location | 1 | Dipende dal contesto |
+| Prezzo/qualità | 2 | Rilevante per la scelta |
+
+Se sei d'accordo li usiamo così, altrimenti dimmi i tuoi pesi e li mettiamo nella config.
+
+---
+
+### Fase 15 — Sentry & EAS Build
+
+**15a — Sentry error tracking**
 - Account Sentry (free tier) + DSN
 - `@sentry/react-native` installato e configurato
 - `logger.error()` integra `Sentry.captureException()` in produzione (il TODO in `logger.ts` è già pronto)
 
-**11b — EAS Build (APK / IPA)**
+**15b — EAS Build (APK / IPA)**
 - `eas.json` configurato con profili `development`, `preview`, `production`
 - `app.json` aggiornato con `bundleIdentifier` e `package` corretti
 - Prima build APK (Android) e IPA (iOS) generate con `eas build`
