@@ -12,17 +12,22 @@ App mobile iOS/Android per valutare e scoprire attività di ristorazione (bar, r
 
 **Tutto insieme dalla root (consigliato):**
 ```bash
-npm start
+npm run local:start
 # avvia backend e app in parallelo, output colorato
 ```
 
 **Oppure separati:**
 ```bash
-npm run backend   # solo Laravel su http://localhost:8000
-npm run app       # solo Expo (i = iOS | a = Android | r = reload)
+npm run local:backend   # solo Laravel su http://localhost:8000
+npm run local:app       # solo Expo (i = iOS | a = Android | r = reload)
 ```
 
-> La prima volta sul simulatore iOS serve `npx expo run:ios` nella cartella `tastespot/` (vedi Setup da zero).
+**Build Release su iPhone fisico (niente Metro, punta a produzione):**
+```bash
+npm run ios:device
+```
+
+> La prima volta serve il cavo USB e autorizzare il certificato in Impostazioni → Generali → VPN e gestione dispositivo.
 
 ---
 
