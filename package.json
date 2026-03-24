@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "backend": "cd backend && php artisan serve --port=8000",
+    "app": "cd tastespot && npx expo start",
+    "start": "concurrently --names \"BACKEND,APP\" --prefix-colors \"blue,green\" \"npm run backend\" \"npm run app\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
