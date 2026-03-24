@@ -1,8 +1,8 @@
 # TasteSpot — Piano di sviluppo
 
 ## Stato attuale
-**Fase completata: 6 — Modifica Attività** ✅
-**Prossima fase: 7 — Liste, Filtri & Ordinamento**
+**Fase completata: 9 — Migrazione backend self-hosted (Laravel)** ✅
+**Prossima fase: 10 — UX & Polish**
 
 Per riprendere in una nuova sessione: apri VS Code, apri una chat in modalità Agent e scrivi:
 > "Leggi il file docs/TasteSpot_Plan.md e riprendi lo sviluppo dalla prossima fase"
@@ -470,24 +470,51 @@ File da creare nel progetto Laravel:
 - Fase 7: lista paginata, filtri e ordinamenti funzionano
 - Fase 8: logger attivo, `console.log` rimossi dalla codebase
 - Fase 9: app funziona identicamente senza nessuna dipendenza da servizi terzi a pagamento
+- Fase 10: icona default tipologia, messaggio benvenuto, errori sotto i campi, pesi punteggio, condivisione
+- Fase 11: Sentry attivo in produzione, build APK e IPA generate con EAS
 
 ---
 
-### Fase 10 — i18n, Sentry & EAS Build
+### Fase 10 — UX & Polish
 
-> Attività spostate dalla Fase 8.
+**10a — Selezione icona al momento della creazione tipologia**
+- Al tap su "Aggiungi tipologia" si naviga direttamente alla schermata di creazione con il picker icona integrato
+- Se l'utente non sceglie un'icona, viene assegnata una icona generica di default (non quella del ristorante)
 
-**10a — i18next (internazionalizzazione)**
-- Setup `i18next` + `react-i18next`; lingue: IT (default), ES, EN
-- Traduzione di tutte le stringhe UI nei file `src/locales/{it,es,en}.json`
-- Hook `useTranslation()` al posto delle stringhe hardcoded
+**10b — Messaggio di benvenuto post-registrazione**
+- Dopo la registrazione, la home mostra un messaggio di benvenuto (es. banner o card) la prima volta che l'utente accede
 
-**10b — Sentry error tracking**
+**10c — Errori di validazione uniformi**
+- Tutti i form dell'app mostrano gli errori **sotto i campi** (come già nel login), non con popup/Alert
+- Da correggere in particolare: form inserimento attività
+
+**10d — Algoritmo punteggio medio**
+- Valutare se dare più peso alla categoria "cibo" rispetto alle altre nel calcolo del punteggio medio complessivo
+- Definire i pesi e aggiornare `calcActivityAvgScore`
+
+**10e — Condivisione / deep link Google Maps**
+- Pulsante "Condividi" nel dettaglio attività che apre Google Maps o genera un link
+- Il link apre TasteSpot e naviga direttamente all'attività (deep link); se l'attività non esiste ancora, pre-compila il form di aggiunta
+
+---
+
+### Fase 11 — Sentry & EAS Build
+
+**11a — Sentry error tracking**
 - Account Sentry (free tier) + DSN
 - `@sentry/react-native` installato e configurato
 - `logger.error()` integra `Sentry.captureException()` in produzione (il TODO in `logger.ts` è già pronto)
 
-**10c — EAS Build (APK / IPA)**
+**11b — EAS Build (APK / IPA)**
 - `eas.json` configurato con profili `development`, `preview`, `production`
 - `app.json` aggiornato con `bundleIdentifier` e `package` corretti
 - Prima build APK (Android) e IPA (iOS) generate con `eas build`
+
+---
+
+## Idee future
+
+> Idee da valutare in futuro — non pianificate.
+
+- **i18n**: setup `i18next` + `react-i18next`; lingue IT (default), ES, EN; traduzione di tutte le stringhe UI
+- **Prezzo medio a persona nel punteggio medio** (rilevante quando ci sono più utenti): nel dettaglio attività mostrare il prezzo medio a persona aggregato su tutte le recensioni, insieme al punteggio medio
