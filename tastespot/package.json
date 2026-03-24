@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web"
+    "local:start": "expo start",
+    "local:android": "expo run:android",
+    "local:ios": "expo run:ios",
+    "ios:device": "expo run:ios -d 00008150-001A7CD90ADA401C --configuration Release",
+    "local:web": "expo start --web"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
