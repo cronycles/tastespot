@@ -50,13 +50,11 @@ npm run app       # solo Expo (i = iOS | a = Android | r = reload)
 ```
 TasteSpot/                         ← radice del monorepo Git
 ├── .github/
-│   ├── copilot-instructions.md    ← Istruzioni Copilot per tutto il progetto
+│   ├── copilot-instructions.md    ← Istruzioni Copilot: stack, convenzioni, architettura
+│   ├── instructions/
+│   │   └── plan.instructions.md  ← Piano di sviluppo e stato fasi (auto-loaded da Copilot)
 │   └── workflows/
 │       └── deploy.yml             ← GitHub Actions: auto-deploy su push a main
-├── docs/                          ← Documentazione di progetto (non specifica di frontend/backend)
-│   ├── TasteSpot - Documento dei requisiti.md
-│   ├── TasteSpot_Plan.md
-│   └── TasteSpot_FasiSeguenti.md
 ├── scripts/
 │   └── deploy.sh                  ← Script bash eseguito da cPanel al deploy
 ├── .cpanel.yml                    ← Entry point deploy cPanel (richiama deploy.sh)

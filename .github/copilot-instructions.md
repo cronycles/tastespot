@@ -86,3 +86,8 @@ src/
 - Default location fallback: Genova, Italy (lat: 44.4056, lng: 8.9463)
 - Stale closure in async location functions: use `useLocationStore.getState()` instead of destructured state
 - POI pre-fill: on long-press use `map.queryRenderedFeatures(point)` to extract OSM feature properties (`name`, `amenity`, `addr:street`, `phone`, etc.) and pass them as URL params to `activity/add` for pre-compilation
+
+## Workflow
+
+### README maintenance
+After each implementation change, review `README.md` and update it if the change affects: project structure, stack, API endpoints, file paths, or setup instructions. Keep `README.md` accurate at all times.
