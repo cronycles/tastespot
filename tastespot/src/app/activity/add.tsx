@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
@@ -66,8 +65,10 @@ export default function AddActivityScreen() {
   const [selectedTypeIds, setSelectedTypeIds] = useState<string[]>([])
   const [isFavorite, setIsFavorite] = useState(false)
   const [saving, setSaving] = useState(false)
-
-
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [addressError, setAddressError] = useState<string | null>(null)
+  const [typesError, setTypesError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   // Address field autocomplete
   const [showAddressResults, setShowAddressResults] = useState(false)
@@ -100,6 +101,7 @@ export default function AddActivityScreen() {
     setAddressText(text)
     setShowAddressResults(true)
     searchAddress(text)
+    if (addressError) setAddressError(null)
     // Clear coords when user manually types an address
     if (coords) setCoords(null)
   }
@@ -131,19 +133,25 @@ export default function AddActivityScreen() {
     setSelectedTypeIds((prev) =>
       prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
     )
+    if (typesError) setTypesError(null)
   }
 
   const handleSave = async () => {
+    setNameError(null)
+    setAddressError(null)
+    setTypesError(null)
+    setSaveError(null)
+
     if (!name.trim()) {
-      Alert.alert('Campo obbligatorio', "Inserisci il nome dell'attività.")
+      setNameError("Inserisci il nome dell'attività.")
       return
     }
     if (!addressText.trim() || !coords) {
-      Alert.alert('Campo obbligatorio', "Inserisci l'indirizzo dell'attività.")
+      setAddressError("Seleziona un indirizzo dai suggerimenti.")
       return
     }
     if (selectedTypeIds.length === 0) {
-      Alert.alert('Campo obbligatorio', 'Seleziona almeno una tipologia. Puoi aggiungerne una dal menu Tipologie nel tuo profilo.')
+      setTypesError('Seleziona almeno una tipologia.')
       return
     }
 
@@ -162,7 +170,7 @@ export default function AddActivityScreen() {
     setSaving(false)
 
     if (error) {
-      Alert.alert('Errore', error)
+      setSaveError(error)
       return
     }
 
@@ -195,18 +203,21 @@ export default function AddActivityScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        {saveError ? <Text style={styles.errorBanner}>{saveError}</Text> : null}
+
         {/* NOME */}
         <View style={styles.section}>
           <Text style={styles.label}>Nome *</Text>
           <TextInput
             style={styles.input}
             value={name}
-            onChangeText={setName}
+            onChangeText={(v) => { setName(v); if (nameError) setNameError(null) }}
             placeholder="Es. Trattoria da Mario"
             placeholderTextColor={theme.colors.textSecondary}
             autoFocus={!name}
             returnKeyType="next"
           />
+          {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
         </View>
 
         {/* INDIRIZZO con autocomplete */}
@@ -255,9 +266,10 @@ export default function AddActivityScreen() {
               />
             </View>
           )}
+          {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
         </View>
 
-        {/* TELEFONO */}
+        {/* TELEFONO */
         <View style={styles.section}>
           <Text style={styles.label}>Telefono</Text>
           <TextInput
@@ -310,9 +322,10 @@ export default function AddActivityScreen() {
             <Ionicons name="settings-outline" size={14} color={theme.colors.primary} />
             <Text style={styles.manageTypesText}>Gestisci tipologie</Text>
           </TouchableOpacity>
+          {typesError ? <Text style={styles.errorText}>{typesError}</Text> : null}
         </View>
 
-        {/* NOTE */}
+        {/* NOTE */
         <View style={styles.section}>
           <Text style={styles.label}>Note</Text>
           <TextInput
@@ -405,6 +418,17 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.primary,
+  },
+  errorText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.error,
+    marginTop: theme.spacing.xs,
+  },
+  errorBanner: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.error,
+    marginBottom: theme.spacing.md,
+    textAlign: 'center',
   },
   section: {
     marginBottom: theme.spacing.lg,
