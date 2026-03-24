@@ -49,8 +49,14 @@ cd tastespot && npx expo start
 ```
 TasteSpot/                         ← radice del monorepo Git
 ├── .github/
+│   ├── copilot-instructions.md    ← Istruzioni Copilot per tutto il progetto
 │   └── workflows/
 │       └── deploy.yml             ← GitHub Actions: auto-deploy su push a main
+├── docs/                          ← Documentazione di progetto (non specifica di frontend/backend)
+│   ├── TasteSpot - Documento dei requisiti.md
+│   ├── TasteSpot_Plan.md
+│   ├── TasteSpot_FasiSeguenti.md
+│   └── supabase-legacy/           ← Migrazioni Supabase (progetto precedente, solo archivio)
 ├── scripts/
 │   └── deploy.sh                  ← Script bash eseguito da cPanel al deploy
 ├── .cpanel.yml                    ← Entry point deploy cPanel (richiama deploy.sh)
@@ -62,18 +68,18 @@ TasteSpot/                         ← radice del monorepo Git
 │   │   └── Models/                ← User, Activity, ActivityType, Review, ActivityPhoto
 │   ├── database/
 │   │   ├── migrations/            ← Migrazioni database
-│   │   └── database.sqlite        ← ← IL DATABASE (vedi sezione sotto)
+│   │   └── database.sqlite        ← IL DATABASE locale (vedi sezione sotto)
 │   ├── routes/api.php             ← Tutte le route sotto /api/v1/
 │   ├── storage/app/public/photos/ ← Foto caricate dall'app
 │   ├── vendor/                    ← Dipendenze PHP (committate — no composer install su server)
-│   ├── .env                       ← Config locale (SQLite, APP_DEBUG=true)
-│   ├── .env.production            ← Config produzione (NON in git — solo locale e sul server)
+│   ├── .env                       ← Config locale (SQLite, APP_DEBUG=true) — NON in git
+│   ├── .env.production            ← Config produzione — NON in git (solo locale e sul server)
 │   ├── .gitignore
 │   └── DEPLOY.md                  ← Guida completa deploy produzione
 └── tastespot/                     ← App React Native + Expo
     ├── src/
     │   ├── app/                   ← Route Expo Router (file = schermata)
-    │   │   ├── _layout.tsx        ← Root layout + auth guard (useEffect per redirect)
+    │   │   ├── _layout.tsx        ← Root layout + auth guard
     │   │   ├── (auth)/            ← login.tsx, register.tsx
     │   │   ├── (tabs)/            ← Home, Mappa, Vicino a me, Preferiti, Profilo
     │   │   ├── activity/          ← [id].tsx, add.tsx, edit/[id].tsx, review/[id].tsx
@@ -83,7 +89,7 @@ TasteSpot/                         ← radice del monorepo Git
     │   ├── lib/                   ← api.ts (client HTTP), logger.ts
     │   ├── types/                 ← TypeScript types condivisi (index.ts)
     │   └── theme/                 ← Colori, spaziature, font (index.ts)
-    ├── .env                       ← EXPO_PUBLIC_API_URL (locale o produzione)
+    ├── .env                       ← EXPO_PUBLIC_API_URL (locale o produzione) — NON in git
     └── .env.example               ← Template .env con valori di esempio
 ```
 
