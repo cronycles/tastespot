@@ -243,7 +243,7 @@ export default function HomeScreen() {
         onLongPress={handleLongPress}
         compassEnabled
         compassViewPosition={3}
-        compassViewMargins={{ x: theme.spacing.md + 8, y: insets.bottom + theme.spacing.sm + 56 + 8 + 44 + 8 }}
+        compassViewMargins={{ x: theme.spacing.md + 8, y: insets.bottom + 148 }}
         logoEnabled={false}
         attributionEnabled={false}
       >
@@ -404,9 +404,12 @@ export default function HomeScreen() {
       </View>
 
       {/*
-        Right-side FAB stack — right: md (16px from right edge), centers aligned.
-        fabAdd (w56) center = 16+28 = 44px from right.
-        fabCenter (w44) needs right: 16+6 = 22px → center = 22+22 = 44px. ✓
+        Right side (bottom to top):
+          [+] fabAdd   — bottom + 8   h=56
+          gap 32px
+          [◎] locate  — bottom + 96  h=44  (grouped visually with compass above)
+        Center: fabAdd right=16→center=44px; locate right=22→center=44px. ✓
+        Zoom pill: centered, bottom + 4 (flush to tab bar).
       */}
       <TouchableOpacity
         style={[styles.fabAdd, { bottom: insets.bottom + theme.spacing.sm }]}
@@ -416,17 +419,17 @@ export default function HomeScreen() {
         <Ionicons name="add" size={28} color={theme.colors.surface} />
       </TouchableOpacity>
 
-      {/* Locate — above fabAdd, right offset by +6 to center-align with fabAdd */}
+      {/* Locate — well above fabAdd, visually grouped with compass */}
       <TouchableOpacity
-        style={[styles.fabCenter, { bottom: insets.bottom + theme.spacing.sm + 56 + 8, right: theme.spacing.md + 6 }]}
+        style={[styles.fabCenter, { bottom: insets.bottom + 96, right: theme.spacing.md + 6 }]}
         onPress={handleCenterOnUser}
         activeOpacity={0.85}
       >
         <Ionicons name="locate" size={20} color={theme.colors.primary} />
       </TouchableOpacity>
 
-      {/* Zoom pill — horizontal, centered, closer to tab bar */}
-      <View style={[styles.zoomRow, { bottom: insets.bottom + theme.spacing.sm }]}>
+      {/* Zoom pill — horizontal, centered, flush to tab bar */}
+      <View style={[styles.zoomRow, { bottom: insets.bottom + theme.spacing.xs }]}>
         <TouchableOpacity
           style={styles.zoomBtn}
           onPress={() => {
