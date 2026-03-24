@@ -6,8 +6,8 @@ applyTo: "**"
 
 ## Stato attuale
 
-**Ultima fase completata: 13 — Condivisione verso TasteSpot da Google Maps** ✅  
-**Prossima fase: 14 — Configurazione pesi punteggio e valori smile**
+**Ultima fase completata: 14 — Configurazione pesi punteggio e valori smile** ✅  
+**Prossima fase: 15 — Sentry & EAS Build**
 
 ---
 
@@ -55,6 +55,7 @@ applyTo: "**"
 - **Fase 11** ✅ — Banner di benvenuto post-registrazione: `isNewUser` in `authStore`, banner in `(tabs)/index.tsx`, `dismissWelcome()` al tap su chiudi
 - **Fase 12** ✅ — Errori di validazione inline sotto i campi in `add.tsx` e `edit/[id].tsx`; rimossi tutti gli `Alert` di validazione; `saveError` banner per errori backend
 - **Fase 13** ✅ — URL scheme `tastespot://` + Android `ACTION_SEND` intent filter; handler in `_layout.tsx` con `expo-linking` che parsifica il testo condiviso da Google Maps, estrae nome/coordinate e naviga a `activity/[id]` se esiste o a `activity/add` pre-compilato
+- **Fase 14** ✅ — Creato `src/config/scoring.ts` con `SMILE_VALUES=[1,3.5,6,8,10]` e `CATEGORY_WEIGHTS={location:1,food:3,service:2,price:2}`; `calcActivityAvgScore` ora usa i pesi; `SmileRating` importa da `scoring.ts`
 
 ---
 
