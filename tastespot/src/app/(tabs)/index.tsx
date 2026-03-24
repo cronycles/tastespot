@@ -412,7 +412,7 @@ export default function HomeScreen() {
         Zoom pill: centered, bottom + 4 (flush to tab bar).
       */}
       <TouchableOpacity
-        style={[styles.fabAdd, { bottom: insets.bottom + theme.spacing.sm }]}
+        style={[styles.fabAdd, { bottom: insets.bottom + 2 }]}
         onPress={() => router.push('/activity/add')}
         activeOpacity={0.85}
       >
@@ -429,7 +429,7 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       {/* Zoom pill — horizontal, centered, flush to tab bar */}
-      <View style={[styles.zoomRow, { bottom: insets.bottom + theme.spacing.xs }]}>
+      <View style={[styles.zoomRow, { bottom: insets.bottom + theme.spacing.sm }]}>
         <TouchableOpacity
           style={styles.zoomBtn}
           onPress={() => {
