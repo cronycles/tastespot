@@ -5,10 +5,12 @@ type AuthState = {
   token: string | null
   initialized: boolean
   loading: boolean
+  isNewUser: boolean
   init: () => Promise<void>
   signIn: (email: string, password: string) => Promise<string | null>
   signUp: (name: string, email: string, password: string) => Promise<string | null>
   signOut: () => Promise<void>
+  dismissWelcome: () => void
 }
 
 function parseAuthError(message: string): string {
@@ -22,6 +24,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   initialized: false,
   loading: false,
+  isNewUser: false,
 
   init: async () => {
     const token = await loadToken()
@@ -62,13 +65,15 @@ export const useAuthStore = create<AuthState>((set) => ({
         password_confirmation: password,
       })
       setToken(token)
-      set({ token, loading: false })
+      set({ token, loading: false, isNewUser: true })
       return null
     } catch (e: unknown) {
       set({ loading: false })
       return parseAuthError((e as Error).message)
     }
   },
+
+  dismissWelcome: () => set({ isNewUser: false }),
 
   signOut: async () => {
     try { await api.post('/auth/logout') } catch { /* best effort */ }

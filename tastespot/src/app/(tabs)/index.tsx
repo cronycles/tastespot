@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import { useActivitiesStore, ActivityWithDetails } from '@/stores/activitiesStore'
+import { useAuthStore } from '@/stores/authStore'
 import { useLocationStore } from '@/stores/locationStore'
 import { useTypesStore } from '@/stores/typesStore'
 import { useNominatim, NominatimResult } from '@/hooks/useNominatim'
@@ -46,6 +47,7 @@ export default function HomeScreen() {
   const { results, loading: nominatimLoading, search, clear } = useNominatim()
   const { types, fetch: fetchTypes } = useTypesStore()
   const { activities, fetch: fetchActivities } = useActivitiesStore()
+  const { isNewUser, dismissWelcome } = useAuthStore()
 
   const [searchText, setSearchText] = useState('')
   const [showResults, setShowResults] = useState(false)
@@ -457,6 +459,22 @@ export default function HomeScreen() {
         <Ionicons name="list" size={20} color={theme.colors.primary} />
         <Text style={styles.fabListText}>Vicino a me</Text>
       </TouchableOpacity>
+
+      {/* Banner benvenuto — mostrato solo dopo la registrazione */}
+      {isNewUser && (
+        <View style={[styles.welcomeBanner, { bottom: insets.bottom + theme.spacing.lg + 56 + theme.spacing.md }]}>
+          <View style={styles.welcomeContent}>
+            <Ionicons name="sparkles" size={20} color={theme.colors.primary} style={styles.welcomeIcon} />
+            <View style={styles.welcomeTextWrap}>
+              <Text style={styles.welcomeTitle}>Benvenuto in TasteSpot!</Text>
+              <Text style={styles.welcomeBody}>Premi + per aggiungere la tua prima attività.</Text>
+            </View>
+          </View>
+          <TouchableOpacity onPress={dismissWelcome} hitSlop={8} style={styles.welcomeClose}>
+            <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   )
 }
@@ -592,6 +610,46 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
     zIndex: 10,
+  },
+  welcomeBanner: {
+    position: 'absolute',
+    left: theme.spacing.md,
+    right: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 10,
+  },
+  welcomeContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  welcomeIcon: {
+    marginRight: theme.spacing.sm,
+  },
+  welcomeTextWrap: {
+    flex: 1,
+  },
+  welcomeTitle: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+    marginBottom: 2,
+  },
+  welcomeBody: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+  },
+  welcomeClose: {
+    marginLeft: theme.spacing.sm,
   },
   fabList: {
     position: 'absolute',
