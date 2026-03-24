@@ -269,7 +269,7 @@ export default function AddActivityScreen() {
           {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
         </View>
 
-        {/* TELEFONO */
+        {/* TELEFONO */}
         <View style={styles.section}>
           <Text style={styles.label}>Telefono</Text>
           <TextInput
