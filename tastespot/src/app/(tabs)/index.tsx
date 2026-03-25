@@ -307,7 +307,7 @@ export default function HomeScreen() {
             const lat = parseFloat(allResults[0].lat)
             const lng = parseFloat(allResults[0].lon)
             router.push({
-              pathname: '/activity/add',
+              pathname: '/activity/confirm-location',
               params: { lat: String(lat), lng: String(lng), ...(name && { name }) },
             })
             return
@@ -319,7 +319,7 @@ export default function HomeScreen() {
 
       Alert.alert(
         'Link non riconosciuto',
-        `Non riesco a trovare le coordinate.\n\nURL risolto:\n${resolved.slice(0, 120)}\n\nq param: ${resolved.match(/[?&]q=([^&]+)/)?.[1] ?? 'nessuno'}`
+        'Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato il link da Google Maps (Condividi → Copia link) e riprova.'
       )
     } finally {
       setPasteLoading(false)
