@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Solid gradient background for Android adaptive icon -->
+  <defs>
+    <radialGradient id="bg" cx="38%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#FF7248"/>
+      <stop offset="100%" stop-color="#BF3010"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <ellipse cx="360" cy="280" rx="340" ry="280" fill="white" opacity="0.06"/>
+</svg>
