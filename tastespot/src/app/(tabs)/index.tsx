@@ -231,32 +231,26 @@ export default function HomeScreen() {
         const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
         const name = parts[0]
 
-        // Build a cascade of Nominatim queries from most to least specific
-        const addressWithoutName = parts.length > 1 ? parts.slice(1).join(', ') : ''
+        // The last segment from Google Maps is often province/country in English ("Biscay", "Spain"),
+        // which Nominatim doesn't recognise. Drop it progressively.
+        const withoutLast = parts.length > 2 ? parts.slice(0, -1).join(', ') : ''
 
-        // Postal code: either "12345 CityName" combined or a standalone "12345" segment
+        // Postal code: "12345 CityName" combined, or a standalone "12345" segment
         let postalCode = ''
-        let city = ''
         const combinedPostal = parts.find((p) => /^\d{4,5}\s+\w/.test(p))
         if (combinedPostal) {
           postalCode = combinedPostal.match(/\d{4,5}/)?.[0] ?? ''
-          city = combinedPostal.replace(/\d{4,5}\s*/, '').trim()
         } else {
           const postalIdx = parts.findIndex((p) => /^\d{4,5}$/.test(p))
           if (postalIdx !== -1) postalCode = parts[postalIdx]
-          city = parts[parts.length - 1]
         }
-        const postalCity = [postalCode, city].filter(Boolean).join(' ').trim()
 
         const queries = [
-          fullAddress,                                               // full address as-is (best for standard formats)
-          addressWithoutName,                                        // address without place name
-          postalCode ? `${name}, ${postalCode}` : '',               // name + postal code only
-          postalCity ? `${name}, ${postalCity}` : '',               // name + postal + city
-          postalCity || '',                                          // postal + city (coordinates only, name from parts[0])
-          city !== parts[parts.length - 1] ? `${name}, ${city}` : '',
-          `${name}, ${parts[parts.length - 1]}`,                    // name + last part (country/province)
-          name,                                                      // name only
+          withoutLast,                                    // full address minus last segment (drops English province)
+          fullAddress,                                    // full address as-is
+          postalCode ? `${name}, ${postalCode}` : '',    // name + postal (locale-independent, very reliable)
+          withoutLast ? `${name}, ${withoutLast.split(',').slice(-1)[0].trim()}` : '', // name + city segment
+          name,                                           // name only
         ].filter(Boolean)
 
         const trySearch = async (query: string) => {
