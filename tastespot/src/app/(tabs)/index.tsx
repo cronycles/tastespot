@@ -188,7 +188,6 @@ export default function HomeScreen() {
       setPasteLoading(false)
     }
   }
-  }
 
   const handleCenterOnUser = async () => {
     await requestAndFetch()
