@@ -154,26 +154,31 @@ export default function HomeScreen() {
     setPasteLoading(true)
     try {
       let resolved = text
-      // Resolve short URL (maps.app.goo.gl or goo.gl) by following redirects
-      if (text.includes('goo.gl') || text.includes('maps.app')) {
-        const urlMatch = text.match(/https?:\/\/[^\s]+/)
-        if (urlMatch) {
-          try {
-            const res = await fetch(urlMatch[0], { method: 'HEAD', redirect: 'follow' })
-            resolved = res.url || text
-          } catch {
-            resolved = text
+
+      // Resolve short URL (maps.app.goo.gl) by following redirects with GET
+      const urlMatch = text.match(/https?:\/\/[^\s]+/)
+      if (urlMatch && (text.includes('goo.gl') || text.includes('maps.app'))) {
+        try {
+          const res = await fetch(urlMatch[0], { method: 'GET', redirect: 'follow' })
+          // res.url is the final URL after all redirects
+          if (res.url && res.url !== urlMatch[0]) {
+            resolved = res.url
           }
+        } catch {
+          resolved = text
         }
       }
 
-      // Extract coords from resolved URL (@lat,lng) or query param
+      // Extract coords from resolved URL (@lat,lng,zoom) or query param q=lat,lng
       const coordsMatch = resolved.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
       const qMatch = resolved.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
       const match = coordsMatch ?? qMatch
 
       if (!match) {
-        Alert.alert('Link non riconosciuto', 'Copia un link da Google Maps e riprova.')
+        Alert.alert(
+          'Link non riconosciuto',
+          `Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato il link da Google Maps (Condividi → Copia link) e riprova.\n\nURL ricevuto: ${resolved.slice(0, 80)}…`
+        )
         return
       }
 
