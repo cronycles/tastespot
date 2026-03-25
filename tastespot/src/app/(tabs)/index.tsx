@@ -145,119 +145,49 @@ export default function HomeScreen() {
   const [pasteLoading, setPasteLoading] = useState(false)
 
   const handlePasteFromMaps = async () => {
-    const text = await Clipboard.getStringAsync()
+    const text = (await Clipboard.getStringAsync()).trim()
     if (!text) {
-      Alert.alert('Clipboard vuoto', 'Copia prima il link da Google Maps.')
+      Alert.alert('Clipboard vuoto', "Copia prima l'indirizzo da Google Maps.")
       return
     }
 
     setPasteLoading(true)
     try {
-      let resolved = text
+      // text is a plain address (e.g. "18 Stoney St, London SE1 9AD")
+      // Try progressively simpler queries in case the last segment (country) confuses Nominatim
+      const parts = text.split(',').map((p) => p.trim()).filter(Boolean)
+      const queries = [
+        text,
+        parts.length > 1 ? parts.slice(0, -1).join(', ') : '',  // drop last segment (country)
+        parts.length > 2 ? parts.slice(1, -1).join(', ') : '',  // drop first + last
+      ].filter(Boolean)
 
-      // Follow redirects to get the final Google Maps URL
-      const urlMatch = text.match(/https?:\/\/[^\s]+/)
-      if (urlMatch) {
+      for (const q of queries) {
         try {
-          const res = await fetch(urlMatch[0], {
-            method: 'GET',
-            redirect: 'follow',
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-            },
-          })
-          resolved = res.url || urlMatch[0]
-        } catch {
-          resolved = text
-        }
-      }
-
-      // EU GDPR consent redirect: follow the `continue` param
-      if (resolved.includes('consent.google.com')) {
-        const continueMatch = resolved.match(/[?&]continue=([^&]+)/)
-        if (continueMatch) {
-          resolved = decodeURIComponent(continueMatch[1])
-          try {
-            const res2 = await fetch(resolved, {
-              method: 'GET',
-              redirect: 'follow',
-              headers: {
-                'User-Agent':
-                  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-              },
-            })
-            if (res2.url && !res2.url.includes('consent.google.com')) {
-              resolved = res2.url
-            }
-          } catch {
-            // keep the continue URL
-          }
-        }
-      }
-
-      // 1. Try direct coordinates: @lat,lng or q=lat,lng
-      const coordsMatch = resolved.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-      const qCoordsMatch = resolved.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
-      const directMatch = coordsMatch ?? qCoordsMatch
-
-      if (directMatch) {
-        const lat = parseFloat(directMatch[1])
-        const lng = parseFloat(directMatch[2])
-        // Check if activity already exists at these coords
-        const { activities: all } = useActivitiesStore.getState()
-        const existing = all.find((a) => {
-          if (!a.lat || !a.lng) return false
-          const d = Math.sqrt((a.lat - lat) ** 2 + (a.lng - lng) ** 2)
-          return d < 0.0005
-        })
-        if (existing) {
-          router.push({ pathname: '/activity/[id]', params: { id: existing.id } })
-        } else {
-          // Coords are precise — skip confirm-location, go straight to add
-          router.push({ pathname: '/activity/add', params: { lat: String(lat), lng: String(lng) } })
-        }
-        return
-      }
-
-      // 2. EU fallback: text address in q= param → geocode with Nominatim to get coords
-      const qNameMatch = resolved.match(/[?&]q=([^&]+)/)
-      if (qNameMatch) {
-        const fullAddress = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
-        // Try progressively simpler queries: the last segment is often a country name in the
-        // user's UI language ("Regno Unito", "España") which Nominatim may not recognise.
-        const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
-        const queries = [
-          fullAddress,
-          parts.length > 1 ? parts.slice(0, -1).join(', ') : '',   // drop country
-          parts.length > 2 ? parts.slice(1, -1).join(', ') : '',   // drop country + first (unit/name)
-        ].filter(Boolean)
-        try {
-          for (const q of queries) {
-            const geoRes = await fetch(
-              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
-              { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
-            )
-            const geoData = await geoRes.json()
-            if (geoData.length > 0) {
-              const lat = parseFloat(geoData[0].lat)
-              const lng = parseFloat(geoData[0].lon)
-              router.push({ pathname: '/activity/confirm-location', params: { lat: String(lat), lng: String(lng) } })
-              return
-            }
+          const geoRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
+            { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
+          )
+          const geoData = await geoRes.json()
+          if (geoData.length > 0) {
+            const lat = parseFloat(geoData[0].lat)
+            const lng = parseFloat(geoData[0].lon)
+            router.push({ pathname: '/activity/confirm-location', params: { lat: String(lat), lng: String(lng) } })
+            return
           }
         } catch {
-          // fall through to error
+          // try next query
         }
       }
 
       Alert.alert(
-        'Link non riconosciuto',
-        'Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato il link da Google Maps (Condividi → Copia link) e riprova.'
+        'Indirizzo non trovato',
+        "Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato l'indirizzo completo (via, città) da Google Maps e riprova."
       )
     } finally {
       setPasteLoading(false)
     }
+  }
   }
 
   const handleCenterOnUser = async () => {
@@ -542,8 +472,8 @@ export default function HomeScreen() {
                 text: 'Da Google Maps',
                 onPress: () =>
                   Alert.alert(
-                    'Incolla da Google Maps',
-                    '1. Apri Google Maps e cerca il locale\n2. Tocca Condividi → Copia link\n3. Torna qui e tocca Incolla',
+                    'Incolla indirizzo da Maps',
+                    '1. Apri Google Maps e cerca il locale\n2. Tieni premuto sull\'indirizzo nella scheda del posto\n3. Tocca "Copia"\n4. Torna qui e tocca Incolla',
                     [
                       { text: 'Annulla', style: 'cancel' },
                       { text: 'Incolla', onPress: handlePasteFromMaps },
