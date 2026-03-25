@@ -319,7 +319,7 @@ export default function HomeScreen() {
 
       Alert.alert(
         'Link non riconosciuto',
-        'Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato il link da Google Maps (Condividi → Copia link) e riprova.'
+        `URL risolto:\n${resolved.slice(0, 200)}`
       )
     } finally {
       setPasteLoading(false)
