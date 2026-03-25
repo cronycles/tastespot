@@ -224,18 +224,27 @@ export default function HomeScreen() {
       const qNameMatch = resolved.match(/[?&]q=([^&]+)/)
       if (qNameMatch) {
         const fullAddress = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
+        // Try progressively simpler queries: the last segment is often a country name in the
+        // user's UI language ("Regno Unito", "España") which Nominatim may not recognise.
+        const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
+        const queries = [
+          fullAddress,
+          parts.length > 1 ? parts.slice(0, -1).join(', ') : '',   // drop country
+          parts.length > 2 ? parts.slice(1, -1).join(', ') : '',   // drop country + first (unit/name)
+        ].filter(Boolean)
         try {
-          const geoRes = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fullAddress)}&format=json&limit=1`,
-            { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
-          )
-          const geoData = await geoRes.json()
-          if (geoData.length > 0) {
-            const lat = parseFloat(geoData[0].lat)
-            const lng = parseFloat(geoData[0].lon)
-            // Coords from geocoding may be approximate — show confirm-location to let user adjust
-            router.push({ pathname: '/activity/confirm-location', params: { lat: String(lat), lng: String(lng) } })
-            return
+          for (const q of queries) {
+            const geoRes = await fetch(
+              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
+              { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
+            )
+            const geoData = await geoRes.json()
+            if (geoData.length > 0) {
+              const lat = parseFloat(geoData[0].lat)
+              const lng = parseFloat(geoData[0].lon)
+              router.push({ pathname: '/activity/confirm-location', params: { lat: String(lat), lng: String(lng) } })
+              return
+            }
           }
         } catch {
           // fall through to error
