@@ -79,7 +79,7 @@ export default function ConfirmLocationScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Conferma posizione" topInset={insets.top > 0} />
+      <ScreenHeader title="Conferma posizione" showBack topInset={insets.top > 0} />
 
       <View style={styles.mapWrapper}>
         <MapLibreGL.MapView
@@ -92,7 +92,7 @@ export default function ConfirmLocationScreen() {
           attributionEnabled={false}
         >
           <MapLibreGL.Camera
-            defaultSettings={{ centerCoordinate: [initialLng, initialLat], zoomLevel: 16 }}
+            defaultSettings={{ centerCoordinate: [initialLng, initialLat], zoomLevel: 18 }}
           />
         </MapLibreGL.MapView>
 
