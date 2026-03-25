@@ -250,7 +250,7 @@ export default function HomeScreen() {
 
       Alert.alert(
         'Link non riconosciuto',
-        'Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato il link da Google Maps (Condividi → Copia link) e riprova.'
+        `Non riesco a trovare le coordinate.\n\nURL risolto:\n${resolved.slice(0, 120)}\n\nq param: ${resolved.match(/[?&]q=([^&]+)/)?.[1] ?? 'nessuno'}`
       )
     } finally {
       setPasteLoading(false)
