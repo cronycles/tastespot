@@ -232,9 +232,24 @@ export default function HomeScreen() {
         const name = parts[0]
 
         // Build multiple search strategies, try them in order until one succeeds
-        const postalCityPart = parts.find((p) => /\d{4,5}\s+\w/.test(p)) ?? ''
-        const postalCode = postalCityPart.match(/\d{4,5}/)?.[0] ?? ''
-        const city = postalCityPart.replace(/\d{4,5}\s*/, '').trim() || parts[parts.length - 1]
+
+        // Postal code: either "12345 CityName" in one segment, or a standalone 5-digit segment
+        let postalCode = ''
+        let city = ''
+        const combinedPostal = parts.find((p) => /^\d{4,5}\s+\w/.test(p))
+        if (combinedPostal) {
+          postalCode = combinedPostal.match(/\d{4,5}/)?.[0] ?? ''
+          city = combinedPostal.replace(/\d{4,5}\s*/, '').trim()
+        } else {
+          const postalIdx = parts.findIndex((p) => /^\d{4,5}$/.test(p))
+          if (postalIdx !== -1) {
+            postalCode = parts[postalIdx]
+            // province/country after the postal code is unreliable — skip it as city
+          }
+          // city fallback: last part (may be province/country — used only as last resort)
+          city = parts[parts.length - 1]
+        }
+
         // Reconstruct street: look for a number-only part and join with previous part
         let streetQuery = ''
         for (let i = 1; i < parts.length - 1; i++) {
@@ -245,8 +260,10 @@ export default function HomeScreen() {
         }
 
         const queries = [
-          streetQuery && postalCode ? `${streetQuery}, ${postalCode} ${city}` : '',
-          postalCode ? `${name}, ${postalCode} ${city}` : '',
+          streetQuery && postalCode ? `${streetQuery}, ${postalCode} ${city}`.trim() : '',
+          streetQuery && postalCode ? `${streetQuery}, ${postalCode}` : '',
+          postalCode ? `${name}, ${postalCode} ${city}`.trim() : '',
+          postalCode ? `${name}, ${postalCode}` : '',
           city ? `${name}, ${city}` : '',
           name,
         ].filter(Boolean)
