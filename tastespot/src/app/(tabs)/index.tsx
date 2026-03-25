@@ -10,6 +10,7 @@ import {
   Alert,
   Keyboard,
 } from 'react-native'
+import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -139,6 +140,74 @@ export default function HomeScreen() {
     setShowResults(false)
     setSelectedCoords(null)
     clear()
+  }
+
+  const [pasteLoading, setPasteLoading] = useState(false)
+
+  const handlePasteFromMaps = async () => {
+    const text = await Clipboard.getStringAsync()
+    if (!text) {
+      Alert.alert('Clipboard vuoto', 'Copia prima il link da Google Maps.')
+      return
+    }
+
+    setPasteLoading(true)
+    try {
+      let resolved = text
+      // Resolve short URL (maps.app.goo.gl or goo.gl) by following redirects
+      if (text.includes('goo.gl') || text.includes('maps.app')) {
+        const urlMatch = text.match(/https?:\/\/[^\s]+/)
+        if (urlMatch) {
+          try {
+            const res = await fetch(urlMatch[0], { method: 'HEAD', redirect: 'follow' })
+            resolved = res.url || text
+          } catch {
+            resolved = text
+          }
+        }
+      }
+
+      // Extract coords from resolved URL (@lat,lng) or query param
+      const coordsMatch = resolved.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+      const qMatch = resolved.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
+      const match = coordsMatch ?? qMatch
+
+      if (!match) {
+        Alert.alert('Link non riconosciuto', 'Copia un link da Google Maps e riprova.')
+        return
+      }
+
+      const lat = parseFloat(match[1])
+      const lng = parseFloat(match[2])
+
+      // Extract place name from first non-URL line of clipboard text
+      const firstLine = text.split('\n')[0].trim()
+      const name = firstLine && !firstLine.startsWith('http') ? firstLine : undefined
+
+      // Check if activity already exists near these coords (~50m)
+      const { activities: all } = useActivitiesStore.getState()
+      const existing = all.find((a) => {
+        if (!a.lat || !a.lng) return false
+        const dlat = a.lat - lat
+        const dlng = a.lng - lng
+        return Math.sqrt(dlat * dlat + dlng * dlng) < 0.0005
+      })
+
+      if (existing) {
+        router.push({ pathname: '/activity/[id]', params: { id: existing.id } })
+      } else {
+        router.push({
+          pathname: '/activity/add',
+          params: {
+            lat: String(lat),
+            lng: String(lng),
+            ...(name && { name }),
+          },
+        })
+      }
+    } finally {
+      setPasteLoading(false)
+    }
   }
 
   const handleCenterOnUser = async () => {
@@ -388,6 +457,20 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item}
             contentContainerStyle={styles.filtersContent}
+            ListHeaderComponent={
+              <TouchableOpacity
+                style={styles.pasteChip}
+                onPress={handlePasteFromMaps}
+                activeOpacity={0.7}
+                disabled={pasteLoading}
+              >
+                {pasteLoading
+                  ? <ActivityIndicator size="small" color={theme.colors.primary} />
+                  : <Ionicons name="clipboard-outline" size={14} color={theme.colors.primary} />
+                }
+                <Text style={styles.pasteChipText}>Da Maps</Text>
+              </TouchableOpacity>
+            }
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={[styles.filterChip, activeFilter === item && styles.filterChipActive]}
@@ -567,7 +650,28 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     paddingHorizontal: 2,
   },
-  filterChip: {
+  pasteChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 6,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+    marginRight: theme.spacing.sm,
+  },
+  pasteChipText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.medium,
+  },
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 6,
     borderRadius: theme.borderRadius.full,
