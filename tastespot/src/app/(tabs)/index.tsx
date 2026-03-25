@@ -230,10 +230,26 @@ export default function HomeScreen() {
         const fullAddress = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
         const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
         const name = parts[0]
-        // Build a focused query: name + postal code + city (much better for Nominatim)
-        const postalPart = parts.find((p) => /\d{4,5}/.test(p)) ?? ''
-        const cityPart = parts[parts.length - 1] ?? ''
-        const searchQuery = [name, postalPart || cityPart].filter(Boolean).join(', ')
+
+        // Build multiple search strategies, try them in order until one succeeds
+        const postalCityPart = parts.find((p) => /\d{4,5}\s+\w/.test(p)) ?? ''
+        const postalCode = postalCityPart.match(/\d{4,5}/)?.[0] ?? ''
+        const city = postalCityPart.replace(/\d{4,5}\s*/, '').trim() || parts[parts.length - 1]
+        // Reconstruct street: look for a number-only part and join with previous part
+        let streetQuery = ''
+        for (let i = 1; i < parts.length - 1; i++) {
+          if (/^\d+$/.test(parts[i]) && i > 0) {
+            streetQuery = `${parts[i - 1]} ${parts[i]}`
+            break
+          }
+        }
+
+        const queries = [
+          streetQuery && postalCode ? `${streetQuery}, ${postalCode} ${city}` : '',
+          postalCode ? `${name}, ${postalCode} ${city}` : '',
+          city ? `${name}, ${city}` : '',
+          name,
+        ].filter(Boolean)
 
         const trySearch = async (query: string) => {
           const geoRes = await fetch(
@@ -244,19 +260,17 @@ export default function HomeScreen() {
         }
 
         try {
-          let geoData = await trySearch(searchQuery)
-          // If focused query fails, retry with just the name
-          if (!geoData.length && searchQuery !== name) {
-            geoData = await trySearch(name)
-          }
-          if (geoData.length > 0) {
-            const lat = parseFloat(geoData[0].lat)
-            const lng = parseFloat(geoData[0].lon)
-            router.push({
-              pathname: '/activity/add',
-              params: { lat: String(lat), lng: String(lng), name },
-            })
-            return
+          for (const query of queries) {
+            const geoData = await trySearch(query)
+            if (geoData.length > 0) {
+              const lat = parseFloat(geoData[0].lat)
+              const lng = parseFloat(geoData[0].lon)
+              router.push({
+                pathname: '/activity/add',
+                params: { lat: String(lat), lng: String(lng), name },
+              })
+              return
+            }
           }
         } catch {
           // Nominatim failed, fall through to error
