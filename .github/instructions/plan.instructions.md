@@ -6,8 +6,8 @@ applyTo: "**"
 
 ## Stato attuale
 
-**Ultima fase completata: 15 — Build iOS su dispositivo fisico** ✅  
-**Prossima fase: 16 — Bug fix e miglioramenti post-testing**
+**Ultima fase completata: 16 — Bug fix e miglioramenti post-testing** ✅  
+**Prossima fase: da definire**
 
 ---
 
@@ -57,51 +57,18 @@ applyTo: "**"
 - **Fase 13** ✅ — URL scheme `tastespot://` + Android `ACTION_SEND` intent filter; handler in `_layout.tsx` con `expo-linking` che parsifica il testo condiviso da Google Maps, estrae nome/coordinate e naviga a `activity/[id]` se esiste o a `activity/add` pre-compilato
 - **Fase 14** ✅ — Creato `src/config/scoring.ts` con `SMILE_VALUES=[1,3.5,6,8,10]` e `CATEGORY_WEIGHTS={location:1,food:3,service:2,price:2}`; `calcActivityAvgScore` ora usa i pesi; `SmileRating` importa da `scoring.ts`
 - **Fase 15** ✅ — Build iOS su dispositivo fisico tramite `npx expo prebuild --clean` + `npx expo run:ios -d <UDID>`; fix `ENABLE_USER_SCRIPT_SANDBOXING = NO` in `project.pbxproj`; certificato firma con Apple ID personale (Team XTJUVKVSY5); Metro bundler su porta 8081
+- **Fase 16** ✅ — Bug fix e miglioramenti post-testing:
+  - UI mappa: rimosso bottone floating "Vicino a me", zoom pill (+/−) orizzontale, bussola allineata
+  - Feature "Incolla da Google Maps": utente copia indirizzo testo da Google Maps → Nominatim geocoding (3 query fallback) → schermata `confirm-location` con pin trascinabile → `activity/add` pre-compilato; bottone indietro e zoom 18 nella schermata di conferma
+  - Long-press su POI nella schermata `confirm-location` per aggiungere attività direttamente
+  - Fix `queryRenderedFeaturesAtPoint` (3 argomenti obbligatori) in `index.tsx` e `confirm-location.tsx`
+  - Fix tipi TypeScript MapLibre: `useRef<MapViewRef>` importando `MapViewRef` dal pacchetto
 
 ---
 
 ## Fasi in arrivo
 
-### Fase 11 — Messaggio di benvenuto post-registrazione
-
-- `authStore.ts`: flag `isNewUser: boolean`, settato `true` in `signUp()`, action `dismissWelcome()` lo resetta
-- `(tabs)/index.tsx`: banner/card di benvenuto quando `isNewUser === true`; tap su chiudi chiama `dismissWelcome()`; non riappare ai login successivi
-
-### Fase 12 — Errori di validazione uniformi su tutti i form
-
-- Obiettivo: eliminare tutti gli `Alert` di validazione; errori in rosso sotto il campo interessato
-- Pattern di riferimento già esistente: `(auth)/login.tsx`
-- Form da uniformare: `activity/add.tsx`, `activity/edit/[id].tsx`
-- Campi da validare: nome obbligatorio, almeno una tipologia obbligatoria
-
-### Fase 13 — Condivisione verso TasteSpot da Google Maps
-
-- Registrare URL scheme `tastespot://` in `app.json` → `scheme`
-- Intent filter Android per rispondere al Share di Google Maps
-- iOS: `CFBundleURLTypes` gestito da Expo via `app.json`
-- Handler in `_layout.tsx` con `expo-linking`: estrae nome/coordinate → naviga a `activity/[id]` se esiste già, altrimenti a `activity/add` pre-compilato
-
-### Fase 14 — Configurazione pesi punteggio e valori smile
-
-- Creare `src/config/scoring.ts`:
-  ```ts
-  export const SMILE_VALUES = [1, 3, 6, 7.5, 10]  // smile centrale = 6 (non 5.5)
-  export const CATEGORY_WEIGHTS = { location: 1, food: 3, service: 2, price: 2 }
-  ```
-- `calcActivityAvgScore` aggiornata per usare i pesi da questo file
-- Rimpiazza costanti hardcoded in `reviewsStore.ts` e `SmileRating.tsx`
-
-### Fase 16 — Bug fix e miglioramenti post-testing
-
-#### Mappa — UI bottoni e bussola
-- Rimuovere il bottone floating "Vicino a me" dalla mappa (è già presente nella quicklink bar in basso)
-- Spostare i due bottoni zoom (+/−) in orizzontale nella zona liberata, oppure riposizionarli in modo da non coprire la bussola MapLibre
-- Assicurarsi che la bussola sia visibile, cliccabile e allineata verticalmente con i bottoni zoom
-- I controlli devono essere visivamente puliti e allineati
-
-#### Bug — Condivisione da Google Maps non mostra TasteSpot
-- **Android**: l'intent filter `ACTION_SEND` / `text/plain` è già registrato in `app.json`. TasteSpot appare nel share sheet di Google Maps su Android dopo una build Android. Il handler in `_layout.tsx` usa `Linking.getInitialURL()` che però **non riceve `EXTRA_TEXT` dagli intent SEND** — per ricevere il testo condiviso serve un approccio nativo (es. `react-native-receive-sharing-intent`).
-- **iOS**: apparire nel share sheet di Google Maps richiede una **Share Extension** nativa (target separato in Xcode). Non è realizzabile con Expo senza eject. Le URL scheme (`tastespot://`) gestiscono solo deep link, non il flusso "Condividi". → **Rimandato come idea futura.**
+> Nessuna fase pianificata al momento. Vedi sezione "Idee future" per le prossime possibili evoluzioni.
 
 ---
 

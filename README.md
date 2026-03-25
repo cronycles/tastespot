@@ -44,7 +44,7 @@ Con un Apple ID gratuito (senza abbonamento Apple Developer da 99€/anno), il c
 ## Stack
 
 ### Frontend — `tastespot/`
-- **React Native** + **Expo SDK 52** + TypeScript
+- **React Native** + **Expo SDK 55** + TypeScript
 - **Expo Router** — navigazione file-based (`src/app/`)
 - **Zustand** — state management globale (`src/stores/`)
 - **MapLibre** + OpenFreeMap — mappe vettoriali gratuite, nessuna API key
@@ -92,10 +92,10 @@ TasteSpot/                         ← radice del monorepo Git
 └── tastespot/                     ← App React Native + Expo
     ├── src/
     │   ├── app/                   ← Route Expo Router (file = schermata)
-    │   │   ├── _layout.tsx        ← Root layout + auth guard
+    │   │   ├── _layout.tsx        ← Root layout + auth guard + deep link handler
     │   │   ├── (auth)/            ← login.tsx, register.tsx
     │   │   ├── (tabs)/            ← Home, Mappa, Vicino a me, Preferiti, Profilo
-    │   │   ├── activity/          ← [id].tsx, add.tsx, edit/[id].tsx, review/[id].tsx
+    │   ├── activity/          ← [id].tsx, add.tsx, edit/[id].tsx, review/[id].tsx, confirm-location.tsx
     │   │   └── private/           ← types.tsx (gestione tipologie)
     │   ├── components/            ← ActivityCard, FilterPanel, FavoriteButton, ...
     │   ├── stores/                ← Zustand: authStore, activitiesStore, typesStore, reviewsStore
@@ -258,6 +258,17 @@ npx expo run:ios
 ```
 
 Dopo la prima build, puoi usare solo `npx expo start` + `i`.
+
+**Build Release su iPhone fisico (niente Metro, punta a produzione):**
+```bash
+npm run ios:device
+```
+
+> La prima volta serve il cavo USB e autorizzare il certificato in Impostazioni → Generali → VPN e gestione dispositivo.
+
+**Rinnovo certificato (ogni 7 giorni con Apple ID gratuito):**
+1. Collega l’iPhone al Mac via USB
+2. Lancia `npm run ios:device` — Xcode ri-firma e reinstalla automaticamente
 
 ---
 
