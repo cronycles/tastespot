@@ -155,6 +155,7 @@ export default function HomeScreen() {
     try {
       let resolved = text
 
+      // Follow redirects to get the final Google Maps URL
       const urlMatch = text.match(/https?:\/\/[^\s]+/)
       if (urlMatch) {
         try {
@@ -172,12 +173,11 @@ export default function HomeScreen() {
         }
       }
 
-      // EU GDPR consent redirect: extract the real URL from the `continue` param
+      // EU GDPR consent redirect: follow the `continue` param
       if (resolved.includes('consent.google.com')) {
         const continueMatch = resolved.match(/[?&]continue=([^&]+)/)
         if (continueMatch) {
           resolved = decodeURIComponent(continueMatch[1])
-          // Try to follow the continue URL to get the final maps URL with coords
           try {
             const res2 = await fetch(resolved, {
               method: 'GET',
@@ -191,138 +191,60 @@ export default function HomeScreen() {
               resolved = res2.url
             }
           } catch {
-            // keep the continue URL as-is
+            // keep the continue URL
           }
         }
       }
 
-      // Try to extract coords: @lat,lng or q=lat,lng
+      // 1. Try direct coordinates: @lat,lng or q=lat,lng
       const coordsMatch = resolved.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
       const qCoordsMatch = resolved.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
-      const match = coordsMatch ?? qCoordsMatch
+      const directMatch = coordsMatch ?? qCoordsMatch
 
-      if (match) {
-        const lat = parseFloat(match[1])
-        const lng = parseFloat(match[2])
-        const firstLine = text.split('\n')[0].trim()
-        const name = firstLine && !firstLine.startsWith('http') ? firstLine : undefined
+      if (directMatch) {
+        const lat = parseFloat(directMatch[1])
+        const lng = parseFloat(directMatch[2])
+        // Check if activity already exists at these coords
         const { activities: all } = useActivitiesStore.getState()
         const existing = all.find((a) => {
           if (!a.lat || !a.lng) return false
-          const dlat = a.lat - lat
-          const dlng = a.lng - lng
-          return Math.sqrt(dlat * dlat + dlng * dlng) < 0.0005
+          const d = Math.sqrt((a.lat - lat) ** 2 + (a.lng - lng) ** 2)
+          return d < 0.0005
         })
         if (existing) {
           router.push({ pathname: '/activity/[id]', params: { id: existing.id } })
         } else {
-          router.push({
-            pathname: '/activity/add',
-            params: { lat: String(lat), lng: String(lng), ...(name && { name }) },
-          })
+          // Coords are precise — skip confirm-location, go straight to add
+          router.push({ pathname: '/activity/add', params: { lat: String(lat), lng: String(lng) } })
         }
         return
       }
 
-      // Fallback: extract place name from q= param and geocode via Nominatim
+      // 2. EU fallback: text address in q= param → geocode with Nominatim to get coords
       const qNameMatch = resolved.match(/[?&]q=([^&]+)/)
       if (qNameMatch) {
         const fullAddress = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
-        const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
-
-        // Name: prefer clipboard first line if it's not a URL
-        const clipboardFirstLine = text.split('\n')[0].trim()
-        const clipboardName = clipboardFirstLine && !clipboardFirstLine.startsWith('http') ? clipboardFirstLine : ''
-
-        // Extract UK postcode from WITHIN any segment (e.g. "London SE1 9AD" → "SE1 9AD")
-        const ukPostalRaw = parts.map((p) => p.match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i)).find(Boolean)
-        const postalUK = ukPostalRaw?.[1] ?? ''
-        // Extract EU postcode: standalone segment or at start (e.g. "48130 San Pelaio")
-        const postalEURaw = parts.map((p) => p.match(/^(\d{4,5})(\s|$)/)).find(Boolean)
-        const postalCode = postalUK || postalEURaw?.[1] || ''
-
-        // City: segment that contains the postcode, stripped of the postcode itself
-        const citySegment = postalUK
-          ? (parts.find((p) => p.includes(postalUK)) ?? '')
-          : (parts.find((p) => /^\d{4,5}\s/.test(p)) ?? '')
-        const city = citySegment.replace(postalUK, '').replace(/^\d{4,5}\s*/, '').trim()
-
-        // Street: first segment starting with a house number (e.g. "18 Stoney St")
-        const streetPart = parts.find((p) => /^\d+\s+\w/.test(p)) ?? ''
-
-        // Name: first segment that is not unit/apt, not street, not city segment, not last (country)
-        const addressSegments = new Set([streetPart, citySegment, parts[parts.length - 1]].filter(Boolean))
-        const namePart = parts.find((p, i) => {
-          if (i === parts.length - 1) return false
-          if (addressSegments.has(p)) return false
-          if (/^(unit|apt|floor|piano|interno|int\.?|\d)/i.test(p)) return false
-          return true
-        }) ?? ''
-        const name = clipboardName || namePart || parts[0]
-
-        // Structured Nominatim query (most reliable — each field separately)
-        const tryStructured = async () => {
-          if (!postalCode && !streetPart) return []
-          const qParams = new URLSearchParams({ format: 'json', limit: '1', addressdetails: '1' })
-          if (streetPart) qParams.set('street', streetPart)
-          if (city) qParams.set('city', city)
-          if (postalCode) qParams.set('postalcode', postalCode)
-          const geoRes = await fetch(
-            `https://nominatim.openstreetmap.org/search?${qParams.toString()}`,
-            { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
-          )
-          return geoRes.json()
-        }
-
-        // Fallback free-form queries — drop name and country suffix progressively
-        const withoutCountry = parts.length > 1 ? parts.slice(0, -1).join(', ') : ''
-        const addrOnly = [streetPart, city, postalCode].filter(Boolean).join(', ')
-
-        const tryFreeform = async (query: string) => {
-          const geoRes = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
-            { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
-          )
-          return geoRes.json()
-        }
-
-        const freeformQueries = [
-          addrOnly,            // "18 Stoney St, London, SE1 9AD" — pure address, no name
-          withoutCountry,      // everything minus the last country/province segment
-          postalCode ? `${name}, ${postalCode}` : '',
-          fullAddress,
-        ].filter(Boolean)
-
         try {
-          // Try structured first (most precise), then fall back to free-form
-          const structuredData = await tryStructured()
-          const allResults = structuredData.length > 0
-            ? structuredData
-            : await (async () => {
-                for (const q of freeformQueries) {
-                  const data = await tryFreeform(q)
-                  if (data.length > 0) return data
-                }
-                return []
-              })()
-
-          if (allResults.length > 0) {
-            const lat = parseFloat(allResults[0].lat)
-            const lng = parseFloat(allResults[0].lon)
-            router.push({
-              pathname: '/activity/confirm-location',
-              params: { lat: String(lat), lng: String(lng), ...(name && { name }) },
-            })
+          const geoRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fullAddress)}&format=json&limit=1`,
+            { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
+          )
+          const geoData = await geoRes.json()
+          if (geoData.length > 0) {
+            const lat = parseFloat(geoData[0].lat)
+            const lng = parseFloat(geoData[0].lon)
+            // Coords from geocoding may be approximate — show confirm-location to let user adjust
+            router.push({ pathname: '/activity/confirm-location', params: { lat: String(lat), lng: String(lng) } })
             return
           }
         } catch {
-          // Nominatim failed, fall through to error
+          // fall through to error
         }
       }
 
       Alert.alert(
         'Link non riconosciuto',
-        `URL risolto:\n${resolved.slice(0, 200)}`
+        'Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato il link da Google Maps (Condividi → Copia link) e riprova.'
       )
     } finally {
       setPasteLoading(false)

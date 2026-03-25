@@ -27,13 +27,10 @@ export default function ConfirmLocationScreen() {
 
   const handleConfirm = () => {
     const [lng, lat] = centerCoords
+    // Pass only coords — add.tsx will reverse-geocode the address automatically
     router.replace({
       pathname: '/activity/add',
-      params: {
-        lat: String(lat),
-        lng: String(lng),
-        ...(params.name ? { name: params.name } : {}),
-      },
+      params: { lat: String(lat), lng: String(lng) },
     })
   }
 
