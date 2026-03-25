@@ -15,6 +15,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Image } from 'expo-image'
 import * as ImageManipulator from 'expo-image-manipulator'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -546,16 +547,62 @@ export default function ActivityDetailScreen() {
 
   const activityTypes = types.filter((t) => activity.type_ids.includes(t.id))
 
-  const handleOpenMaps = () => {
-    const query = activity.address ?? `${activity.lat},${activity.lng}`
-    const url =
-      Platform.OS === 'ios'
-        ? `maps://?q=${encodeURIComponent(query)}`
-        : `geo:0,0?q=${encodeURIComponent(query)}`
-    Linking.openURL(url).catch(() =>
-      Linking.openURL(
-        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
-      )
+  const handleOpenMaps = async () => {
+    const hasCoords = activity.lat != null && activity.lng != null
+    const query = activity.address ?? (hasCoords ? `${activity.lat},${activity.lng}` : '')
+    if (!query) return
+
+    // Android: geo: intent opens the user's default maps app (usually Google Maps)
+    if (Platform.OS !== 'ios') {
+      Linking.openURL(`geo:0,0?q=${encodeURIComponent(query)}`)
+      return
+    }
+
+    const openApp = async (app: 'apple' | 'google') => {
+      if (app === 'google') {
+        const native = hasCoords
+          ? `comgooglemaps://?daddr=${activity.lat},${activity.lng}&directionsmode=driving`
+          : `comgooglemaps://?q=${encodeURIComponent(query)}`
+        const canOpen = await Linking.canOpenURL(native)
+        Linking.openURL(
+          canOpen
+            ? native
+            : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}`
+        )
+      } else {
+        const url = hasCoords
+          ? `maps://?daddr=${activity.lat},${activity.lng}`
+          : `maps://?daddr=${encodeURIComponent(query)}`
+        Linking.openURL(url)
+      }
+    }
+
+    const pref = await AsyncStorage.getItem('maps_app_preference')
+    if (pref === 'apple' || pref === 'google') {
+      openApp(pref)
+      return
+    }
+
+    Alert.alert(
+      'App per le indicazioni',
+      "Scegli l'app da usare. La scelta verrà ricordata.",
+      [
+        {
+          text: 'Google Maps',
+          onPress: async () => {
+            await AsyncStorage.setItem('maps_app_preference', 'google')
+            openApp('google')
+          },
+        },
+        {
+          text: 'Apple Maps',
+          onPress: async () => {
+            await AsyncStorage.setItem('maps_app_preference', 'apple')
+            openApp('apple')
+          },
+        },
+        { text: 'Annulla', style: 'cancel' },
+      ]
     )
   }
 
