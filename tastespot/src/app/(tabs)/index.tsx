@@ -229,7 +229,13 @@ export default function HomeScreen() {
       if (qNameMatch) {
         const fullAddress = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
         const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
-        const name = parts[0]
+
+        // Google Maps sometimes copies "Place Name\nhttps://..." — use that first line as name
+        const clipboardFirstLine = text.split('\n')[0].trim()
+        const clipboardName = clipboardFirstLine && !clipboardFirstLine.startsWith('http') ? clipboardFirstLine : ''
+        // parts[0] might be an address component instead of a name (e.g. "Unit 205", "Apt 3", "18 Stoney St")
+        const firstPartIsAddress = /^(unit|apt|floor|piano|interno|int\.?|\d|#)/i.test(parts[0])
+        const name = clipboardName || (firstPartIsAddress ? '' : parts[0]) || parts[0]
 
         // The last segment from Google Maps is often province/country in English ("Biscay", "Spain"),
         // which Nominatim doesn't recognise. Drop it progressively.
