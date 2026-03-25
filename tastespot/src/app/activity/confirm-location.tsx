@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useCallback, useRef, useState } from 'react'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import MapLibreGL, { type MapViewRef } from '@maplibre/maplibre-react-native'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { theme } from '@/theme'
 
@@ -13,6 +13,7 @@ export default function ConfirmLocationScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const params = useLocalSearchParams<{ lat: string; lng: string; name?: string }>()
+  const mapViewRef = useRef<MapViewRef>(null)
 
   const initialLat = parseFloat(params.lat)
   const initialLng = parseFloat(params.lng)
@@ -27,12 +28,54 @@ export default function ConfirmLocationScreen() {
 
   const handleConfirm = () => {
     const [lng, lat] = centerCoords
-    // Pass only coords — add.tsx will reverse-geocode the address automatically
     router.replace({
       pathname: '/activity/add',
       params: { lat: String(lat), lng: String(lng) },
     })
   }
+
+  const handleLongPress = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async (feature: any) => {
+      const coordinates = feature?.geometry?.coordinates
+      if (!coordinates) return
+      const lat = coordinates[1]
+      const lng = coordinates[0]
+
+      let poiName: string | undefined
+      const sx = feature?.properties?.screenPointX
+      const sy = feature?.properties?.screenPointY
+      if (sx !== undefined && sy !== undefined && mapViewRef.current) {
+        try {
+          const result = await mapViewRef.current.queryRenderedFeaturesAtPoint([sx, sy], undefined, [])
+          const poi = (result?.features ?? []).find(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (f: any) =>
+              f.properties?.name &&
+              (f.properties.amenity || f.properties.class || f.properties.subclass ||
+                f.properties.shop || f.properties.tourism || f.properties.leisure)
+          )
+          if (poi?.properties?.name) poiName = poi.properties.name as string
+        } catch {
+          // ignore
+        }
+      }
+
+      const title = poiName ? `Aggiungere "${poiName}"?` : 'Aggiungi qui?'
+      Alert.alert(title, 'Vuoi aggiungere una nuova attività in questo punto?', [
+        { text: 'Annulla', style: 'cancel' },
+        {
+          text: 'Aggiungi',
+          onPress: () =>
+            router.replace({
+              pathname: '/activity/add',
+              params: { lat: String(lat), lng: String(lng), ...(poiName && { name: poiName }) },
+            }),
+        },
+      ])
+    },
+    [router]
+  )
 
   return (
     <View style={styles.container}>
@@ -40,9 +83,11 @@ export default function ConfirmLocationScreen() {
 
       <View style={styles.mapWrapper}>
         <MapLibreGL.MapView
+          ref={mapViewRef}
           style={styles.map}
           mapStyle="https://tiles.openfreemap.org/styles/liberty"
           onRegionDidChange={handleRegionDidChange}
+          onLongPress={handleLongPress}
           logoEnabled={false}
           attributionEnabled={false}
         >

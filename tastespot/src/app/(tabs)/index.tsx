@@ -222,7 +222,7 @@ export default function HomeScreen() {
       const sy = feature?.properties?.screenPointY
       if (sx !== undefined && sy !== undefined && mapViewRef.current) {
         try {
-          const result = await mapViewRef.current.queryRenderedFeaturesAtPoint([sx, sy])
+          const result = await mapViewRef.current.queryRenderedFeaturesAtPoint([sx, sy], undefined, [])
           const features = result?.features ?? []
           // Find first OSM POI with a name — OpenFreeMap uses class/subclass (not amenity)
           const poi = features.find(
