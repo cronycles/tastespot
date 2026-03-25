@@ -672,6 +672,7 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: theme.fontWeight.medium,
   },
+  filterChip: {
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 6,
     borderRadius: theme.borderRadius.full,
