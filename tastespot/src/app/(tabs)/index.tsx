@@ -155,61 +155,103 @@ export default function HomeScreen() {
     try {
       let resolved = text
 
-      // Resolve short URL (maps.app.goo.gl) by following redirects with GET
       const urlMatch = text.match(/https?:\/\/[^\s]+/)
-      if (urlMatch && (text.includes('goo.gl') || text.includes('maps.app'))) {
+      if (urlMatch) {
         try {
-          const res = await fetch(urlMatch[0], { method: 'GET', redirect: 'follow' })
-          // res.url is the final URL after all redirects
-          if (res.url && res.url !== urlMatch[0]) {
-            resolved = res.url
-          }
+          const res = await fetch(urlMatch[0], {
+            method: 'GET',
+            redirect: 'follow',
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            },
+          })
+          resolved = res.url || urlMatch[0]
         } catch {
           resolved = text
         }
       }
 
-      // Extract coords from resolved URL (@lat,lng,zoom) or query param q=lat,lng
-      const coordsMatch = resolved.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-      const qMatch = resolved.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
-      const match = coordsMatch ?? qMatch
+      // EU GDPR consent redirect: extract the real URL from the `continue` param
+      if (resolved.includes('consent.google.com')) {
+        const continueMatch = resolved.match(/[?&]continue=([^&]+)/)
+        if (continueMatch) {
+          resolved = decodeURIComponent(continueMatch[1])
+          // Try to follow the continue URL to get the final maps URL with coords
+          try {
+            const res2 = await fetch(resolved, {
+              method: 'GET',
+              redirect: 'follow',
+              headers: {
+                'User-Agent':
+                  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+              },
+            })
+            if (res2.url && !res2.url.includes('consent.google.com')) {
+              resolved = res2.url
+            }
+          } catch {
+            // keep the continue URL as-is
+          }
+        }
+      }
 
-      if (!match) {
-        Alert.alert(
-          'Link non riconosciuto',
-          `Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato il link da Google Maps (Condividi → Copia link) e riprova.\n\nURL ricevuto: ${resolved.slice(0, 80)}…`
-        )
+      // Try to extract coords: @lat,lng or q=lat,lng
+      const coordsMatch = resolved.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+      const qCoordsMatch = resolved.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
+      const match = coordsMatch ?? qCoordsMatch
+
+      if (match) {
+        const lat = parseFloat(match[1])
+        const lng = parseFloat(match[2])
+        const firstLine = text.split('\n')[0].trim()
+        const name = firstLine && !firstLine.startsWith('http') ? firstLine : undefined
+        const { activities: all } = useActivitiesStore.getState()
+        const existing = all.find((a) => {
+          if (!a.lat || !a.lng) return false
+          const dlat = a.lat - lat
+          const dlng = a.lng - lng
+          return Math.sqrt(dlat * dlat + dlng * dlng) < 0.0005
+        })
+        if (existing) {
+          router.push({ pathname: '/activity/[id]', params: { id: existing.id } })
+        } else {
+          router.push({
+            pathname: '/activity/add',
+            params: { lat: String(lat), lng: String(lng), ...(name && { name }) },
+          })
+        }
         return
       }
 
-      const lat = parseFloat(match[1])
-      const lng = parseFloat(match[2])
-
-      // Extract place name from first non-URL line of clipboard text
-      const firstLine = text.split('\n')[0].trim()
-      const name = firstLine && !firstLine.startsWith('http') ? firstLine : undefined
-
-      // Check if activity already exists near these coords (~50m)
-      const { activities: all } = useActivitiesStore.getState()
-      const existing = all.find((a) => {
-        if (!a.lat || !a.lng) return false
-        const dlat = a.lat - lat
-        const dlng = a.lng - lng
-        return Math.sqrt(dlat * dlat + dlng * dlng) < 0.0005
-      })
-
-      if (existing) {
-        router.push({ pathname: '/activity/[id]', params: { id: existing.id } })
-      } else {
-        router.push({
-          pathname: '/activity/add',
-          params: {
-            lat: String(lat),
-            lng: String(lng),
-            ...(name && { name }),
-          },
-        })
+      // Fallback: extract place name from q= param and geocode via Nominatim
+      const qNameMatch = resolved.match(/[?&]q=([^&]+)/)
+      if (qNameMatch) {
+        const placeName = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
+        try {
+          const geoRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)}&format=json&limit=1`,
+            { headers: { 'Accept-Language': 'it', 'User-Agent': 'TasteSpot/1.0' } }
+          )
+          const geoData = await geoRes.json()
+          if (geoData.length > 0) {
+            const lat = parseFloat(geoData[0].lat)
+            const lng = parseFloat(geoData[0].lon)
+            router.push({
+              pathname: '/activity/add',
+              params: { lat: String(lat), lng: String(lng), name: placeName },
+            })
+            return
+          }
+        } catch {
+          // Nominatim failed, fall through to error
+        }
       }
+
+      Alert.alert(
+        'Link non riconosciuto',
+        'Non riesco a trovare le coordinate.\n\nAssicurati di aver copiato il link da Google Maps (Condividi → Copia link) e riprova.'
+      )
     } finally {
       setPasteLoading(false)
     }
