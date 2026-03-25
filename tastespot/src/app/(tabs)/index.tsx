@@ -230,50 +230,53 @@ export default function HomeScreen() {
         const fullAddress = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
         const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
 
-        // Name: prefer clipboard first line (e.g. "Cahoots Postal Office\nhttps://...")
+        // Name: prefer clipboard first line if it's not a URL
         const clipboardFirstLine = text.split('\n')[0].trim()
         const clipboardName = clipboardFirstLine && !clipboardFirstLine.startsWith('http') ? clipboardFirstLine : ''
-        const firstPartIsAddress = /^(unit|apt|floor|piano|interno|int\.?|\d+\s|\d+$|#)/i.test(parts[0])
-        const nameFromParts = firstPartIsAddress ? '' : parts[0]
-        const name = clipboardName || nameFromParts || parts[0]
 
-        // Identify postal code (EU 4-5 digits or UK "EC1A 9JQ" format)
-        const postalUK = parts.find((p) => /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(p)) ?? ''
-        const postalEU = parts.find((p) => /^\d{4,5}(\s\w|$)/.test(p)) ?? ''
-        const postalCode = postalUK || postalEU.match(/\d{4,5}/)?.[0] || ''
+        // Extract UK postcode from WITHIN any segment (e.g. "London SE1 9AD" → "SE1 9AD")
+        const ukPostalRaw = parts.map((p) => p.match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i)).find(Boolean)
+        const postalUK = ukPostalRaw?.[1] ?? ''
+        // Extract EU postcode: standalone segment or at start (e.g. "48130 San Pelaio")
+        const postalEURaw = parts.map((p) => p.match(/^(\d{4,5})(\s|$)/)).find(Boolean)
+        const postalCode = postalUK || postalEURaw?.[1] || ''
 
-        // Street: segment starting with a number followed by words (e.g. "18 Stoney St")
+        // City: segment that contains the postcode, stripped of the postcode itself
+        const citySegment = postalUK
+          ? (parts.find((p) => p.includes(postalUK)) ?? '')
+          : (parts.find((p) => /^\d{4,5}\s/.test(p)) ?? '')
+        const city = citySegment.replace(postalUK, '').replace(/^\d{4,5}\s*/, '').trim()
+
+        // Street: first segment starting with a house number (e.g. "18 Stoney St")
         const streetPart = parts.find((p) => /^\d+\s+\w/.test(p)) ?? ''
 
-        // City: first non-street, non-postal, non-name, non-last-segment part
-        const nameIdx = nameFromParts ? 0 : -1
-        const cityPart = parts.find((p, i) => {
-          if (i === nameIdx) return false
-          if (i === parts.length - 1) return false          // skip last (province/country)
-          if (p === streetPart) return false
-          if (p === postalUK || postalEU.includes(p)) return false
-          if (/^\d/.test(p)) return false                   // skip pure-number segments
+        // Name: first segment that is not unit/apt, not street, not city segment, not last (country)
+        const addressSegments = new Set([streetPart, citySegment, parts[parts.length - 1]].filter(Boolean))
+        const namePart = parts.find((p, i) => {
+          if (i === parts.length - 1) return false
+          if (addressSegments.has(p)) return false
+          if (/^(unit|apt|floor|piano|interno|int\.?|\d)/i.test(p)) return false
           return true
         }) ?? ''
+        const name = clipboardName || namePart || parts[0]
 
         // Structured Nominatim query (most reliable — each field separately)
         const tryStructured = async () => {
           if (!postalCode && !streetPart) return []
-          const params = new URLSearchParams({ format: 'json', limit: '1', addressdetails: '1' })
-          if (streetPart) params.set('street', streetPart)
-          if (cityPart) params.set('city', cityPart)
-          if (postalCode) params.set('postalcode', postalCode)
+          const qParams = new URLSearchParams({ format: 'json', limit: '1', addressdetails: '1' })
+          if (streetPart) qParams.set('street', streetPart)
+          if (city) qParams.set('city', city)
+          if (postalCode) qParams.set('postalcode', postalCode)
           const geoRes = await fetch(
-            `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+            `https://nominatim.openstreetmap.org/search?${qParams.toString()}`,
             { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
           )
           return geoRes.json()
         }
 
-        // Fallback free-form queries
-        const namePartCount = nameFromParts ? 1 : 0
-        const addrParts = parts.slice(namePartCount, parts.length - 1)
-        const addressOnly = addrParts.join(', ')
+        // Fallback free-form queries — drop name and country suffix progressively
+        const withoutCountry = parts.length > 1 ? parts.slice(0, -1).join(', ') : ''
+        const addrOnly = [streetPart, city, postalCode].filter(Boolean).join(', ')
 
         const tryFreeform = async (query: string) => {
           const geoRes = await fetch(
@@ -284,8 +287,8 @@ export default function HomeScreen() {
         }
 
         const freeformQueries = [
-          addressOnly,
-          parts.length > 1 ? parts.slice(0, -1).join(', ') : '',
+          addrOnly,            // "18 Stoney St, London, SE1 9AD" — pure address, no name
+          withoutCountry,      // everything minus the last country/province segment
           postalCode ? `${name}, ${postalCode}` : '',
           fullAddress,
         ].filter(Boolean)
