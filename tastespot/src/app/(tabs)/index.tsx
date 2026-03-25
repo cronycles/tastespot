@@ -233,32 +233,49 @@ export default function HomeScreen() {
         // Name: prefer clipboard first line (e.g. "Cahoots Postal Office\nhttps://...")
         const clipboardFirstLine = text.split('\n')[0].trim()
         const clipboardName = clipboardFirstLine && !clipboardFirstLine.startsWith('http') ? clipboardFirstLine : ''
-        // parts[0] is address component when it starts with Unit/Apt/number — skip it as name
         const firstPartIsAddress = /^(unit|apt|floor|piano|interno|int\.?|\d+\s|\d+$|#)/i.test(parts[0])
         const nameFromParts = firstPartIsAddress ? '' : parts[0]
         const name = clipboardName || nameFromParts || parts[0]
 
-        // Address starts after the name part; last part is usually English province/country — drop it.
-        // Pure address (no place name, no province) is what geocoders understand best.
+        // Identify postal code (EU 4-5 digits or UK "EC1A 9JQ" format)
+        const postalUK = parts.find((p) => /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(p)) ?? ''
+        const postalEU = parts.find((p) => /^\d{4,5}(\s\w|$)/.test(p)) ?? ''
+        const postalCode = postalUK || postalEU.match(/\d{4,5}/)?.[0] || ''
+
+        // Street: segment starting with a number followed by words (e.g. "18 Stoney St")
+        const streetPart = parts.find((p) => /^\d+\s+\w/.test(p)) ?? ''
+
+        // City: first non-street, non-postal, non-name, non-last-segment part
+        const nameIdx = nameFromParts ? 0 : -1
+        const cityPart = parts.find((p, i) => {
+          if (i === nameIdx) return false
+          if (i === parts.length - 1) return false          // skip last (province/country)
+          if (p === streetPart) return false
+          if (p === postalUK || postalEU.includes(p)) return false
+          if (/^\d/.test(p)) return false                   // skip pure-number segments
+          return true
+        }) ?? ''
+
+        // Structured Nominatim query (most reliable — each field separately)
+        const tryStructured = async () => {
+          if (!postalCode && !streetPart) return []
+          const params = new URLSearchParams({ format: 'json', limit: '1', addressdetails: '1' })
+          if (streetPart) params.set('street', streetPart)
+          if (cityPart) params.set('city', cityPart)
+          if (postalCode) params.set('postalcode', postalCode)
+          const geoRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+            { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
+          )
+          return geoRes.json()
+        }
+
+        // Fallback free-form queries
         const namePartCount = nameFromParts ? 1 : 0
         const addrParts = parts.slice(namePartCount, parts.length - 1)
-        const addressOnly = addrParts.join(', ') // e.g. "18 Stoney St, London, EC1A 9JQ"
+        const addressOnly = addrParts.join(', ')
 
-        // Postal code: European 4-5 digit, or UK format (e.g. "EC1A 9JQ")
-        const postalEU = parts.find((p) => /^\d{4,5}(\s|$)/.test(p))
-        const postalUK = parts.find((p) => /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(p))
-        const postalCode = postalEU?.match(/\d{4,5}/)?.[0] ?? postalUK ?? ''
-
-        // Geocoding cascade: address-only queries are most reliable (no confusing place name)
-        const queries = [
-          addressOnly,                                         // pure address, no name, no province — best
-          parts.length > 1 ? parts.slice(0, -1).join(', ') : '', // full minus province
-          postalCode ? `${name}, ${postalCode}` : '',          // name + postal code
-          fullAddress,                                         // everything as-is
-          name,                                                // name only as last resort
-        ].filter(Boolean)
-
-        const trySearch = async (query: string) => {
+        const tryFreeform = async (query: string) => {
           const geoRes = await fetch(
             `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
             { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
@@ -266,18 +283,34 @@ export default function HomeScreen() {
           return geoRes.json()
         }
 
+        const freeformQueries = [
+          addressOnly,
+          parts.length > 1 ? parts.slice(0, -1).join(', ') : '',
+          postalCode ? `${name}, ${postalCode}` : '',
+          fullAddress,
+        ].filter(Boolean)
+
         try {
-          for (const query of queries) {
-            const geoData = await trySearch(query)
-            if (geoData.length > 0) {
-              const lat = parseFloat(geoData[0].lat)
-              const lng = parseFloat(geoData[0].lon)
-              router.push({
-                pathname: '/activity/add',
-                params: { lat: String(lat), lng: String(lng), name },
-              })
-              return
-            }
+          // Try structured first (most precise), then fall back to free-form
+          const structuredData = await tryStructured()
+          const allResults = structuredData.length > 0
+            ? structuredData
+            : await (async () => {
+                for (const q of freeformQueries) {
+                  const data = await tryFreeform(q)
+                  if (data.length > 0) return data
+                }
+                return []
+              })()
+
+          if (allResults.length > 0) {
+            const lat = parseFloat(allResults[0].lat)
+            const lng = parseFloat(allResults[0].lon)
+            router.push({
+              pathname: '/activity/add',
+              params: { lat: String(lat), lng: String(lng), ...(name && { name }) },
+            })
+            return
           }
         } catch {
           // Nominatim failed, fall through to error
