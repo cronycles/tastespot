@@ -231,9 +231,10 @@ export default function HomeScreen() {
         const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
         const name = parts[0]
 
-        // Build multiple search strategies, try them in order until one succeeds
+        // Build a cascade of Nominatim queries from most to least specific
+        const addressWithoutName = parts.length > 1 ? parts.slice(1).join(', ') : ''
 
-        // Postal code: either "12345 CityName" in one segment, or a standalone 5-digit segment
+        // Postal code: either "12345 CityName" combined or a standalone "12345" segment
         let postalCode = ''
         let city = ''
         const combinedPostal = parts.find((p) => /^\d{4,5}\s+\w/.test(p))
@@ -242,30 +243,20 @@ export default function HomeScreen() {
           city = combinedPostal.replace(/\d{4,5}\s*/, '').trim()
         } else {
           const postalIdx = parts.findIndex((p) => /^\d{4,5}$/.test(p))
-          if (postalIdx !== -1) {
-            postalCode = parts[postalIdx]
-            // province/country after the postal code is unreliable — skip it as city
-          }
-          // city fallback: last part (may be province/country — used only as last resort)
+          if (postalIdx !== -1) postalCode = parts[postalIdx]
           city = parts[parts.length - 1]
         }
-
-        // Reconstruct street: look for a number-only part and join with previous part
-        let streetQuery = ''
-        for (let i = 1; i < parts.length - 1; i++) {
-          if (/^\d+$/.test(parts[i]) && i > 0) {
-            streetQuery = `${parts[i - 1]} ${parts[i]}`
-            break
-          }
-        }
+        const postalCity = [postalCode, city].filter(Boolean).join(' ').trim()
 
         const queries = [
-          streetQuery && postalCode ? `${streetQuery}, ${postalCode} ${city}`.trim() : '',
-          streetQuery && postalCode ? `${streetQuery}, ${postalCode}` : '',
-          postalCode ? `${name}, ${postalCode} ${city}`.trim() : '',
-          postalCode ? `${name}, ${postalCode}` : '',
-          city ? `${name}, ${city}` : '',
-          name,
+          fullAddress,                                               // full address as-is (best for standard formats)
+          addressWithoutName,                                        // address without place name
+          postalCode ? `${name}, ${postalCode}` : '',               // name + postal code only
+          postalCity ? `${name}, ${postalCity}` : '',               // name + postal + city
+          postalCity || '',                                          // postal + city (coordinates only, name from parts[0])
+          city !== parts[parts.length - 1] ? `${name}, ${city}` : '',
+          `${name}, ${parts[parts.length - 1]}`,                    // name + last part (country/province)
+          name,                                                      // name only
         ].filter(Boolean)
 
         const trySearch = async (query: string) => {
