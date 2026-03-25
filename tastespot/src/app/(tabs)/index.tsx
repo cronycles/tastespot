@@ -457,20 +457,6 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item}
             contentContainerStyle={styles.filtersContent}
-            ListHeaderComponent={
-              <TouchableOpacity
-                style={styles.pasteChip}
-                onPress={handlePasteFromMaps}
-                activeOpacity={0.7}
-                disabled={pasteLoading}
-              >
-                {pasteLoading
-                  ? <ActivityIndicator size="small" color={theme.colors.primary} />
-                  : <Ionicons name="clipboard-outline" size={14} color={theme.colors.primary} />
-                }
-                <Text style={styles.pasteChipText}>Da Maps</Text>
-              </TouchableOpacity>
-            }
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={[styles.filterChip, activeFilter === item && styles.filterChipActive]}
@@ -496,10 +482,34 @@ export default function HomeScreen() {
       */}
       <TouchableOpacity
         style={[styles.fabAdd, { bottom: insets.bottom + 2 }]}
-        onPress={() => router.push('/activity/add')}
+        onPress={() =>
+          Alert.alert(
+            'Aggiungi attività',
+            'Come vuoi aggiungere?',
+            [
+              { text: 'Annulla', style: 'cancel' },
+              {
+                text: 'Da Google Maps',
+                onPress: () =>
+                  Alert.alert(
+                    'Incolla da Google Maps',
+                    '1. Apri Google Maps e cerca il locale\n2. Tocca Condividi → Copia link\n3. Torna qui e tocca Incolla',
+                    [
+                      { text: 'Annulla', style: 'cancel' },
+                      { text: 'Incolla', onPress: handlePasteFromMaps },
+                    ]
+                  ),
+              },
+              { text: 'Da zero', onPress: () => router.push('/activity/add') },
+            ]
+          )
+        }
         activeOpacity={0.85}
       >
-        <Ionicons name="add" size={28} color={theme.colors.surface} />
+        {pasteLoading
+          ? <ActivityIndicator size="small" color={theme.colors.surface} />
+          : <Ionicons name="add" size={28} color={theme.colors.surface} />
+        }
       </TouchableOpacity>
 
       {/* Locate — well above fabAdd, visually grouped with compass */}
@@ -649,28 +659,6 @@ const styles = StyleSheet.create({
   filtersContent: {
     gap: theme.spacing.sm,
     paddingHorizontal: 2,
-  },
-  pasteChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: 6,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-    marginRight: theme.spacing.sm,
-  },
-  pasteChipText: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.primary,
-    fontWeight: theme.fontWeight.medium,
   },
   filterChip: {
     paddingHorizontal: theme.spacing.md,
