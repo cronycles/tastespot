@@ -227,19 +227,34 @@ export default function HomeScreen() {
       // Fallback: extract place name from q= param and geocode via Nominatim
       const qNameMatch = resolved.match(/[?&]q=([^&]+)/)
       if (qNameMatch) {
-        const placeName = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
-        try {
+        const fullAddress = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
+        const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
+        const name = parts[0]
+        // Build a focused query: name + postal code + city (much better for Nominatim)
+        const postalPart = parts.find((p) => /\d{4,5}/.test(p)) ?? ''
+        const cityPart = parts[parts.length - 1] ?? ''
+        const searchQuery = [name, postalPart || cityPart].filter(Boolean).join(', ')
+
+        const trySearch = async (query: string) => {
           const geoRes = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)}&format=json&limit=1`,
-            { headers: { 'Accept-Language': 'it', 'User-Agent': 'TasteSpot/1.0' } }
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+            { headers: { 'Accept-Language': 'it,es,eu', 'User-Agent': 'TasteSpot/1.0' } }
           )
-          const geoData = await geoRes.json()
+          return geoRes.json()
+        }
+
+        try {
+          let geoData = await trySearch(searchQuery)
+          // If focused query fails, retry with just the name
+          if (!geoData.length && searchQuery !== name) {
+            geoData = await trySearch(name)
+          }
           if (geoData.length > 0) {
             const lat = parseFloat(geoData[0].lat)
             const lng = parseFloat(geoData[0].lon)
             router.push({
               pathname: '/activity/add',
-              params: { lat: String(lat), lng: String(lng), name: placeName },
+              params: { lat: String(lat), lng: String(lng), name },
             })
             return
           }
