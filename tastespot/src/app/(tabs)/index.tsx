@@ -230,39 +230,38 @@ export default function HomeScreen() {
         const fullAddress = decodeURIComponent(qNameMatch[1].replace(/\+/g, ' '))
         const parts = fullAddress.split(',').map((p) => p.trim()).filter(Boolean)
 
-        // Google Maps sometimes copies "Place Name\nhttps://..." — use that first line as name
+        // Name: prefer clipboard first line (e.g. "Cahoots Postal Office\nhttps://...")
         const clipboardFirstLine = text.split('\n')[0].trim()
         const clipboardName = clipboardFirstLine && !clipboardFirstLine.startsWith('http') ? clipboardFirstLine : ''
-        // parts[0] might be an address component instead of a name (e.g. "Unit 205", "Apt 3", "18 Stoney St")
-        const firstPartIsAddress = /^(unit|apt|floor|piano|interno|int\.?|\d|#)/i.test(parts[0])
-        const name = clipboardName || (firstPartIsAddress ? '' : parts[0]) || parts[0]
+        // parts[0] is address component when it starts with Unit/Apt/number — skip it as name
+        const firstPartIsAddress = /^(unit|apt|floor|piano|interno|int\.?|\d+\s|\d+$|#)/i.test(parts[0])
+        const nameFromParts = firstPartIsAddress ? '' : parts[0]
+        const name = clipboardName || nameFromParts || parts[0]
 
-        // The last segment from Google Maps is often province/country in English ("Biscay", "Spain"),
-        // which Nominatim doesn't recognise. Drop it progressively.
-        const withoutLast = parts.length > 2 ? parts.slice(0, -1).join(', ') : ''
+        // Address starts after the name part; last part is usually English province/country — drop it.
+        // Pure address (no place name, no province) is what geocoders understand best.
+        const namePartCount = nameFromParts ? 1 : 0
+        const addrParts = parts.slice(namePartCount, parts.length - 1)
+        const addressOnly = addrParts.join(', ') // e.g. "18 Stoney St, London, EC1A 9JQ"
 
-        // Postal code: "12345 CityName" combined, or a standalone "12345" segment
-        let postalCode = ''
-        const combinedPostal = parts.find((p) => /^\d{4,5}\s+\w/.test(p))
-        if (combinedPostal) {
-          postalCode = combinedPostal.match(/\d{4,5}/)?.[0] ?? ''
-        } else {
-          const postalIdx = parts.findIndex((p) => /^\d{4,5}$/.test(p))
-          if (postalIdx !== -1) postalCode = parts[postalIdx]
-        }
+        // Postal code: European 4-5 digit, or UK format (e.g. "EC1A 9JQ")
+        const postalEU = parts.find((p) => /^\d{4,5}(\s|$)/.test(p))
+        const postalUK = parts.find((p) => /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(p))
+        const postalCode = postalEU?.match(/\d{4,5}/)?.[0] ?? postalUK ?? ''
 
+        // Geocoding cascade: address-only queries are most reliable (no confusing place name)
         const queries = [
-          withoutLast,                                    // full address minus last segment (drops English province)
-          fullAddress,                                    // full address as-is
-          postalCode ? `${name}, ${postalCode}` : '',    // name + postal (locale-independent, very reliable)
-          withoutLast ? `${name}, ${withoutLast.split(',').slice(-1)[0].trim()}` : '', // name + city segment
-          name,                                           // name only
+          addressOnly,                                         // pure address, no name, no province — best
+          parts.length > 1 ? parts.slice(0, -1).join(', ') : '', // full minus province
+          postalCode ? `${name}, ${postalCode}` : '',          // name + postal code
+          fullAddress,                                         // everything as-is
+          name,                                                // name only as last resort
         ].filter(Boolean)
 
         const trySearch = async (query: string) => {
           const geoRes = await fetch(
             `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
-            { headers: { 'Accept-Language': 'it,es,eu', 'User-Agent': 'TasteSpot/1.0' } }
+            { headers: { 'Accept-Language': 'it,es,eu,en', 'User-Agent': 'TasteSpot/1.0' } }
           )
           return geoRes.json()
         }
