@@ -36,8 +36,9 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Fase 4 completata: `activitiesStore` portato su web con fetch paginato e toggle preferiti.
 - Lista attivita' web implementata con ricerca, filtro tipologia, filtro preferiti, ordinamento e load-more.
 - Pagina `Preferiti` collegata alla stessa lista in modalita' solo preferiti.
-- Fase 5 avviata: route e pagine web per dettaglio attivita', add e edit implementate.
+- Fase 5 completata: route e pagine web per dettaglio attivita', add e edit implementate.
 - Form condiviso add/edit implementato con campi principali, tipologie e tag.
+- Gestione foto completata nel dettaglio attivita': upload con compressione browser, gallery e delete foto.
 - `backend/public/.htaccess` aggiornato per supportare SPA + API sullo stesso dominio.
 - Script root aggiunti: `local:web` e `local:start:web`.
 - README aggiornato con la nuova struttura web.
@@ -51,7 +52,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Fase 2: completata in versione base
 - Fase 3: completata
 - Fase 4: completata
-- Fase 5: parzialmente completata
+- Fase 5: completata
 - Fase 6: non iniziata
 - Fase 7: non iniziata
 - Fase 8: non iniziata
@@ -59,13 +60,13 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 
 ## Current checkpoint
 - Branch di lavoro: `develop`
-- Commit checkpoint: `cf06986`
-- Commit message: `Implement Phase 5 base activity CRUD pages`
+- Commit checkpoint: `f9ab4b8`
+- Commit message: `Complete Phase 5 photo management on activity detail`
 - Stato worktree al checkpoint: pulito
 
 ## Next recommended phase
-- Prossima fase consigliata: completamento Fase 5
-- Obiettivo: aggiungere gestione foto (upload/delete) e affinare il dettaglio attivita' prima della Fase 6.
+- Prossima fase consigliata: Fase 6
+- Obiettivo: portare su web il sistema recensioni (create/update/view per tipologia) e i calcoli punteggio nel dettaglio attivita'.
 
 ## Key files already touched
 - `web/src/App.tsx`
@@ -90,7 +91,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 Usare uno di questi prompt per riprendere il lavoro:
 
 1. `Leggi docs/web-migration-status.md e continua dalla prossima fase aperta.`
-2. `Leggi docs/web-migration-status.md e completa la Fase 5 della migrazione web (foto + dettaglio avanzato).`
+2. `Leggi docs/web-migration-status.md e avvia la Fase 6 della migrazione web (recensioni).`
 3. `Leggi docs/web-migration-status.md, verifica il checkpoint e continua da develop.`
 
 ## Update rule
