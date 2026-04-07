@@ -2,11 +2,8 @@
   "private": true,
   "scripts": {
     "local:backend": "cd backend && php artisan serve --port=8000",
-    "local:app": "cd tastespot && npx expo start",
     "local:web": "cd web && npm run dev",
-    "local:start": "concurrently --names \"BACKEND,APP\" --prefix-colors \"blue,green\" \"npm run local:backend\" \"npm run local:app\"",
-    "local:start:web": "concurrently --names \"BACKEND,WEB\" --prefix-colors \"blue,orange\" \"npm run local:backend\" \"npm run local:web\"",
-    "ios:device": "cd tastespot && npm run ios:device"
+    "local:start": "concurrently --names \"BACKEND,WEB\" --prefix-colors \"blue,orange\" \"npm run local:backend\" \"npm run local:web\""
   },
   "devDependencies": {
     "concurrently": "^9.0.1"

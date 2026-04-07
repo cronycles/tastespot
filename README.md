@@ -1,10 +1,9 @@
 # TasteSpot
 
-Applicazione TasteSpot con backend Laravel e nuova web app React per valutare e scoprire attività di ristorazione (bar, ristoranti, gelaterie, pizzerie, ecc.) con un sistema di valutazione per categoria (location, cibo, servizio, prezzo).
+Web app per valutare e scoprire attività di ristorazione (bar, ristoranti, gelaterie, pizzerie, ecc.) con un sistema di valutazione per categoria (location, cibo, servizio, prezzo).
 
+**URL produzione:** `https://tastespot.crointhemorning.com/`  
 **API produzione:** `https://tastespot.crointhemorning.com/api/v1/`
-
-> La root del dominio verrà servita dalla SPA web; l'endpoint di health check backend resta `/api/v1/ping`.
 
 ---
 
@@ -13,47 +12,18 @@ Applicazione TasteSpot con backend Laravel e nuova web app React per valutare e 
 **Tutto insieme dalla root (consigliato):**
 ```bash
 npm run local:start
-# avvia backend e app in parallelo, output colorato
+# avvia backend e web in parallelo, output colorato
 ```
 
 **Oppure separati:**
 ```bash
 npm run local:backend   # solo Laravel su http://localhost:8000
-npm run local:app       # solo Expo (i = iOS | a = Android | r = reload)
 npm run local:web       # solo web app Vite su http://localhost:5173
-npm run local:start:web # backend + web app in parallelo
 ```
-
-**Ripresa lavoro migrazione web:**
-Usa come riferimento canonico `docs/web-migration-status.md`.
-
-**Build Release su iPhone fisico (niente Metro, punta a produzione):**
-```bash
-npm run ios:device
-```
-
-> La prima volta serve il cavo USB e autorizzare il certificato in Impostazioni → Generali → VPN e gestione dispositivo.
-
-**Rinnovo certificato (ogni 7 giorni):**
-
-Con un Apple ID gratuito (senza abbonamento Apple Developer da 99€/anno), il certificato di firma scade ogni 7 giorni e l'app smette di avviarsi sul telefono. Per rinnovarlo:
-
-1. Collega l'iPhone al Mac via USB
-2. Lancia `npm run ios:device` — Xcode ri-firma e reinstalla automaticamente
-3. Non serve aprire Xcode manualmente
-
-> Per eliminare la scadenza dei 7 giorni occorre iscriversi all'[Apple Developer Program](https://developer.apple.com/programs/) (99€/anno). Con l'account a pagamento il certificato dura 1 anno e l'app può essere distribuita anche tramite App Store o TestFlight.
 
 ---
 
 ## Stack
-
-### Frontend — `tastespot/`
-- **React Native** + **Expo SDK 55** + TypeScript
-- **Expo Router** — navigazione file-based (`src/app/`)
-- **Zustand** — state management globale (`src/stores/`)
-- **MapLibre** + OpenFreeMap — mappe vettoriali gratuite, nessuna API key
-- **Nominatim** — geocoding/reverse geocoding, gratuito
 
 ### Frontend Web — `web/`
 - **React 19** + **Vite** + TypeScript
@@ -81,9 +51,10 @@ TasteSpot/                         ← radice del monorepo Git
 │   ├── instructions/
 │   │   └── plan.instructions.md  ← Piano di sviluppo e stato fasi (auto-loaded da Copilot)
 │   └── workflows/
-│       └── deploy.yml             ← GitHub Actions: auto-deploy su push a main
+│       ├── deploy.yml             ← GitHub Actions: auto-deploy su push a main
+│       └── web-ci.yml             ← GitHub Actions: lint + build check su develop/main
 ├── docs/
-│   └── web-migration-status.md    ← Fonte canonica per roadmap, checkpoint e ripartenza della migrazione web
+│   └── web-migration-status.md    ← Roadmap e checkpoint migrazione web
 ├── scripts/
 │   └── deploy.sh                  ← Script bash eseguito da cPanel al deploy
 ├── .cpanel.yml                    ← Entry point deploy cPanel (richiama deploy.sh)
@@ -103,24 +74,9 @@ TasteSpot/                         ← radice del monorepo Git
 │   ├── .env.production            ← Config produzione — NON in git (solo locale e sul server)
 │   ├── .gitignore
 │   └── DEPLOY.md                  ← Guida completa deploy produzione
-└── tastespot/                     ← App React Native + Expo
-    ├── src/
-    │   ├── app/                   ← Route Expo Router (file = schermata)
-    │   │   ├── _layout.tsx        ← Root layout + auth guard + deep link handler
-    │   │   ├── (auth)/            ← login.tsx, register.tsx
-    │   │   ├── (tabs)/            ← Home, Mappa, Vicino a me, Preferiti, Profilo
-    │   ├── activity/          ← [id].tsx, add.tsx, edit/[id].tsx, review/[id].tsx, confirm-location.tsx
-    │   │   └── private/           ← types.tsx (gestione tipologie)
-    │   ├── components/            ← ActivityCard, FilterPanel, FavoriteButton, ...
-    │   ├── stores/                ← Zustand: authStore, activitiesStore, typesStore, reviewsStore
-    │   ├── lib/                   ← api.ts (client HTTP), logger.ts
-    │   ├── config/                ← Costanti configurabili (scoring.ts: SMILE_VALUES, CATEGORY_WEIGHTS)
-    │   ├── types/                 ← TypeScript types condivisi (index.ts)
-    │   └── theme/                 ← Colori, spaziature, font (index.ts)
-    ├── .env                       ← EXPO_PUBLIC_API_URL (locale o produzione) — NON in git
-    └── .env.example               ← Template .env con valori di esempio
 └── web/                           ← Web app React + Vite
-    ├── src/                       ← Router SPA, store Zustand web, componenti HTML/CSS
+    ├── src/                       ← Router SPA, store Zustand, componenti HTML/CSS
+    ├── dist/                      ← Build di produzione (committata in git)
     ├── .env.development           ← VITE_API_URL=http://localhost:8000/api/v1
     ├── .env.production            ← VITE_API_URL=/api/v1
     └── package.json               ← Script dev/build/lint web
@@ -130,12 +86,9 @@ TasteSpot/                         ← radice del monorepo Git
 
 ## Come accedere alle varie parti
 
-### App mobile — Expo
-- Avviata con `npx expo start` nella cartella `tastespot/`
-- Simulatore iOS (`i`), Android (`a`), oppure Expo Go sul telefono fisico
-- URL base API configurata in `tastespot/.env`:
-  - **Locale:** `EXPO_PUBLIC_API_URL=http://localhost:8000`
-  - **Produzione:** `EXPO_PUBLIC_API_URL=https://tastespot.crointhemorning.com`
+### Web app — React + Vite
+- URL locale: **http://localhost:5173** (avviata con `npm run local:web`)
+- URL produzione: **https://tastespot.crointhemorning.com/**
 
 ### Backend — Laravel
 - Avviato con `php artisan serve --port=8000` nella cartella `backend/`
@@ -222,7 +175,6 @@ Autenticazione: header `Authorization: Bearer <token>` (🔒 = richiesto)
 - Node.js ≥ 18
 - PHP ≥ 8.3 — macOS: `brew install php`
 - Composer 2 — `brew install composer`
-- Xcode — dall'App Store (solo per simulatore iOS)
 
 ### 1. Backend Laravel
 
@@ -247,57 +199,29 @@ php artisan storage:link
 
 Il file `backend/.env` è già incluso nel repo configurato per SQLite locale.
 
-### 2. App React Native
+### 2. Web app
 
 ```bash
-cd tastespot
+cd web
 npm install
 ```
 
-Crea i file di configurazione ambiente (non sono in git):
-
-```bash
-# Copia il template e inserisci le credenziali reali
-cp .env.example .env
-# Poi in .env imposta EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY e EXPO_PUBLIC_API_URL=https://tastespot.crointhemorning.com
-
-# Crea il file locale per lo sviluppo (sovrascrive solo EXPO_PUBLIC_API_URL)
-echo "EXPO_PUBLIC_API_URL=http://localhost:8000" > .env.local
-```
-
-> `.env` → usato sempre come base (punta a produzione)  
-> `.env.local` → usato in sviluppo locale, sovrascrive solo `EXPO_PUBLIC_API_URL`  
-> `npm run ios:device` → forza sempre l'URL di produzione anche se `.env.local` esiste
-
-### 3. Prima build iOS (solo la prima volta — ~5 minuti)
-
-```bash
-cd tastespot
-npx expo run:ios
-```
-
-Dopo la prima build, puoi usare solo `npx expo start` + `i`.
-
-**Build Release su iPhone fisico (niente Metro, punta a produzione):**
-```bash
-npm run ios:device
-```
-
-> La prima volta serve il cavo USB e autorizzare il certificato in Impostazioni → Generali → VPN e gestione dispositivo.
-
-**Rinnovo certificato (ogni 7 giorni con Apple ID gratuito):**
-1. Collega l’iPhone al Mac via USB
-2. Lancia `npm run ios:device` — Xcode ri-firma e reinstalla automaticamente
+`web/.env.development` è già incluso nel repo (punta a `http://localhost:8000/api/v1`).
 
 ---
 
 ## Deploy in produzione
 
-Il deploy è **automatico solo su `main`** (mai su `develop`) quando cambiano file backend/web o script di deploy.
+Il deploy è **automatico solo su `main`** quando cambiano file backend/web o script di deploy.
 
 Per i dettagli completi (setup iniziale server, troubleshooting, gotcha) vedi [`backend/DEPLOY.md`](backend/DEPLOY.md).
 
 **Flusso:**
+1. Builda la web app localmente: `cd web && npm run build`
+2. Committa `web/dist/` e pusha su `main`
+3. GitHub Actions (`deploy.yml`) triggera il cPanel git pull + deploy
+4. `scripts/deploy.sh` copia `web/dist/*` in `public/` — nessun Node sul server
+
 ```
 git push origin main
     → GitHub Actions (`.github/workflows/deploy.yml`)
@@ -308,11 +232,10 @@ git push origin main
                 → php artisan migrate --force
                 → php artisan config:cache && route:cache
                 → chmod storage/ e bootstrap/cache/
-                → npm ci && npm run build in `web/`
-                → copia `web/dist/*` in `public/` (root SPA)
+                → copia web/dist/* in public/ (pre-built, no npm)
 ```
 
-`develop` resta branch di integrazione: puo' fare lint/build/check, ma non esegue deploy produzione.
+`develop` resta branch di integrazione: fa lint+build check (`web-ci.yml`) ma non esegue deploy.
 
 **Verifica deploy:**
 ```bash
