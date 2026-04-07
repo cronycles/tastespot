@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { IoHeart, IoHeartOutline, IoLocationOutline, IoSearchOutline } from 'react-icons/io5'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { useActivitiesStore, type ActivityWithDetails } from '@/stores/activitiesStore'
 import { useLocationStore } from '@/stores/locationStore'
@@ -62,6 +63,7 @@ function sortActivities(
 }
 
 export function ActivitiesListPanel({ title, fixedFavoritesOnly = false }: Props) {
+  const navigate = useNavigate()
   const {
     activities,
     loading,
@@ -136,6 +138,12 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false }: Props
       </div>
 
       <div className="activities-filters">
+        <div className="inline-actions">
+          <Button type="button" onClick={() => navigate('/activity/add')}>
+            Aggiungi attivita'
+          </Button>
+        </div>
+
         <div className="field activities-search-field">
           <label htmlFor="activities-search">Ricerca</label>
           <div className="activities-search-input-wrap">
@@ -234,7 +242,13 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false }: Props
             <div className="list-item activities-item" key={entry.id}>
               <div className="activities-item-main">
                 <div className="activities-item-header">
-                  <strong>{entry.name}</strong>
+                  <button
+                    type="button"
+                    className="activities-name-link"
+                    onClick={() => navigate(`/activity/${entry.id}`)}
+                  >
+                    {entry.name}
+                  </button>
                   <button
                     type="button"
                     className="activities-favorite-button"

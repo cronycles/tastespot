@@ -575,6 +575,17 @@ p {
   gap: 10px;
 }
 
+.activities-name-link {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
 .activities-favorite-button {
   border: 0;
   background: transparent;
@@ -589,6 +600,38 @@ p {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.activity-form {
+  display: grid;
+  gap: 16px;
+}
+
+.activity-coords-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.activity-tags-input-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.activity-tags-input-row input {
+  flex: 1;
+  min-width: 220px;
+  border: 1px solid rgba(28, 28, 30, 0.12);
+  border-radius: 12px;
+  padding: 11px 12px;
+  background: #fff;
+}
+
+.activity-favorite-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .not-found {

@@ -11,6 +11,9 @@ import { NearbyPage } from '@/pages/NearbyPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { TypesPage } from '@/pages/TypesPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { ActivityAddPage } from '@/pages/ActivityAddPage'
+import { ActivityEditPage } from '@/pages/ActivityEditPage'
+import { ActivityDetailPage } from '@/pages/ActivityDetailPage'
 import { useAuthStore } from '@/stores/authStore'
 
 let authBootstrapStarted = false
@@ -69,6 +72,9 @@ function App() {
           <Route path="nearby" element={<NearbyPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="private/types" element={<TypesPage />} />
+          <Route path="activity/add" element={<ActivityAddPage />} />
+          <Route path="activity/:id" element={<ActivityDetailPage />} />
+          <Route path="activity/:id/edit" element={<ActivityEditPage />} />
         </Route>
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
