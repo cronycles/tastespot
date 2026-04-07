@@ -45,15 +45,15 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Filtri mappa attivi: ricerca testuale, tipologia e solo preferiti, con card dettaglio rapida della selezione.
 - Fase 8 completata: pagina Nearby web collegata a geolocalizzazione browser con ordinamento distanza predefinito.
 - Profilo web aggiornato con dati reali utente (`auth/me`) e scorciatoie rapide a Nearby e Preferiti.
+- Fase 9 completata: deploy produzione aggiornato per includere build e publish automatico della SPA web.
+- Workflow separati: quality check web su `develop/main` e deploy produzione vincolato a `main`.
 - `backend/public/.htaccess` aggiornato per supportare SPA + API sullo stesso dominio.
 - Script root aggiunti: `local:web` e `local:start:web`.
 - README aggiornato con la nuova struttura web.
 - Verifiche completate: `cd web && npm run build` e `cd web && npm run lint`.
 
 ## Phase status
-- Fase 0: parzialmente completata
-  - Fatto: scaffold web, env, Vite config, serving SPA lato `.htaccess`
-  - Aperto: pipeline deploy web verso cPanel
+- Fase 0: completata
 - Fase 1: completata
 - Fase 2: completata in versione base
 - Fase 3: completata
@@ -62,17 +62,17 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Fase 6: completata
 - Fase 7: completata
 - Fase 8: completata
-- Fase 9: non iniziata
+- Fase 9: completata
 
 ## Current checkpoint
 - Branch di lavoro: `develop`
-- Commit checkpoint: `c20bedc`
-- Commit message: `Implement Phase 8 nearby and profile parity on web`
+- Commit checkpoint: `b4c2596`
+- Commit message: `Implement Phase 9 production deploy for web + backend`
 - Stato worktree al checkpoint: pulito
 
 ## Next recommended phase
-- Prossima fase consigliata: Fase 9
-- Obiettivo: automatizzare deploy web su cPanel (build web + publish assets) e finalizzare Fase 0 aperta.
+- Prossima fase consigliata: hardening post-migrazione
+- Obiettivo: ridurre bundle size (code splitting map), aggiungere smoke test deploy e monitoraggio errori runtime web.
 
 ## Key files already touched
 - `web/src/App.tsx`
@@ -97,7 +97,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 Usare uno di questi prompt per riprendere il lavoro:
 
 1. `Leggi docs/web-migration-status.md e continua dalla prossima fase aperta.`
-2. `Leggi docs/web-migration-status.md e avvia la Fase 9 della migrazione web (deploy automatico).`
+2. `Leggi docs/web-migration-status.md e avvia hardening post-migrazione (bundle + monitoraggio + smoke test).`
 3. `Leggi docs/web-migration-status.md, verifica il checkpoint e continua da develop.`
 
 ## Update rule
