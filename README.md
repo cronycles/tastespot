@@ -9,16 +9,22 @@ Web app per valutare e scoprire attività di ristorazione (bar, ristoranti, gela
 
 ## Avvio quotidiano (TL;DR)
 
-**Tutto insieme dalla root (consigliato):**
+**Prima installazione:**
 ```bash
-npm run local:start
+npm run restore
+# installa le dipendenze di backend e web in un colpo solo
+```
+
+**Avvio (dalla root, consigliato):**
+```bash
+npm run start
 # avvia backend e web in parallelo, output colorato
 ```
 
 **Oppure separati:**
 ```bash
-npm run local:backend   # solo Laravel su http://localhost:8000
-npm run local:web       # solo web app Vite su http://localhost:5173
+cd backend && npm run start   # solo Laravel su http://localhost:8000
+cd web && npm run start       # solo web app Vite su http://localhost:5173
 ```
 
 ---
@@ -87,7 +93,7 @@ TasteSpot/                         ← radice del monorepo Git
 ## Come accedere alle varie parti
 
 ### Web app — React + Vite
-- URL locale: **http://localhost:5173** (avviata con `npm run local:web`)
+- URL locale: **http://localhost:5173** (avviata con `npm run start` da `web/`)
 - URL produzione: **https://tastespot.crointhemorning.com/**
 
 ### Backend — Laravel
@@ -176,37 +182,28 @@ Autenticazione: header `Authorization: Bearer <token>` (🔒 = richiesto)
 - PHP ≥ 8.3 — macOS: `brew install php`
 - Composer 2 — `brew install composer`
 
-### 1. Backend Laravel
+### 1. Installa le dipendenze
+
+```bash
+npm run restore
+```
+
+Esegue automaticamente in sequenza:
+- `backend/`: `composer install` + `npm install` + `npm run build` (assets Laravel)
+- `web/`: `npm install`
+
+### 2. Inizializza il database (solo la prima volta)
 
 ```bash
 cd backend
-
-# Installa dipendenze PHP (la prima volta — vendor/ è anche in git per il deploy)
-composer install
-
-# Crea il database SQLite locale
 touch database/database.sqlite
-
-# Genera la chiave dell'app
 php artisan key:generate
-
-# Crea le tabelle
 php artisan migrate
-
-# Crea il symlink per le foto pubbliche
 php artisan storage:link
 ```
 
-Il file `backend/.env` è già incluso nel repo configurato per SQLite locale.
-
-### 2. Web app
-
-```bash
-cd web
-npm install
-```
-
-`web/.env.development` è già incluso nel repo (punta a `http://localhost:8000/api/v1`).
+Il file `backend/.env` è già incluso nel repo configurato per SQLite locale.  
+Il file `web/.env.development` è già incluso (punta a `http://localhost:8000/api/v1`).
 
 ---
 
