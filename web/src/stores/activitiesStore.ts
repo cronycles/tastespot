@@ -42,6 +42,8 @@ type ActivitiesState = {
   update: (id: string, data: UpdateActivityData) => Promise<string | null>
   remove: (id: string) => Promise<string | null>
   toggleFavorite: (id: string) => Promise<void>
+  addPhoto: (activityId: string, photo: ActivityPhoto) => void
+  removePhoto: (activityId: string, photoId: string) => void
 }
 
 export const useActivitiesStore = create<ActivitiesState>((set, get) => ({
@@ -153,5 +155,25 @@ export const useActivitiesStore = create<ActivitiesState>((set, get) => ({
         ),
       })
     }
+  },
+
+  addPhoto: (activityId, photo) => {
+    set({
+      activities: get().activities.map((entry) =>
+        entry.id === activityId
+          ? { ...entry, photos: [...entry.photos, photo] }
+          : entry
+      ),
+    })
+  },
+
+  removePhoto: (activityId, photoId) => {
+    set({
+      activities: get().activities.map((entry) =>
+        entry.id === activityId
+          ? { ...entry, photos: entry.photos.filter((photo) => photo.id !== photoId) }
+          : entry
+      ),
+    })
   },
 }))

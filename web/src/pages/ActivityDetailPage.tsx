@@ -1,14 +1,18 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import imageCompression from 'browser-image-compression'
 import { Button } from '@/components/Button'
+import { api } from '@/lib/api'
 import { useActivitiesStore } from '@/stores/activitiesStore'
 import { useTypesStore } from '@/stores/typesStore'
 
 export function ActivityDetailPage() {
   const navigate = useNavigate()
   const params = useParams<{ id: string }>()
-  const { activities, remove, toggleFavorite } = useActivitiesStore()
+  const { activities, remove, toggleFavorite, addPhoto, removePhoto } = useActivitiesStore()
   const types = useTypesStore((state) => state.types)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [photosError, setPhotosError] = useState<string | null>(null)
 
   const activity = useMemo(
     () => activities.find((entry) => entry.id === params.id),
@@ -41,6 +45,51 @@ export function ActivityDetailPage() {
     }
 
     navigate('/', { replace: true })
+  }
+
+  async function handlePhotoUpload(event: React.ChangeEvent<HTMLInputElement>): Promise<void> {
+    const current = activity
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!current || !file) {
+      return
+    }
+
+    setPhotosError(null)
+    setUploadingPhoto(true)
+    try {
+      const compressed = await imageCompression(file, {
+        maxWidthOrHeight: 1200,
+        maxSizeMB: 1,
+        useWebWorker: true,
+      })
+      const uploaded = await api.uploadPhoto(current.id, compressed)
+      addPhoto(current.id, uploaded)
+    } catch {
+      setPhotosError('Errore upload foto. Riprova.')
+    } finally {
+      setUploadingPhoto(false)
+    }
+  }
+
+  async function handlePhotoDelete(photoId: string): Promise<void> {
+    const current = activity
+    if (!current) {
+      return
+    }
+
+    const confirmed = window.confirm('Eliminare questa foto?')
+    if (!confirmed) {
+      return
+    }
+
+    setPhotosError(null)
+    try {
+      await api.delete(`/photos/${photoId}`)
+      removePhoto(current.id, photoId)
+    } catch {
+      setPhotosError('Errore eliminazione foto. Riprova.')
+    }
   }
 
   return (
@@ -91,6 +140,41 @@ export function ActivityDetailPage() {
               <span className="pill" key={tag}>
                 #{tag}
               </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="stack">
+        <h3>Foto</h3>
+        <div className="inline-actions">
+          <label className="activity-upload-label">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => void handlePhotoUpload(event)}
+              disabled={uploadingPhoto}
+            />
+            {uploadingPhoto ? 'Upload in corso...' : 'Carica foto'}
+          </label>
+        </div>
+        {photosError ? <div className="status-banner error">{photosError}</div> : null}
+
+        {activity.photos.length === 0 ? (
+          <p className="muted">Nessuna foto caricata</p>
+        ) : (
+          <div className="activity-photo-grid">
+            {activity.photos.map((photo) => (
+              <div className="activity-photo-card" key={photo.id}>
+                <img src={photo.storage_path} alt="Foto attivita'" />
+                <button
+                  type="button"
+                  className="activity-photo-delete"
+                  onClick={() => void handlePhotoDelete(photo.id)}
+                >
+                  Elimina
+                </button>
+              </div>
             ))}
           </div>
         )}
