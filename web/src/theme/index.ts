@@ -1,0 +1,50 @@
+export const theme = {
+  colors: {
+    primary: '#FF5A35',
+    primaryDark: '#D94A2A',
+    background: '#FAFAFA',
+    surface: '#FFFFFF',
+    textPrimary: '#1C1C1E',
+    textSecondary: '#6C6C6E',
+    border: '#E0E0E0',
+    error: '#FF3B30',
+    success: '#34C759',
+    warning: '#FF9500',
+    favorite: '#FF3B30',
+    tabBarBackground: '#FFFFFF',
+    tabBarBorder: '#E0E0E0',
+    overlay: 'rgba(0, 0, 0, 0.5)',
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
+  fontSize: {
+    xs: 11,
+    sm: 13,
+    md: 15,
+    lg: 17,
+    xl: 20,
+    xxl: 24,
+    xxxl: 28,
+  },
+  borderRadius: {
+    sm: 4,
+    md: 8,
+    lg: 12,
+    xl: 16,
+    full: 999,
+  },
+  fontWeight: {
+    regular: '400' as const,
+    medium: '500' as const,
+    semibold: '600' as const,
+    bold: '700' as const,
+  },
+} as const
+
+export type Theme = typeof theme

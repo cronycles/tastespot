@@ -1,10 +1,10 @@
 # TasteSpot
 
-App mobile iOS/Android per valutare e scoprire attività di ristorazione (bar, ristoranti, gelaterie, pizzerie, ecc.) con un sistema di valutazione per categoria (location, cibo, servizio, prezzo).
+Applicazione TasteSpot con backend Laravel e nuova web app React per valutare e scoprire attività di ristorazione (bar, ristoranti, gelaterie, pizzerie, ecc.) con un sistema di valutazione per categoria (location, cibo, servizio, prezzo).
 
 **API produzione:** `https://tastespot.crointhemorning.com/api/v1/`
 
-> Aprire l'URL base nel browser restituisce `{"message":"The route / could not be found."}` — è corretto, è un'API pura senza homepage. L'endpoint di health check è `/api/v1/ping`.
+> La root del dominio verrà servita dalla SPA web; l'endpoint di health check backend resta `/api/v1/ping`.
 
 ---
 
@@ -20,6 +20,8 @@ npm run local:start
 ```bash
 npm run local:backend   # solo Laravel su http://localhost:8000
 npm run local:app       # solo Expo (i = iOS | a = Android | r = reload)
+npm run local:web       # solo web app Vite su http://localhost:5173
+npm run local:start:web # backend + web app in parallelo
 ```
 
 **Build Release su iPhone fisico (niente Metro, punta a produzione):**
@@ -49,6 +51,13 @@ Con un Apple ID gratuito (senza abbonamento Apple Developer da 99€/anno), il c
 - **Zustand** — state management globale (`src/stores/`)
 - **MapLibre** + OpenFreeMap — mappe vettoriali gratuite, nessuna API key
 - **Nominatim** — geocoding/reverse geocoding, gratuito
+
+### Frontend Web — `web/`
+- **React 19** + **Vite** + TypeScript
+- **React Router** — routing SPA
+- **Zustand** — riuso della logica di stato lato web
+- **MapLibre GL JS** — mappa web pianificata nelle fasi successive
+- **Build output** — `web/dist/`, destinato a essere pubblicato nella root web del dominio
 
 ### Backend — `backend/`
 - **Laravel 11** — framework PHP, struttura MVC
@@ -105,6 +114,11 @@ TasteSpot/                         ← radice del monorepo Git
     │   └── theme/                 ← Colori, spaziature, font (index.ts)
     ├── .env                       ← EXPO_PUBLIC_API_URL (locale o produzione) — NON in git
     └── .env.example               ← Template .env con valori di esempio
+└── web/                           ← Web app React + Vite
+    ├── src/                       ← Router SPA, store Zustand web, componenti HTML/CSS
+    ├── .env.development           ← VITE_API_URL=http://localhost:8000/api/v1
+    ├── .env.production            ← VITE_API_URL=/api/v1
+    └── package.json               ← Script dev/build/lint web
 ```
 
 ---
