@@ -29,18 +29,12 @@ $PHP artisan storage:link 2>/dev/null || true
 echo "=== Step 3: Permessi ==="
 chmod -R 775 "$DEST/storage" "$DEST/bootstrap/cache"
 
-echo "=== Step 4: Build e publish web SPA ==="
-if ! command -v npm >/dev/null 2>&1; then
-	echo "[ERRORE] npm non trovato sul server. Impossibile buildare la web app."
-	exit 1
+echo "=== Step 4: Publish web SPA (dist pre-buildato in CI) ==="
+if [ ! -d "$REPO/web/dist" ]; then
+  echo "[ERRORE] web/dist non trovata nel repo. Assicurarsi che il workflow abbia committato il dist."
+  exit 1
 fi
 
-cd "$REPO/web"
-npm ci
-npm run build
-
-mkdir -p "$DEST/public/assets"
-rm -rf "$DEST/public/assets"/*
 cp -rf "$REPO/web/dist"/* "$DEST/public/"
 
 echo "=== Deploy completato ==="
