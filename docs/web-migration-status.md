@@ -39,6 +39,8 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Fase 5 completata: route e pagine web per dettaglio attivita', add e edit implementate.
 - Form condiviso add/edit implementato con campi principali, tipologie e tag.
 - Gestione foto completata nel dettaglio attivita': upload con compressione browser, gallery e delete foto.
+- Fase 6 completata: recensioni web per tipologia con create/update inline nel dettaglio attivita'.
+- Calcoli punteggio nel dettaglio attivita': media generale pesata e medie per categoria.
 - `backend/public/.htaccess` aggiornato per supportare SPA + API sullo stesso dominio.
 - Script root aggiunti: `local:web` e `local:start:web`.
 - README aggiornato con la nuova struttura web.
@@ -53,20 +55,20 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Fase 3: completata
 - Fase 4: completata
 - Fase 5: completata
-- Fase 6: non iniziata
+- Fase 6: completata
 - Fase 7: non iniziata
 - Fase 8: non iniziata
 - Fase 9: non iniziata
 
 ## Current checkpoint
 - Branch di lavoro: `develop`
-- Commit checkpoint: `f9ab4b8`
-- Commit message: `Complete Phase 5 photo management on activity detail`
+- Commit checkpoint: `53510db`
+- Commit message: `Implement Phase 6 reviews on web activity detail`
 - Stato worktree al checkpoint: pulito
 
 ## Next recommended phase
-- Prossima fase consigliata: Fase 6
-- Obiettivo: portare su web il sistema recensioni (create/update/view per tipologia) e i calcoli punteggio nel dettaglio attivita'.
+- Prossima fase consigliata: Fase 7
+- Obiettivo: portare la mappa su web con MapLibre GL JS e integrare interazione marker/lista.
 
 ## Key files already touched
 - `web/src/App.tsx`
@@ -91,7 +93,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 Usare uno di questi prompt per riprendere il lavoro:
 
 1. `Leggi docs/web-migration-status.md e continua dalla prossima fase aperta.`
-2. `Leggi docs/web-migration-status.md e avvia la Fase 6 della migrazione web (recensioni).`
+2. `Leggi docs/web-migration-status.md e avvia la Fase 7 della migrazione web (mappa MapLibre GL JS).`
 3. `Leggi docs/web-migration-status.md, verifica il checkpoint e continua da develop.`
 
 ## Update rule
