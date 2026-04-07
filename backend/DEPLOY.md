@@ -19,7 +19,7 @@
 
 ## Come funziona il deploy automatico
 
-Ogni push su `main` che tocca file in `backend/`, `.cpanel.yml`, o `.github/workflows/deploy.yml`:
+Ogni push su `main` che tocca file in `backend/`, `web/`, `scripts/deploy.sh`, `.cpanel.yml`, o `.github/workflows/deploy.yml`:
 
 ```
 git push origin main
@@ -37,9 +37,13 @@ git push origin main
                         rm -f public/storage          ← rimuove eventuale symlink sbagliato
                         php artisan storage:link       ← ricrea symlink corretto sul server
                 Step 3: chmod -R 775 storage/ bootstrap/cache/
+               Step 4: npm ci + npm run build in web/
+                  copia web/dist/* → public/ (root SPA)
 ```
 
 **Il `deploy.sh` fa `git pull` da solo** — anche se cPanel non aggiorna il repo, lo script lo aggiorna lui prima di copiare i file.
+
+         **Deploy automatico solo da `main`** — `develop` non triggera mai la produzione.
 
 **`optimize:clear` non blocca il deploy** — usa `|| true` perché sul server manca la tabella `cache` (usa MySQL, non ha la tabella di cache SQLite).
 

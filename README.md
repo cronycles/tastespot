@@ -59,7 +59,7 @@ Con un Apple ID gratuito (senza abbonamento Apple Developer da 99€/anno), il c
 - **React 19** + **Vite** + TypeScript
 - **React Router** — routing SPA
 - **Zustand** — riuso della logica di stato lato web
-- **MapLibre GL JS** — mappa web pianificata nelle fasi successive
+- **MapLibre GL JS** — mappa web attiva
 - **Build output** — `web/dist/`, destinato a essere pubblicato nella root web del dominio
 
 ### Backend — `backend/`
@@ -293,7 +293,7 @@ npm run ios:device
 
 ## Deploy in produzione
 
-Il deploy è **automatico** su ogni push a `main` che tocca file in `backend/`.
+Il deploy è **automatico solo su `main`** (mai su `develop`) quando cambiano file backend/web o script di deploy.
 
 Per i dettagli completi (setup iniziale server, troubleshooting, gotcha) vedi [`backend/DEPLOY.md`](backend/DEPLOY.md).
 
@@ -308,7 +308,11 @@ git push origin main
                 → php artisan migrate --force
                 → php artisan config:cache && route:cache
                 → chmod storage/ e bootstrap/cache/
+                → npm ci && npm run build in `web/`
+                → copia `web/dist/*` in `public/` (root SPA)
 ```
+
+`develop` resta branch di integrazione: puo' fare lint/build/check, ma non esegue deploy produzione.
 
 **Verifica deploy:**
 ```bash
