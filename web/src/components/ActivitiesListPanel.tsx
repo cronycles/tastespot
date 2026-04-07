@@ -12,6 +12,10 @@ type SortDir = 'asc' | 'desc'
 type Props = {
   title: string
   fixedFavoritesOnly?: boolean
+  eyebrow?: string
+  initialSortKey?: SortKey
+  initialSortDir?: SortDir
+  autoRequestLocation?: boolean
 }
 
 function distanceKm(
@@ -62,7 +66,14 @@ function sortActivities(
   })
 }
 
-export function ActivitiesListPanel({ title, fixedFavoritesOnly = false }: Props) {
+export function ActivitiesListPanel({
+  title,
+  fixedFavoritesOnly = false,
+  eyebrow = 'Fase 4',
+  initialSortKey = 'alpha',
+  initialSortDir = 'asc',
+  autoRequestLocation = false,
+}: Props) {
   const navigate = useNavigate()
   const {
     activities,
@@ -77,13 +88,21 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false }: Props
   const [query, setQuery] = useState('')
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null)
   const [favoritesOnly, setFavoritesOnly] = useState(false)
-  const [sortKey, setSortKey] = useState<SortKey>('alpha')
-  const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [sortKey, setSortKey] = useState<SortKey>(initialSortKey)
+  const [sortDir, setSortDir] = useState<SortDir>(initialSortDir)
 
   useEffect(() => {
     void fetch(true)
     void fetchTypes()
   }, [fetch, fetchTypes])
+
+  useEffect(() => {
+    if (!autoRequestLocation) {
+      return
+    }
+
+    void requestAndFetch()
+  }, [autoRequestLocation, requestAndFetch])
 
   const typeNamesById = useMemo(() => {
     return new Map(types.map((type) => [type.id, type.name]))
@@ -133,7 +152,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false }: Props
   return (
     <section className="page-card">
       <div className="stack">
-        <p className="eyebrow">Fase 4</p>
+        <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>
       </div>
 

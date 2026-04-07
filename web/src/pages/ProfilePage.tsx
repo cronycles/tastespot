@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 
 export function ProfilePage() {
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
   const signOut = useAuthStore((state) => state.signOut)
   const isNewUser = useAuthStore((state) => state.isNewUser)
   const dismissWelcome = useAuthStore((state) => state.dismissWelcome)
@@ -16,10 +17,23 @@ export function ProfilePage() {
   return (
     <section className="profile-card">
       <div className="stack">
-        <p className="eyebrow">Area privata</p>
+        <p className="eyebrow">Fase 8</p>
         <h1>Profilo</h1>
-        <p className="muted">Da qui attacco tipologie, sicurezza account e logout.</p>
+        <p className="muted">Gestione account web collegato a Laravel Sanctum.</p>
       </div>
+
+      {user ? (
+        <div className="metric-row">
+          <div className="metric-card">
+            <span className="muted">Nome</span>
+            <span className="metric-value" style={{ fontSize: '1.1rem' }}>{user.name}</span>
+          </div>
+          <div className="metric-card">
+            <span className="muted">Email</span>
+            <span className="metric-value" style={{ fontSize: '1.1rem' }}>{user.email}</span>
+          </div>
+        </div>
+      ) : null}
 
       {isNewUser ? (
         <div className="status-banner info">
@@ -37,9 +51,17 @@ export function ProfilePage() {
           <strong>Tipologie attività</strong>
           <span className="muted">CRUD, ordinamento e icone</span>
         </Link>
+        <Link className="list-item" to="/nearby">
+          <strong>Vicino a me</strong>
+          <span className="muted">Lista ordinata per distanza dalla tua posizione</span>
+        </Link>
+        <Link className="list-item" to="/favorites">
+          <strong>Preferiti</strong>
+          <span className="muted">Accesso rapido ai locali salvati</span>
+        </Link>
         <div className="list-item">
           <strong>Sicurezza account</strong>
-          <span className="muted">Endpoint cambio password da aggiungere lato Laravel nella fase successiva.</span>
+          <span className="muted">Cambio password disponibile quando esposto endpoint dedicato lato backend.</span>
         </div>
       </div>
 
