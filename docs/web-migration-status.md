@@ -41,6 +41,8 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Gestione foto completata nel dettaglio attivita': upload con compressione browser, gallery e delete foto.
 - Fase 6 completata: recensioni web per tipologia con create/update inline nel dettaglio attivita'.
 - Calcoli punteggio nel dettaglio attivita': media generale pesata e medie per categoria.
+- Fase 7 completata: mappa web con MapLibre GL JS, marker custom e selezione attivita' sincronizzata con lista.
+- Filtri mappa attivi: ricerca testuale, tipologia e solo preferiti, con card dettaglio rapida della selezione.
 - `backend/public/.htaccess` aggiornato per supportare SPA + API sullo stesso dominio.
 - Script root aggiunti: `local:web` e `local:start:web`.
 - README aggiornato con la nuova struttura web.
@@ -56,19 +58,19 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Fase 4: completata
 - Fase 5: completata
 - Fase 6: completata
-- Fase 7: non iniziata
+- Fase 7: completata
 - Fase 8: non iniziata
 - Fase 9: non iniziata
 
 ## Current checkpoint
 - Branch di lavoro: `develop`
-- Commit checkpoint: `53510db`
-- Commit message: `Implement Phase 6 reviews on web activity detail`
+- Commit checkpoint: `c1b5d6e`
+- Commit message: `Implement Phase 7 map integration with MapLibre`
 - Stato worktree al checkpoint: pulito
 
 ## Next recommended phase
-- Prossima fase consigliata: Fase 7
-- Obiettivo: portare la mappa su web con MapLibre GL JS e integrare interazione marker/lista.
+- Prossima fase consigliata: Fase 8
+- Obiettivo: completare pagina nearby e area profilo web con parita' funzionale rispetto al mobile.
 
 ## Key files already touched
 - `web/src/App.tsx`
@@ -93,7 +95,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 Usare uno di questi prompt per riprendere il lavoro:
 
 1. `Leggi docs/web-migration-status.md e continua dalla prossima fase aperta.`
-2. `Leggi docs/web-migration-status.md e avvia la Fase 7 della migrazione web (mappa MapLibre GL JS).`
+2. `Leggi docs/web-migration-status.md e avvia la Fase 8 della migrazione web (nearby + profilo).`
 3. `Leggi docs/web-migration-status.md, verifica il checkpoint e continua da develop.`
 
 ## Update rule
