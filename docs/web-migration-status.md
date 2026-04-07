@@ -33,6 +33,9 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Pagine iniziali create: login, register, map, favorites, nearby, profile, types, 404.
 - Fase 3 completata: `typesStore` portato su web con fetch/create/update/delete/reorder.
 - Pagina tipologie web implementata con CRUD completo, riordino up/down e selezione icone.
+- Fase 4 completata: `activitiesStore` portato su web con fetch paginato e toggle preferiti.
+- Lista attivita' web implementata con ricerca, filtro tipologia, filtro preferiti, ordinamento e load-more.
+- Pagina `Preferiti` collegata alla stessa lista in modalita' solo preferiti.
 - `backend/public/.htaccess` aggiornato per supportare SPA + API sullo stesso dominio.
 - Script root aggiunti: `local:web` e `local:start:web`.
 - README aggiornato con la nuova struttura web.
@@ -45,7 +48,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Fase 1: completata
 - Fase 2: completata in versione base
 - Fase 3: completata
-- Fase 4: non iniziata
+- Fase 4: completata
 - Fase 5: non iniziata
 - Fase 6: non iniziata
 - Fase 7: non iniziata
@@ -54,13 +57,13 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 
 ## Current checkpoint
 - Branch di lavoro: `develop`
-- Commit checkpoint: `d3ff69a`
-- Commit message: `Implement Phase 3 types CRUD on web`
+- Commit checkpoint: `d10a3f1`
+- Commit message: `Implement Phase 4 activities list and filters on web`
 - Stato worktree al checkpoint: pulito
 
 ## Next recommended phase
-- Prossima fase consigliata: Fase 4
-- Obiettivo: portare `activitiesStore` su web e implementare lista attivita' con filtri e ordinamento.
+- Prossima fase consigliata: Fase 5
+- Obiettivo: implementare dettaglio attivita' e flusso CRUD add/edit su web.
 
 ## Key files already touched
 - `web/src/App.tsx`
@@ -69,6 +72,10 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - `web/src/stores/locationStore.ts`
 - `web/src/stores/typesStore.ts`
 - `web/src/pages/TypesPage.tsx`
+- `web/src/stores/activitiesStore.ts`
+- `web/src/components/ActivitiesListPanel.tsx`
+- `web/src/pages/MapPage.tsx`
+- `web/src/pages/FavoritesPage.tsx`
 - `backend/public/.htaccess`
 - `README.md`
 - `package.json`
@@ -77,7 +84,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 Usare uno di questi prompt per riprendere il lavoro:
 
 1. `Leggi docs/web-migration-status.md e continua dalla prossima fase aperta.`
-2. `Leggi docs/web-migration-status.md e implementa la Fase 4 della migrazione web.`
+2. `Leggi docs/web-migration-status.md e implementa la Fase 5 della migrazione web.`
 3. `Leggi docs/web-migration-status.md, verifica il checkpoint e continua da develop.`
 
 ## Update rule
