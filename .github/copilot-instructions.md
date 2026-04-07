@@ -1,5 +1,10 @@
 # TasteSpot — Copilot Instructions
 
+## Current migration status
+- The active product direction is the migration from the Expo mobile app to the React + Vite web app served on the main domain.
+- Before continuing any work on this migration, read `docs/web-migration-status.md` and use it as the canonical source for roadmap, checkpoint, and next phase.
+- If `docs/web-migration-status.md` conflicts with older mobile-era notes in this file, the migration document takes precedence.
+
 ## Project overview
 TasteSpot is a React Native mobile app (iOS + Android) for rating and discovering food & drink venues. Built with Expo, TypeScript, Supabase, and MapLibre.
 

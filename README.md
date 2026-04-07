@@ -24,6 +24,9 @@ npm run local:web       # solo web app Vite su http://localhost:5173
 npm run local:start:web # backend + web app in parallelo
 ```
 
+**Ripresa lavoro migrazione web:**
+Usa come riferimento canonico `docs/web-migration-status.md`.
+
 **Build Release su iPhone fisico (niente Metro, punta a produzione):**
 ```bash
 npm run ios:device
@@ -79,6 +82,8 @@ TasteSpot/                         ← radice del monorepo Git
 │   │   └── plan.instructions.md  ← Piano di sviluppo e stato fasi (auto-loaded da Copilot)
 │   └── workflows/
 │       └── deploy.yml             ← GitHub Actions: auto-deploy su push a main
+├── docs/
+│   └── web-migration-status.md    ← Fonte canonica per roadmap, checkpoint e ripartenza della migrazione web
 ├── scripts/
 │   └── deploy.sh                  ← Script bash eseguito da cPanel al deploy
 ├── .cpanel.yml                    ← Entry point deploy cPanel (richiama deploy.sh)
