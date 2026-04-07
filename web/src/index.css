@@ -679,6 +679,31 @@ p {
   cursor: pointer;
 }
 
+.reviews-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.review-card {
+  border: 1px solid rgba(28, 28, 30, 0.08);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.84);
+  display: grid;
+  gap: 12px;
+}
+
+.review-scores-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.review-score-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .not-found {
   min-height: 100vh;
   display: grid;

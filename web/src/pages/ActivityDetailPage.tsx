@@ -1,9 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import imageCompression from 'browser-image-compression'
 import { Button } from '@/components/Button'
+import { SMILE_VALUES } from '@/config/scoring'
 import { api } from '@/lib/api'
 import { useActivitiesStore } from '@/stores/activitiesStore'
+import {
+  calcActivityAvgScore,
+  calcCategoryAvgs,
+  type ReviewWithType,
+  useReviewsStore,
+} from '@/stores/reviewsStore'
 import { useTypesStore } from '@/stores/typesStore'
 
 export function ActivityDetailPage() {
@@ -11,8 +18,15 @@ export function ActivityDetailPage() {
   const params = useParams<{ id: string }>()
   const { activities, remove, toggleFavorite, addPhoto, removePhoto } = useActivitiesStore()
   const types = useTypesStore((state) => state.types)
+  const fetchReviews = useReviewsStore((state) => state.fetch)
+  const getForActivity = useReviewsStore((state) => state.getForActivity)
+  const getForType = useReviewsStore((state) => state.getForType)
+  const upsertReview = useReviewsStore((state) => state.upsert)
+  const reviewsLoading = useReviewsStore((state) => state.loading)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [photosError, setPhotosError] = useState<string | null>(null)
+  const [reviewsError, setReviewsError] = useState<string | null>(null)
+  const [savingTypeId, setSavingTypeId] = useState<string | null>(null)
 
   const activity = useMemo(
     () => activities.find((entry) => entry.id === params.id),
@@ -23,9 +37,20 @@ export function ActivityDetailPage() {
     return new Map(types.map((type) => [type.id, type.name]))
   }, [types])
 
+  useEffect(() => {
+    if (!params.id) {
+      return
+    }
+    void fetchReviews(params.id)
+  }, [fetchReviews, params.id])
+
   if (!params.id || !activity) {
     return <Navigate to="/" replace />
   }
+
+  const reviews = getForActivity(activity.id)
+  const averageScore = calcActivityAvgScore(reviews)
+  const categoryAvgs = calcCategoryAvgs(reviews)
 
   async function handleDelete(): Promise<void> {
     const current = activity
@@ -92,6 +117,33 @@ export function ActivityDetailPage() {
     }
   }
 
+  async function handleReviewSave(typeId: string, payload: ReviewFormValues): Promise<void> {
+    const current = activity
+    if (!current) {
+      return
+    }
+
+    setReviewsError(null)
+    setSavingTypeId(typeId)
+    const error = await upsertReview({
+      activity_id: current.id,
+      activity_type_id: typeId,
+      score_location: payload.score_location,
+      score_food: payload.score_food,
+      score_service: payload.score_service,
+      score_price: payload.score_price,
+      cost_per_person: payload.cost_per_person,
+      liked: payload.liked,
+      disliked: payload.disliked,
+      notes: payload.notes,
+    })
+    setSavingTypeId(null)
+
+    if (error) {
+      setReviewsError(error)
+    }
+  }
+
   return (
     <section className="page-card">
       <div className="types-toolbar">
@@ -146,6 +198,57 @@ export function ActivityDetailPage() {
       </div>
 
       <div className="stack">
+        <h3>Punteggi medi</h3>
+        {averageScore === null ? (
+          <p className="muted">Nessuna recensione ancora presente</p>
+        ) : (
+          <div className="metric-row">
+            <div className="metric-card">
+              <span className="muted">Media generale</span>
+              <span className="metric-value">{averageScore.toFixed(1)}/10</span>
+            </div>
+            <div className="metric-card">
+              <span className="muted">Location</span>
+              <span className="metric-value">{formatScore(categoryAvgs.location)}</span>
+            </div>
+            <div className="metric-card">
+              <span className="muted">Cibo</span>
+              <span className="metric-value">{formatScore(categoryAvgs.food)}</span>
+            </div>
+            <div className="metric-card">
+              <span className="muted">Servizio</span>
+              <span className="metric-value">{formatScore(categoryAvgs.service)}</span>
+            </div>
+            <div className="metric-card">
+              <span className="muted">Conto</span>
+              <span className="metric-value">{formatScore(categoryAvgs.price)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="stack">
+        <h3>Recensioni per tipologia</h3>
+        {reviewsLoading ? <p className="muted">Caricamento recensioni...</p> : null}
+        {reviewsError ? <div className="status-banner error">{reviewsError}</div> : null}
+        <div className="reviews-grid">
+          {activity.type_ids.map((typeId) => {
+            const existingReview = getForType(activity.id, typeId)
+            return (
+              <ReviewEditorCard
+                key={`${typeId}-${existingReview?.id ?? 'new'}-${existingReview?.updated_at ?? '0'}`}
+                activityTypeId={typeId}
+                typeName={typeNamesById.get(typeId) ?? 'Tipologia'}
+                existing={existingReview}
+                saving={savingTypeId === typeId}
+                onSave={(payload) => void handleReviewSave(typeId, payload)}
+              />
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="stack">
         <h3>Foto</h3>
         <div className="inline-actions">
           <label className="activity-upload-label">
@@ -190,4 +293,160 @@ export function ActivityDetailPage() {
       </div>
     </section>
   )
+}
+
+type ReviewFormValues = {
+  score_location: number | null
+  score_food: number | null
+  score_service: number | null
+  score_price: number | null
+  cost_per_person: number | null
+  liked: string | null
+  disliked: string | null
+  notes: string | null
+}
+
+type ReviewEditorCardProps = {
+  activityTypeId: string
+  typeName: string
+  existing: ReviewWithType | null
+  saving: boolean
+  onSave: (payload: ReviewFormValues) => void
+}
+
+function ReviewEditorCard({
+  activityTypeId,
+  typeName,
+  existing,
+  saving,
+  onSave,
+}: ReviewEditorCardProps) {
+  const [scoreLocation, setScoreLocation] = useState<number | null>(existing?.score_location ?? null)
+  const [scoreFood, setScoreFood] = useState<number | null>(existing?.score_food ?? null)
+  const [scoreService, setScoreService] = useState<number | null>(existing?.score_service ?? null)
+  const [scorePrice, setScorePrice] = useState<number | null>(existing?.score_price ?? null)
+  const [costPerPerson, setCostPerPerson] = useState(existing?.cost_per_person ? String(existing.cost_per_person) : '')
+  const [liked, setLiked] = useState(existing?.liked ?? '')
+  const [disliked, setDisliked] = useState(existing?.disliked ?? '')
+  const [notes, setNotes] = useState(existing?.notes ?? '')
+  const [localError, setLocalError] = useState<string | null>(null)
+
+  function handleSave(): void {
+    const hasAnyScore =
+      scoreLocation !== null || scoreFood !== null || scoreService !== null || scorePrice !== null
+    if (!hasAnyScore) {
+      setLocalError('Inserisci almeno un punteggio.')
+      return
+    }
+
+    setLocalError(null)
+    onSave({
+      score_location: scoreLocation,
+      score_food: scoreFood,
+      score_service: scoreService,
+      score_price: scorePrice,
+      cost_per_person: costPerPerson.trim() ? Number(costPerPerson) : null,
+      liked: liked.trim() ? liked.trim() : null,
+      disliked: disliked.trim() ? disliked.trim() : null,
+      notes: notes.trim() ? notes.trim() : null,
+    })
+  }
+
+  return (
+    <article className="review-card" data-type-id={activityTypeId}>
+      <div className="types-toolbar">
+        <h3>{typeName}</h3>
+        <Button type="button" variant="secondary" onClick={handleSave} disabled={saving}>
+          {saving ? 'Salvataggio...' : 'Salva'}
+        </Button>
+      </div>
+
+      <div className="review-scores-grid">
+        <ScoreField label="Location" value={scoreLocation} onChange={setScoreLocation} />
+        <ScoreField label="Cibo" value={scoreFood} onChange={setScoreFood} />
+        <ScoreField label="Servizio" value={scoreService} onChange={setScoreService} />
+        <ScoreField label="Conto" value={scorePrice} onChange={setScorePrice} />
+      </div>
+
+      <div className="field">
+        <label>Costo per persona (EUR)</label>
+        <input
+          type="number"
+          min={0}
+          step="0.1"
+          value={costPerPerson}
+          onChange={(event) => setCostPerPerson(event.target.value)}
+          placeholder="Es. 18"
+        />
+      </div>
+
+      <div className="field">
+        <label>Cosa ti e' piaciuto</label>
+        <textarea
+          rows={2}
+          value={liked}
+          onChange={(event) => setLiked(event.target.value)}
+          placeholder="Es. locale accogliente"
+        />
+      </div>
+
+      <div className="field">
+        <label>Cosa non ti e' piaciuto</label>
+        <textarea
+          rows={2}
+          value={disliked}
+          onChange={(event) => setDisliked(event.target.value)}
+          placeholder="Es. tempi di attesa"
+        />
+      </div>
+
+      <div className="field">
+        <label>Note</label>
+        <textarea
+          rows={3}
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          placeholder="Ulteriori dettagli"
+        />
+      </div>
+
+      {existing ? (
+        <p className="muted">
+          Aggiornata: {new Date(existing.updated_at).toLocaleDateString('it-IT')}
+        </p>
+      ) : null}
+
+      {localError ? <div className="status-banner error">{localError}</div> : null}
+    </article>
+  )
+}
+
+type ScoreFieldProps = {
+  label: string
+  value: number | null
+  onChange: (value: number) => void
+}
+
+function ScoreField({ label, value, onChange }: ScoreFieldProps) {
+  return (
+    <div className="stack">
+      <p className="muted">{label}</p>
+      <div className="review-score-buttons">
+        {SMILE_VALUES.map((score) => (
+          <button
+            key={score}
+            type="button"
+            className={`activities-chip ${value === score ? 'active' : ''}`}
+            onClick={() => onChange(score)}
+          >
+            {score}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function formatScore(score: number | null): string {
+  return score === null ? '-' : `${score.toFixed(1)}/10`
 }
