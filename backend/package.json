@@ -4,7 +4,7 @@
     "type": "module",
     "scripts": {
         "restore": "composer install && npm install",
-        "start": "php artisan serve --port=8000",
+        "start": "php artisan serve --port=8001",
         "build": "vite build"
     },
     "devDependencies": {

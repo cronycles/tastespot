@@ -9,6 +9,14 @@ import { useTypesStore } from "@/stores/typesStore";
 
 const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 
+function normalizeText(value: string): string {
+    return value
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .trim();
+}
+
 function sortByName(entries: ActivityWithDetails[]): ActivityWithDetails[] {
     return [...entries].sort((first, second) => first.name.localeCompare(second.name, "it"));
 }
@@ -76,7 +84,7 @@ export function MapPage() {
     const typeNamesById = useMemo(() => new Map(types.map(type => [type.id, type.name])), [types]);
 
     const visibleActivities = useMemo(() => {
-        const normalizedQuery = query.trim().toLowerCase();
+        const normalizedQuery = normalizeText(query);
         const filtered = activities.filter(entry => {
             if (favoritesOnly && !entry.is_favorite) {
                 return false;
@@ -88,7 +96,8 @@ export function MapPage() {
                 return true;
             }
 
-            const haystack = [entry.name, entry.address ?? "", ...(entry.tags ?? [])].join(" ").toLowerCase();
+            const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? "");
+            const haystack = normalizeText([entry.name, entry.address ?? "", ...(entry.tags ?? []), ...typeNames].join(" "));
             return haystack.includes(normalizedQuery);
         });
 

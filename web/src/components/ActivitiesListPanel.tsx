@@ -9,6 +9,14 @@ import { useTypesStore } from "@/stores/typesStore";
 type SortKey = "alpha" | "last_viewed" | "distance";
 type SortDir = "asc" | "desc";
 
+function normalizeText(value: string): string {
+    return value
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .trim();
+}
+
 type Props = {
     title: string;
     fixedFavoritesOnly?: boolean;
@@ -81,7 +89,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
     }, [types]);
 
     const visible = useMemo(() => {
-        const normalizedQuery = query.trim().toLowerCase();
+        const normalizedQuery = normalizeText(query);
         const activeFavoritesOnly = fixedFavoritesOnly || favoritesOnly;
 
         const filtered = activities.filter(entry => {
@@ -97,7 +105,8 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
                 return true;
             }
 
-            const haystack = [entry.name, entry.address ?? "", ...(entry.tags ?? [])].join(" ").toLowerCase();
+            const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? "");
+            const haystack = normalizeText([entry.name, entry.address ?? "", ...(entry.tags ?? []), ...typeNames].join(" "));
 
             return haystack.includes(normalizedQuery);
         });

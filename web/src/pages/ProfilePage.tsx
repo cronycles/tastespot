@@ -24,15 +24,11 @@ export function ProfilePage() {
                 <div className="metric-row">
                     <div className="metric-card">
                         <span className="muted">Nome</span>
-                        <span className="metric-value" style={{ fontSize: "1.1rem" }}>
-                            {user.name}
-                        </span>
+                        <span className="metric-value metric-value-sm">{user.name}</span>
                     </div>
                     <div className="metric-card">
                         <span className="muted">Email</span>
-                        <span className="metric-value" style={{ fontSize: "1.1rem" }}>
-                            {user.email}
-                        </span>
+                        <span className="metric-value metric-value-sm">{user.email}</span>
                     </div>
                 </div>
             ) : null}
@@ -40,7 +36,7 @@ export function ProfilePage() {
             {isNewUser ? (
                 <div className="status-banner info">
                     Registrazione completata con successo.
-                    <div className="inline-actions" style={{ marginTop: "10px" }}>
+                    <div className="inline-actions status-banner-actions">
                         <Button variant="secondary" onClick={dismissWelcome}>
                             Chiudi
                         </Button>
