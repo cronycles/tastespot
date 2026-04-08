@@ -159,15 +159,9 @@ export function ActivityFormPage({ mode, activity }: Props) {
 
     return (
         <section className="page-card">
-            <div className="types-toolbar">
-                <div className="stack">
-                    <p className="eyebrow">Attivita'</p>
-                    <h1>{mode === "add" ? "Nuova attivita'" : "Modifica attivita'"}</h1>
-                    <p className="muted">Compila i dettagli del posto che vuoi salvare.</p>
-                </div>
-                <Button type="button" variant="secondary" onClick={() => navigate(-1)}>
-                    Indietro
-                </Button>
+            <div className="stack">
+                <h1>{mode === "add" ? "Nuova attivita'" : "Modifica attivita'"}</h1>
+                <p className="muted">Compila i dettagli del posto che vuoi salvare.</p>
             </div>
 
             <form className="activity-form" onSubmit={event => void handleSubmit(event)}>

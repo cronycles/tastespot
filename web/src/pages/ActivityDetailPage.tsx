@@ -138,20 +138,14 @@ export function ActivityDetailPage() {
 
     return (
         <section className="page-card">
-            <div className="types-toolbar">
+            <div className="panel-title-row">
                 <div className="stack">
-                    <p className="eyebrow">Attivita'</p>
                     <h1>{activity.name}</h1>
                     {activity.address ? <p className="muted">{activity.address}</p> : null}
                 </div>
-                <div className="inline-actions">
-                    <Button type="button" variant="secondary" onClick={() => navigate(-1)}>
-                        Indietro
-                    </Button>
-                    <Button type="button" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
-                        Modifica
-                    </Button>
-                </div>
+                <Button type="button" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
+                    Modifica
+                </Button>
             </div>
 
             <div className="stack">
@@ -386,7 +380,7 @@ function ScoreField({ label, value, onChange }: ScoreFieldProps) {
             <div className="review-score-buttons">
                 {SMILE_VALUES.map(score => (
                     <button key={score} type="button" className={`activities-chip ${value === score ? "active" : ""}`} onClick={() => onChange(score)}>
-                        {score}
+                        {SMILE_EMOJI[score]}
                     </button>
                 ))}
             </div>
@@ -397,3 +391,5 @@ function ScoreField({ label, value, onChange }: ScoreFieldProps) {
 function formatScore(score: number | null): string {
     return score === null ? "-" : `${score.toFixed(1)}/10`;
 }
+
+const SMILE_EMOJI: Record<number, string> = { 1: "😞", 3.5: "😕", 6: "😐", 8: "🙂", 10: "😝" };

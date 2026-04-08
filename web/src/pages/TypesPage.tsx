@@ -116,12 +116,8 @@ export function TypesPage() {
     return (
         <>
             <section className="page-card">
-                <div className="types-toolbar">
-                    <div className="stack">
-                        <p className="eyebrow">Tipologie</p>
-                        <h1>Tipologie attivita'</h1>
-                        <p className="muted">Gestisci le categorie delle tue attivita'.</p>
-                    </div>
+                <div className="panel-title-row">
+                    <h1>Tipologie attivita'</h1>
                     <Button onClick={openCreate}>
                         <span className="types-add-button">
                             <IoAdd />
@@ -203,7 +199,6 @@ export function TypesPage() {
                 <section className="page-card types-editor">
                     <div className="types-editor-header">
                         <div className="stack">
-                            <p className="eyebrow">Editor</p>
                             <h2>{editing ? "Modifica tipologia" : "Nuova tipologia"}</h2>
                         </div>
                         <button type="button" className="types-icon-button" onClick={closePanel} aria-label="Chiudi editor">
