@@ -159,7 +159,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
 
     return (
         <section className="page-card">
-            <div className="stack">
+            <div className="content-stack">
                 <h1>{mode === "add" ? "Nuova attivita'" : "Modifica attivita'"}</h1>
                 <p className="muted">Compila i dettagli del posto che vuoi salvare.</p>
             </div>
@@ -196,7 +196,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
                     <textarea id="activity-notes" rows={4} value={form.notes} onChange={event => updateField("notes", event.target.value)} placeholder="Appunti o dettagli utili" />
                 </div>
 
-                <div className="stack">
+                <div className="content-stack">
                     <h3>Tipologie *</h3>
                     <div className="activities-chip-row">
                         {types.map(type => (
@@ -212,7 +212,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
                     </div>
                 </div>
 
-                <div className="stack">
+                <div className="content-stack">
                     <h3>Tag</h3>
                     <div className="activity-tags-input-row">
                         <input value={form.tagsInput} onChange={event => updateField("tagsInput", event.target.value.toLowerCase())} placeholder="es. economico romantico" />
@@ -223,7 +223,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
                     {form.tags.length > 0 ? (
                         <div className="activities-meta-row">
                             {form.tags.map(tag => (
-                                <span className="pill" key={tag}>
+                                <span className="tag-pill" key={tag}>
                                     #{tag}
                                 </span>
                             ))}

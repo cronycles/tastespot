@@ -218,7 +218,7 @@ export function MapPage() {
                     {selectedActivity.address ? <p className="muted">{selectedActivity.address}</p> : null}
                     <div className="activities-meta-row">
                         {selectedActivity.type_ids.map(typeId => (
-                            <span className="pill" key={typeId}>
+                            <span className="tag-pill" key={typeId}>
                                 {typeNamesById.get(typeId) ?? "Tipo"}
                             </span>
                         ))}
@@ -231,7 +231,7 @@ export function MapPage() {
                 </div>
             ) : null}
 
-            <div className="stack">
+            <div className="content-stack">
                 <h3>Lista attivita'</h3>
                 {visibleActivities.length === 0 && !loading ? <p className="muted">Nessuna attivita' visibile con i filtri correnti.</p> : null}
                 {visibleActivities.length > 0 ? (

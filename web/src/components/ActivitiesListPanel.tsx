@@ -127,7 +127,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
     return (
         <section className="page-card">
             <div className="panel-title-row">
-                <div className="stack">
+                <div className="content-stack">
                     {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
                     <h1>{title}</h1>
                 </div>
@@ -185,7 +185,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
 
             {visible.length === 0 && !loading ? (
                 <div className="empty-state">
-                    <div className="stack">
+                    <div className="content-stack">
                         <h3>Nessuna attivita' trovata</h3>
                         <p className="muted">Prova a cambiare filtro o ricerca.</p>
                     </div>
@@ -195,7 +195,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
             {visible.length > 0 ? (
                 <div className="list">
                     {visible.map(entry => (
-                        <div className="list-item activities-item" key={entry.id}>
+                        <div className="surface-item activities-item" key={entry.id}>
                             <div className="activities-item-main">
                                 <div className="activities-item-header">
                                     <button type="button" className="activities-name-link" onClick={() => navigate(`/activity/${entry.id}`)}>
@@ -209,7 +209,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
 
                                 <div className="activities-meta-row">
                                     {entry.type_ids.map(typeId => (
-                                        <span className="pill" key={typeId}>
+                                        <span className="tag-pill" key={typeId}>
                                             {typeNamesById.get(typeId) ?? "Tipo"}
                                         </span>
                                     ))}

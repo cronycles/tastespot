@@ -16,7 +16,7 @@ export function ProfilePage() {
 
     return (
         <section className="profile-card">
-            <div className="stack">
+            <div className="content-stack">
                 <h1>Profilo</h1>
             </div>
 
@@ -45,19 +45,19 @@ export function ProfilePage() {
             ) : null}
 
             <div className="profile-actions">
-                <Link className="list-item" to="/private/types">
+                <Link className="surface-item" to="/private/types">
                     <strong>Tipologie attività</strong>
                     <span className="muted">Gestisci e riordina le tipologie.</span>
                 </Link>
-                <Link className="list-item" to="/nearby">
+                <Link className="surface-item" to="/nearby">
                     <strong>Vicino a me</strong>
                     <span className="muted">Scopri i posti piu' vicini.</span>
                 </Link>
-                <Link className="list-item" to="/favorites">
+                <Link className="surface-item" to="/favorites">
                     <strong>Preferiti</strong>
                     <span className="muted">Rivedi i tuoi preferiti.</span>
                 </Link>
-                <div className="list-item">
+                <div className="surface-item">
                     <strong>Sicurezza account</strong>
                     <span className="muted">Altre opzioni in arrivo.</span>
                 </div>

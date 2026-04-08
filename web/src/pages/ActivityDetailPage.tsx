@@ -139,7 +139,7 @@ export function ActivityDetailPage() {
     return (
         <section className="page-card">
             <div className="panel-title-row">
-                <div className="stack">
+                <div className="content-stack">
                     <h1>{activity.name}</h1>
                     {activity.address ? <p className="muted">{activity.address}</p> : null}
                 </div>
@@ -148,7 +148,7 @@ export function ActivityDetailPage() {
                 </Button>
             </div>
 
-            <div className="stack">
+            <div className="content-stack">
                 <h3>Dettagli</h3>
                 {activity.phone ? <p>Telefono: {activity.phone}</p> : null}
                 {activity.lat != null && activity.lng != null ? (
@@ -159,25 +159,25 @@ export function ActivityDetailPage() {
                 {activity.notes ? <p className="muted">{activity.notes}</p> : null}
             </div>
 
-            <div className="stack">
+            <div className="content-stack">
                 <h3>Tipologie</h3>
                 <div className="activities-meta-row">
                     {activity.type_ids.map(typeId => (
-                        <span className="pill" key={typeId}>
+                        <span className="tag-pill" key={typeId}>
                             {typeNamesById.get(typeId) ?? "Tipo"}
                         </span>
                     ))}
                 </div>
             </div>
 
-            <div className="stack">
+            <div className="content-stack">
                 <h3>Tag</h3>
                 {activity.tags.length === 0 ? (
                     <p className="muted">Nessun tag</p>
                 ) : (
                     <div className="activities-meta-row">
                         {activity.tags.map(tag => (
-                            <span className="pill" key={tag}>
+                            <span className="tag-pill" key={tag}>
                                 #{tag}
                             </span>
                         ))}
@@ -185,7 +185,7 @@ export function ActivityDetailPage() {
                 )}
             </div>
 
-            <div className="stack">
+            <div className="content-stack">
                 <h3>Punteggi medi</h3>
                 {averageScore === null ? (
                     <p className="muted">Nessuna recensione ancora presente</p>
@@ -215,7 +215,7 @@ export function ActivityDetailPage() {
                 )}
             </div>
 
-            <div className="stack">
+            <div className="content-stack">
                 <h3>Recensioni per tipologia</h3>
                 {reviewsLoading ? <p className="muted">Caricamento recensioni...</p> : null}
                 {reviewsError ? <div className="status-banner error">{reviewsError}</div> : null}
@@ -236,7 +236,7 @@ export function ActivityDetailPage() {
                 </div>
             </div>
 
-            <div className="stack">
+            <div className="content-stack">
                 <h3>Foto</h3>
                 <div className="inline-actions">
                     <label className="activity-upload-label">
@@ -375,7 +375,7 @@ type ScoreFieldProps = {
 
 function ScoreField({ label, value, onChange }: ScoreFieldProps) {
     return (
-        <div className="stack">
+        <div className="content-stack">
             <p className="muted">{label}</p>
             <div className="review-score-buttons">
                 {SMILE_VALUES.map(score => (

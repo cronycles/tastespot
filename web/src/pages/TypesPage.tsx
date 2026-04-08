@@ -128,7 +128,7 @@ export function TypesPage() {
 
                 {loading && sortedTypes.length === 0 ? (
                     <div className="empty-state">
-                        <div className="stack">
+                        <div className="content-stack">
                             <h3>Caricamento tipologie...</h3>
                         </div>
                     </div>
@@ -136,7 +136,7 @@ export function TypesPage() {
 
                 {!loading && sortedTypes.length === 0 ? (
                     <div className="empty-state">
-                        <div className="stack">
+                        <div className="content-stack">
                             <h3>Nessuna tipologia</h3>
                             <p className="muted">Crea la prima tipologia con il pulsante in alto.</p>
                         </div>
@@ -149,7 +149,7 @@ export function TypesPage() {
                             const Icon = iconMap[type.icon_key as keyof typeof iconMap] ?? IoStorefrontOutline;
 
                             return (
-                                <div className="list-item types-item" key={type.id}>
+                                <div className="surface-item types-item" key={type.id}>
                                     <div className="types-reorder-controls">
                                         <button
                                             type="button"
@@ -198,7 +198,7 @@ export function TypesPage() {
             {isOpen ? (
                 <section className="page-card types-editor">
                     <div className="types-editor-header">
-                        <div className="stack">
+                        <div className="content-stack">
                             <h2>{editing ? "Modifica tipologia" : "Nuova tipologia"}</h2>
                         </div>
                         <button type="button" className="types-icon-button" onClick={closePanel} aria-label="Chiudi editor">
@@ -234,7 +234,7 @@ export function TypesPage() {
                             />
                         </div>
 
-                        <div className="stack">
+                        <div className="content-stack">
                             <h3>Icona</h3>
                             <div className="types-icon-grid">
                                 {AVAILABLE_ICONS.map(iconKey => {
