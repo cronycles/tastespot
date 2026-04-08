@@ -54,6 +54,7 @@ export function MapPage() {
     const mapRef = useRef<maplibregl.Map | null>(null);
     const markersRef = useRef<Marker[]>([]);
     const placeMarkerRef = useRef<Marker | null>(null);
+    const userMarkerRef = useRef<Marker | null>(null);
 
     const { activities, fetch, loading, hasMore, toggleFavorite } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
@@ -100,6 +101,8 @@ export function MapPage() {
             markersRef.current = [];
             placeMarkerRef.current?.remove();
             placeMarkerRef.current = null;
+            userMarkerRef.current?.remove();
+            userMarkerRef.current = null;
             map.remove();
             mapRef.current = null;
         };
@@ -116,6 +119,29 @@ export function MapPage() {
             duration: 900,
         });
     }, [coords.lat, coords.lng]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+
+        if (!hasPermission) {
+            userMarkerRef.current?.remove();
+            userMarkerRef.current = null;
+            return;
+        }
+
+        if (!userMarkerRef.current) {
+            const userElement = document.createElement("span");
+            userElement.className = "map-marker user";
+            userElement.setAttribute("aria-label", "La tua posizione");
+            userMarkerRef.current = new maplibregl.Marker({ element: userElement, anchor: "center" }).setLngLat([coords.lng, coords.lat]).addTo(map);
+            return;
+        }
+
+        userMarkerRef.current.setLngLat([coords.lng, coords.lat]);
+    }, [coords.lat, coords.lng, hasPermission]);
 
     const typeNamesById = useMemo(() => new Map(types.map(type => [type.id, type.name])), [types]);
 
@@ -209,7 +235,7 @@ export function MapPage() {
 
         const placeElement = document.createElement("button");
         placeElement.type = "button";
-        placeElement.className = "map-marker external";
+        placeElement.className = "map-poi-pin";
         placeElement.title = place.label;
         placeElement.setAttribute("aria-label", place.label);
         placeElement.onclick = () => {
@@ -446,6 +472,25 @@ export function MapPage() {
                         enterKeyHint="search"
                         placeholder="Attivita o luogo sulla mappa"
                     />
+                    {showSuggestions && query.trim().length >= 2 ? (
+                        <div className="search-suggestions-panel">
+                            {suggestionsLoading ? <p className="muted search-suggestions-empty">Cerco suggerimenti...</p> : null}
+                            {!suggestionsLoading && searchSuggestions.length === 0 ? <p className="muted search-suggestions-empty">Nessun suggerimento.</p> : null}
+                            {!suggestionsLoading && searchSuggestions.length > 0
+                                ? searchSuggestions.map(suggestion => (
+                                      <button
+                                          key={suggestion.id}
+                                          type="button"
+                                          className="search-suggestion-item"
+                                          onMouseDown={event => event.preventDefault()}
+                                          onClick={() => handleSelectSuggestion(suggestion)}
+                                      >
+                                          <span className="search-suggestion-title">{suggestion.label}</span>
+                                      </button>
+                                  ))
+                                : null}
+                        </div>
+                    ) : null}
                 </div>
                 <button type="button" className="search-icon-btn" onClick={() => void handleSearchSubmit()} title="Cerca" aria-label="Cerca">
                     <IoSearchOutline />
@@ -460,25 +505,6 @@ export function MapPage() {
                     <IoLocateOutline />
                 </button>
             </div>
-            {showSuggestions && query.trim().length >= 2 ? (
-                <div className="search-suggestions-panel">
-                    {suggestionsLoading ? <p className="muted search-suggestions-empty">Cerco suggerimenti...</p> : null}
-                    {!suggestionsLoading && searchSuggestions.length === 0 ? <p className="muted search-suggestions-empty">Nessun suggerimento.</p> : null}
-                    {!suggestionsLoading && searchSuggestions.length > 0
-                        ? searchSuggestions.map(suggestion => (
-                              <button
-                                  key={suggestion.id}
-                                  type="button"
-                                  className="search-suggestion-item"
-                                  onMouseDown={event => event.preventDefault()}
-                                  onClick={() => handleSelectSuggestion(suggestion)}
-                              >
-                                  <span className="search-suggestion-title">{suggestion.label}</span>
-                              </button>
-                          ))
-                        : null}
-                </div>
-            ) : null}
             {searchFeedback ? <p className="muted search-feedback">{searchFeedback}</p> : null}
 
             <div className="filter-chips-scroll">
@@ -528,12 +554,12 @@ export function MapPage() {
             ) : null}
 
             {!selectedActivity && selectedPlace ? (
-                <div className="map-selection-card">
+                <div className="map-selection-card map-poi-card">
                     <div className="activities-item-header">
-                        <h3>{selectedPlace.label}</h3>
+                        <h3 className="map-poi-title">{selectedPlace.label}</h3>
                     </div>
-                    <p className="muted">{selectedPlace.details}</p>
-                    <p className="muted">
+                    <p className="muted map-poi-address">{selectedPlace.details}</p>
+                    <p className="muted map-poi-coords">
                         Lat {selectedPlace.lat.toFixed(5)} · Lng {selectedPlace.lng.toFixed(5)}
                     </p>
                     <div className="inline-actions">
