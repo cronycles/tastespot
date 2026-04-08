@@ -13,7 +13,7 @@ function normalizeText(value: string): string {
     return value
         .toLowerCase()
         .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .trim();
 }
 
@@ -112,7 +112,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
         });
 
         return sortActivities(filtered, sortKey, sortDir, coords.lat, coords.lng);
-    }, [activities, coords.lat, coords.lng, favoritesOnly, fixedFavoritesOnly, query, selectedTypeId, sortDir, sortKey]);
+    }, [activities, coords.lat, coords.lng, favoritesOnly, fixedFavoritesOnly, query, selectedTypeId, sortDir, sortKey, typeNamesById]);
 
     function toggleSort(key: SortKey): void {
         if (key === sortKey) {
@@ -139,7 +139,19 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
             <div className="search-bar-row">
                 <div className="activities-search-input-wrap">
                     <IoSearchOutline className="activities-search-icon" />
-                    <input id="activities-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, indirizzo, tag" />
+                    <input
+                        id="activities-search"
+                        className="activities-search-input"
+                        type="text"
+                        inputMode="search"
+                        value={query}
+                        onChange={event => setQuery(event.target.value)}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        enterKeyHint="search"
+                        placeholder="Nome, indirizzo, tag"
+                    />
                 </div>
                 <button
                     type="button"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import maplibregl, { type Marker } from "maplibre-gl";
 import { IoHeart, IoHeartOutline, IoLocateOutline, IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,7 @@ function normalizeText(value: string): string {
     return value
         .toLowerCase()
         .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .trim();
 }
 
@@ -21,11 +21,39 @@ function sortByName(entries: ActivityWithDetails[]): ActivityWithDetails[] {
     return [...entries].sort((first, second) => first.name.localeCompare(second.name, "it"));
 }
 
+type PlaceSuggestion = {
+    id: string;
+    label: string;
+    details: string;
+    lat: number;
+    lng: number;
+};
+
+type SearchSuggestion = { kind: "activity"; id: string; label: string; activity: ActivityWithDetails } | { kind: "place"; id: string; label: string; place: PlaceSuggestion };
+
+function compactPlaceLabel(value: string): string {
+    const parts = value
+        .split(",")
+        .map(part => part.trim())
+        .filter(Boolean);
+
+    if (parts.length === 0) {
+        return value;
+    }
+
+    if (parts.length === 1) {
+        return parts[0];
+    }
+
+    return `${parts[0]}, ${parts[1]}`;
+}
+
 export function MapPage() {
     const navigate = useNavigate();
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const markersRef = useRef<Marker[]>([]);
+    const placeMarkerRef = useRef<Marker | null>(null);
 
     const { activities, fetch, loading, hasMore, toggleFavorite } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
@@ -35,6 +63,12 @@ export function MapPage() {
     const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
     const [favoritesOnly, setFavoritesOnly] = useState(false);
     const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+    const [selectedPlace, setSelectedPlace] = useState<PlaceSuggestion | null>(null);
+    const [searchFeedback, setSearchFeedback] = useState<string | null>(null);
+    const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
+    const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const placeSuggestionsRequestRef = useRef(0);
 
     useEffect(() => {
         void fetch(true);
@@ -64,6 +98,8 @@ export function MapPage() {
             window.removeEventListener("resize", onResize);
             markersRef.current.forEach(marker => marker.remove());
             markersRef.current = [];
+            placeMarkerRef.current?.remove();
+            placeMarkerRef.current = null;
             map.remove();
             mapRef.current = null;
         };
@@ -102,7 +138,7 @@ export function MapPage() {
         });
 
         return sortByName(filtered);
-    }, [activities, favoritesOnly, query, selectedTypeId]);
+    }, [activities, favoritesOnly, query, selectedTypeId, typeNamesById]);
 
     const effectiveSelectedActivityId = useMemo(() => {
         if (!selectedActivityId) {
@@ -140,7 +176,8 @@ export function MapPage() {
             markerEl.setAttribute("aria-label", `Apri ${entry.name}`);
             markerEl.onclick = () => {
                 setSelectedActivityId(entry.id);
-                map.flyTo({ center: [entry.lng!, entry.lat!], zoom: 15, duration: 700 });
+                setSelectedPlace(null);
+                map.flyTo({ center: [entry.lng!, entry.lat!], zoom: 16.5, duration: 700 });
             };
 
             const marker = new maplibregl.Marker({ element: markerEl, anchor: "bottom" }).setLngLat([entry.lng, entry.lat]).addTo(map);
@@ -155,9 +192,228 @@ export function MapPage() {
 
     function handleSelectFromList(entry: ActivityWithDetails): void {
         setSelectedActivityId(entry.id);
+        setSelectedPlace(null);
+        setSearchFeedback(null);
         if (entry.lat != null && entry.lng != null) {
-            mapRef.current?.flyTo({ center: [entry.lng, entry.lat], zoom: 15, duration: 700 });
+            mapRef.current?.flyTo({ center: [entry.lng, entry.lat], zoom: 16.5, duration: 700 });
         }
+    }
+
+    function centerOnExternalPlace(place: PlaceSuggestion): void {
+        if (!mapRef.current) {
+            return;
+        }
+
+        setSelectedActivityId(null);
+        placeMarkerRef.current?.remove();
+
+        const placeElement = document.createElement("button");
+        placeElement.type = "button";
+        placeElement.className = "map-marker external";
+        placeElement.title = place.label;
+        placeElement.setAttribute("aria-label", place.label);
+        placeElement.onclick = () => {
+            setSelectedPlace(place);
+            setSelectedActivityId(null);
+        };
+
+        placeMarkerRef.current = new maplibregl.Marker({ element: placeElement, anchor: "bottom" }).setLngLat([place.lng, place.lat]).addTo(mapRef.current);
+        mapRef.current.flyTo({ center: [place.lng, place.lat], zoom: 17.5, duration: 700 });
+        setSelectedPlace(place);
+        setSearchFeedback(null);
+    }
+
+    async function geocodePlace(text: string): Promise<PlaceSuggestion | null> {
+        const params = new URLSearchParams({
+            q: text,
+            format: "jsonv2",
+            limit: "1",
+            "accept-language": "it",
+        });
+        const response = await window.fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+            headers: {
+                Accept: "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = (await response.json()) as Array<{ lat: string; lon: string; display_name?: string }>;
+        const first = data[0];
+        if (!first) {
+            return null;
+        }
+
+        const lat = Number(first.lat);
+        const lng = Number(first.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return null;
+        }
+
+        const displayName = first.display_name ?? text;
+        return {
+            id: `${lat}:${lng}`,
+            label: compactPlaceLabel(displayName),
+            details: displayName,
+            lat,
+            lng,
+        };
+    }
+
+    useEffect(() => {
+        const trimmedQuery = query.trim();
+        if (trimmedQuery.length < 2) {
+            setPlaceSuggestions([]);
+            setSuggestionsLoading(false);
+            return;
+        }
+
+        const requestId = placeSuggestionsRequestRef.current + 1;
+        placeSuggestionsRequestRef.current = requestId;
+        const timeoutId = window.setTimeout(() => {
+            setSuggestionsLoading(true);
+            const params = new URLSearchParams({
+                q: trimmedQuery,
+                format: "jsonv2",
+                limit: "5",
+                "accept-language": "it",
+            });
+
+            void window
+                .fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+                    headers: {
+                        Accept: "application/json",
+                    },
+                })
+                .then(async response => {
+                    if (!response.ok || placeSuggestionsRequestRef.current !== requestId) {
+                        return;
+                    }
+
+                    const data = (await response.json()) as Array<{ lat: string; lon: string; display_name?: string; place_id?: number }>;
+                    const mapped = data
+                        .map(item => {
+                            const lat = Number(item.lat);
+                            const lng = Number(item.lon);
+                            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                                return null;
+                            }
+
+                            return {
+                                id: String(item.place_id ?? `${lat}:${lng}`),
+                                label: compactPlaceLabel(item.display_name ?? trimmedQuery),
+                                details: item.display_name ?? trimmedQuery,
+                                lat,
+                                lng,
+                            } satisfies PlaceSuggestion;
+                        })
+                        .filter((item): item is PlaceSuggestion => item !== null);
+
+                    setPlaceSuggestions(mapped);
+                })
+                .catch(() => {
+                    if (placeSuggestionsRequestRef.current === requestId) {
+                        setPlaceSuggestions([]);
+                    }
+                })
+                .finally(() => {
+                    if (placeSuggestionsRequestRef.current === requestId) {
+                        setSuggestionsLoading(false);
+                    }
+                });
+        }, 220);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [query]);
+
+    const activitySuggestions = useMemo(() => {
+        const normalizedQuery = normalizeText(query);
+        if (!normalizedQuery) {
+            return [] as SearchSuggestion[];
+        }
+
+        return sortByName(activities)
+            .filter(entry => {
+                const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? "");
+                const haystack = normalizeText([entry.name, entry.address ?? "", ...(entry.tags ?? []), ...typeNames].join(" "));
+                return haystack.includes(normalizedQuery);
+            })
+            .slice(0, 5)
+            .map(entry => ({
+                kind: "activity" as const,
+                id: entry.id,
+                label: entry.name,
+                activity: entry,
+            }));
+    }, [activities, query, typeNamesById]);
+
+    const searchSuggestions = useMemo(() => {
+        const placeItems = placeSuggestions.map(place => ({
+            kind: "place" as const,
+            id: `place:${place.id}`,
+            label: place.label,
+            place,
+        }));
+
+        return [...activitySuggestions, ...placeItems].slice(0, 8);
+    }, [activitySuggestions, placeSuggestions]);
+
+    function handleSelectSuggestion(suggestion: SearchSuggestion): void {
+        setShowSuggestions(false);
+
+        if (suggestion.kind === "activity") {
+            setQuery(suggestion.label);
+            setSearchFeedback("Trovata attivita' salvata sulla mappa.");
+            handleSelectFromList(suggestion.activity);
+            return;
+        }
+
+        setQuery(suggestion.label);
+        setShowSuggestions(false);
+        centerOnExternalPlace(suggestion.place);
+    }
+
+    async function handleSearchSubmit(): Promise<void> {
+        const trimmedQuery = query.trim();
+        if (!trimmedQuery) {
+            setSearchFeedback(null);
+            return;
+        }
+
+        if (searchSuggestions.length > 0) {
+            handleSelectSuggestion(searchSuggestions[0]);
+            return;
+        }
+
+        const firstVisible = visibleActivities.find(entry => entry.lat != null && entry.lng != null);
+        if (firstVisible && mapRef.current) {
+            setSelectedActivityId(firstVisible.id);
+            setSearchFeedback("Trovata attivita' salvata sulla mappa.");
+            mapRef.current.flyTo({ center: [firstVisible.lng!, firstVisible.lat!], zoom: 15, duration: 700 });
+            return;
+        }
+
+        setSearchFeedback("Cerco luogo sulla mappa...");
+        const place = await geocodePlace(trimmedQuery);
+        if (!place || !mapRef.current) {
+            setSearchFeedback("Nessun luogo trovato con questa ricerca.");
+            return;
+        }
+
+        centerOnExternalPlace(place);
+    }
+
+    function handleSearchInputKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+        if (event.key !== "Enter") {
+            return;
+        }
+
+        event.preventDefault();
+        void handleSearchSubmit();
     }
 
     return (
@@ -172,8 +428,28 @@ export function MapPage() {
             <div className="search-bar-row">
                 <div className="activities-search-input-wrap">
                     <IoSearchOutline className="activities-search-icon" />
-                    <input id="map-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, indirizzo, tag" />
+                    <input
+                        id="map-search"
+                        className="activities-search-input"
+                        type="text"
+                        inputMode="search"
+                        value={query}
+                        onChange={event => {
+                            setQuery(event.target.value);
+                            setShowSuggestions(true);
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        onKeyDown={handleSearchInputKeyDown}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        enterKeyHint="search"
+                        placeholder="Attivita o luogo sulla mappa"
+                    />
                 </div>
+                <button type="button" className="search-icon-btn" onClick={() => void handleSearchSubmit()} title="Cerca" aria-label="Cerca">
+                    <IoSearchOutline />
+                </button>
                 <button
                     type="button"
                     className={`search-icon-btn${hasPermission ? " active" : ""}`}
@@ -184,6 +460,26 @@ export function MapPage() {
                     <IoLocateOutline />
                 </button>
             </div>
+            {showSuggestions && query.trim().length >= 2 ? (
+                <div className="search-suggestions-panel">
+                    {suggestionsLoading ? <p className="muted search-suggestions-empty">Cerco suggerimenti...</p> : null}
+                    {!suggestionsLoading && searchSuggestions.length === 0 ? <p className="muted search-suggestions-empty">Nessun suggerimento.</p> : null}
+                    {!suggestionsLoading && searchSuggestions.length > 0
+                        ? searchSuggestions.map(suggestion => (
+                              <button
+                                  key={suggestion.id}
+                                  type="button"
+                                  className="search-suggestion-item"
+                                  onMouseDown={event => event.preventDefault()}
+                                  onClick={() => handleSelectSuggestion(suggestion)}
+                              >
+                                  <span className="search-suggestion-title">{suggestion.label}</span>
+                              </button>
+                          ))
+                        : null}
+                </div>
+            ) : null}
+            {searchFeedback ? <p className="muted search-feedback">{searchFeedback}</p> : null}
 
             <div className="filter-chips-scroll">
                 <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
@@ -226,6 +522,26 @@ export function MapPage() {
                     <div className="inline-actions">
                         <Button type="button" onClick={() => navigate(`/activity/${selectedActivity.id}`)}>
                             Apri dettaglio
+                        </Button>
+                    </div>
+                </div>
+            ) : null}
+
+            {!selectedActivity && selectedPlace ? (
+                <div className="map-selection-card">
+                    <div className="activities-item-header">
+                        <h3>{selectedPlace.label}</h3>
+                    </div>
+                    <p className="muted">{selectedPlace.details}</p>
+                    <p className="muted">
+                        Lat {selectedPlace.lat.toFixed(5)} · Lng {selectedPlace.lng.toFixed(5)}
+                    </p>
+                    <div className="inline-actions">
+                        <Button
+                            type="button"
+                            onClick={() => navigate(`/activity/add?name=${encodeURIComponent(selectedPlace.label)}&lat=${selectedPlace.lat}&lng=${selectedPlace.lng}`)}
+                        >
+                            Aggiungi attivita qui
                         </Button>
                     </div>
                 </div>
