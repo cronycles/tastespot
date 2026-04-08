@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { IoHeartOutline, IoMapOutline, IoPersonOutline, IoWalkOutline } from "react-icons/io5";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { IoArrowBackOutline, IoHeartOutline, IoHomeOutline, IoMapOutline, IoPersonOutline, IoWalkOutline } from "react-icons/io5";
 
 const navItems = [
     { to: "/", label: "Mappa", icon: IoMapOutline, end: true },
@@ -8,27 +8,32 @@ const navItems = [
     { to: "/profile", label: "Profilo", icon: IoPersonOutline, end: false },
 ] as const;
 
-function getPageLabel(pathname: string): string {
-    if (pathname.startsWith("/favorites")) return "Preferiti";
-    if (pathname.startsWith("/nearby")) return "Vicino a me";
-    if (pathname.startsWith("/profile")) return "Profilo";
-    if (pathname.startsWith("/private/types")) return "Tipologie";
-    return "Mappa";
-}
-
 export function AppLayout() {
     const location = useLocation();
+    const navigate = useNavigate();
+    const isRootTabRoute =
+        location.pathname === "/" || location.pathname.startsWith("/favorites") || location.pathname.startsWith("/nearby") || location.pathname.startsWith("/profile");
 
     return (
         <div className="app-shell">
             <div className="app-frame">
                 <header className="app-header">
-                    <div className="app-header-copy">
-                        <p className="eyebrow">TasteSpot</p>
-                        <h2>{getPageLabel(location.pathname)}</h2>
+                    <div className="app-header-brand">TasteSpot</div>
+                    <div className="app-header-actions">
+                        {!isRootTabRoute ? (
+                            <button type="button" className="app-header-action" onClick={() => navigate(-1)} aria-label="Torna indietro">
+                                <IoArrowBackOutline />
+                            </button>
+                        ) : null}
+                        <button type="button" className="app-header-action" onClick={() => navigate("/")} aria-label="Vai alla home">
+                            <IoHomeOutline />
+                        </button>
                     </div>
-                    <span className="pill">Area privata</span>
                 </header>
+
+                <main className="app-content">
+                    <Outlet />
+                </main>
 
                 <nav className="nav-bar" aria-label="Navigazione principale">
                     {navItems.map(({ to, label, icon: Icon, end }) => (
@@ -38,10 +43,6 @@ export function AppLayout() {
                         </NavLink>
                     ))}
                 </nav>
-
-                <main className="app-content">
-                    <Outlet />
-                </main>
             </div>
         </div>
     );

@@ -51,14 +51,7 @@ function sortActivities(entries: ActivityWithDetails[], sortKey: SortKey, sortDi
     });
 }
 
-export function ActivitiesListPanel({
-    title,
-    fixedFavoritesOnly = false,
-    eyebrow = "Attivita'",
-    initialSortKey = "alpha",
-    initialSortDir = "asc",
-    autoRequestLocation = false,
-}: Props) {
+export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow, initialSortKey = "alpha", initialSortDir = "asc", autoRequestLocation = false }: Props) {
     const navigate = useNavigate();
     const { activities, loading, hasMore, fetch, toggleFavorite } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
@@ -124,70 +117,61 @@ export function ActivitiesListPanel({
 
     return (
         <section className="page-card">
-            <div className="stack">
-                <p className="eyebrow">{eyebrow}</p>
-                <h1>{title}</h1>
+            <div className="panel-title-row">
+                <div className="stack">
+                    {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+                    <h1>{title}</h1>
+                </div>
+                <Button type="button" onClick={() => navigate("/activity/add")}>
+                    + Aggiungi
+                </Button>
             </div>
 
-            <div className="activities-filters">
-                <div className="inline-actions">
-                    <Button type="button" onClick={() => navigate("/activity/add")}>
-                        Aggiungi attivita'
-                    </Button>
+            <div className="search-bar-row">
+                <div className="activities-search-input-wrap">
+                    <IoSearchOutline className="activities-search-icon" />
+                    <input id="activities-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, indirizzo, tag" />
                 </div>
+                <button
+                    type="button"
+                    className={`search-icon-btn${hasPermission ? " active" : ""}`}
+                    onClick={() => void requestAndFetch()}
+                    title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+                    aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+                >
+                    <IoLocationOutline />
+                </button>
+            </div>
 
-                <div className="field activities-search-field">
-                    <label htmlFor="activities-search">Ricerca</label>
-                    <div className="activities-search-input-wrap">
-                        <IoSearchOutline className="activities-search-icon" />
-                        <input id="activities-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, indirizzo, tag" />
-                    </div>
-                </div>
-
-                <div className="stack">
-                    <h3>Tipologia</h3>
-                    <div className="activities-chip-row">
-                        <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
-                            Tutte
-                        </button>
-                        {types.map(type => (
-                            <button
-                                key={type.id}
-                                type="button"
-                                className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
-                                onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
-                            >
-                                {type.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="activities-sort-row">
-                    <button type="button" className={`activities-chip${sortKey === "alpha" ? " active" : ""}`} onClick={() => toggleSort("alpha")}>
-                        A-Z {sortKey === "alpha" ? (sortDir === "asc" ? "↑" : "↓") : ""}
+            <div className="filter-chips-scroll">
+                {!fixedFavoritesOnly ? (
+                    <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
+                        {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
                     </button>
-                    <button type="button" className={`activities-chip${sortKey === "last_viewed" ? " active" : ""}`} onClick={() => toggleSort("last_viewed")}>
-                        Ultimi visti {sortKey === "last_viewed" ? (sortDir === "asc" ? "↑" : "↓") : ""}
+                ) : null}
+                <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
+                    Tutte
+                </button>
+                {types.map(type => (
+                    <button
+                        key={type.id}
+                        type="button"
+                        className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
+                        onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
+                    >
+                        {type.name}
                     </button>
-                    <button type="button" className={`activities-chip${sortKey === "distance" ? " active" : ""}`} onClick={() => toggleSort("distance")}>
-                        Distanza {sortKey === "distance" ? (sortDir === "asc" ? "↑" : "↓") : ""}
-                    </button>
-                </div>
-
-                <div className="inline-actions">
-                    {!fixedFavoritesOnly ? (
-                        <Button type="button" variant={favoritesOnly ? "primary" : "secondary"} onClick={() => setFavoritesOnly(current => !current)}>
-                            {favoritesOnly ? "Solo preferiti: ON" : "Solo preferiti: OFF"}
-                        </Button>
-                    ) : null}
-                    <Button type="button" variant="secondary" onClick={() => void requestAndFetch()}>
-                        <span className="types-add-button">
-                            <IoLocationOutline />
-                            {hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
-                        </span>
-                    </Button>
-                </div>
+                ))}
+                <div className="chip-separator" />
+                <button type="button" className={`activities-chip${sortKey === "alpha" ? " active" : ""}`} onClick={() => toggleSort("alpha")}>
+                    A-Z{sortKey === "alpha" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                </button>
+                <button type="button" className={`activities-chip${sortKey === "last_viewed" ? " active" : ""}`} onClick={() => toggleSort("last_viewed")}>
+                    Recenti{sortKey === "last_viewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                </button>
+                <button type="button" className={`activities-chip${sortKey === "distance" ? " active" : ""}`} onClick={() => toggleSort("distance")}>
+                    Vicini{sortKey === "distance" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                </button>
             </div>
 
             {visible.length === 0 && !loading ? (
@@ -227,18 +211,13 @@ export function ActivitiesListPanel({
                 </div>
             ) : null}
 
-            <div className="inline-actions">
-                <Button type="button" variant="secondary" onClick={() => void fetch(true)} disabled={loading}>
-                    {loading ? "Aggiornamento..." : "Ricarica"}
-                </Button>
-                {hasMore ? (
-                    <Button type="button" onClick={() => void fetch(false)} disabled={loading}>
-                        {loading ? "Caricamento..." : "Carica altri"}
+            {hasMore ? (
+                <div className="inline-actions">
+                    <Button type="button" variant="secondary" onClick={() => void fetch(false)} disabled={loading}>
+                        {loading ? "Caricamento..." : "Mostra altri"}
                     </Button>
-                ) : (
-                    <span className="muted">Fine lista</span>
-                )}
-            </div>
+                </div>
+            ) : null}
         </section>
     );
 }

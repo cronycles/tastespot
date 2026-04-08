@@ -17,9 +17,7 @@ export function ProfilePage() {
     return (
         <section className="profile-card">
             <div className="stack">
-                <p className="eyebrow">Account</p>
                 <h1>Profilo</h1>
-                <p className="muted">Gestisci il tuo account.</p>
             </div>
 
             {user ? (

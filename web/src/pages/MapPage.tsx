@@ -153,51 +153,47 @@ export function MapPage() {
 
     return (
         <section className="page-card">
-            <div className="stack">
-                <p className="eyebrow">Mappa</p>
+            <div className="panel-title-row">
                 <h1>Mappa attivita'</h1>
-            </div>
-
-            <div className="inline-actions">
                 <Button type="button" onClick={() => navigate("/activity/add")}>
-                    Aggiungi attivita'
-                </Button>
-                <Button type="button" variant="secondary" onClick={handleCenterOnUser}>
-                    <span className="types-add-button">
-                        <IoLocateOutline />
-                        {hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
-                    </span>
+                    + Aggiungi
                 </Button>
             </div>
 
-            <div className="activities-filters">
-                <div className="field activities-search-field">
-                    <label htmlFor="map-search">Ricerca</label>
-                    <div className="activities-search-input-wrap">
-                        <IoSearchOutline className="activities-search-icon" />
-                        <input id="map-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, indirizzo, tag" />
-                    </div>
+            <div className="search-bar-row">
+                <div className="activities-search-input-wrap">
+                    <IoSearchOutline className="activities-search-icon" />
+                    <input id="map-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome, indirizzo, tag" />
                 </div>
+                <button
+                    type="button"
+                    className={`search-icon-btn${hasPermission ? " active" : ""}`}
+                    onClick={handleCenterOnUser}
+                    title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+                    aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+                >
+                    <IoLocateOutline />
+                </button>
+            </div>
 
-                <div className="activities-chip-row">
-                    <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
-                        Tutte
+            <div className="filter-chips-scroll">
+                <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
+                    {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
+                </button>
+                <div className="chip-separator" />
+                <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
+                    Tutte
+                </button>
+                {types.map(type => (
+                    <button
+                        key={type.id}
+                        type="button"
+                        className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
+                        onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
+                    >
+                        {type.name}
                     </button>
-                    {types.map(type => (
-                        <button
-                            key={type.id}
-                            type="button"
-                            className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
-                            onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
-                        >
-                            {type.name}
-                        </button>
-                    ))}
-                </div>
-
-                <Button type="button" variant={favoritesOnly ? "primary" : "secondary"} onClick={() => setFavoritesOnly(current => !current)}>
-                    {favoritesOnly ? "Solo preferiti: ON" : "Solo preferiti: OFF"}
-                </Button>
+                ))}
             </div>
 
             <div className="map-canvas" ref={mapContainerRef} />
@@ -249,18 +245,13 @@ export function MapPage() {
                 ) : null}
             </div>
 
-            <div className="inline-actions">
-                <Button type="button" variant="secondary" onClick={() => void fetch(true)} disabled={loading}>
-                    {loading ? "Aggiornamento..." : "Ricarica"}
-                </Button>
-                {hasMore ? (
-                    <Button type="button" onClick={() => void fetch(false)} disabled={loading}>
-                        {loading ? "Caricamento..." : "Carica altri"}
+            {hasMore ? (
+                <div className="inline-actions">
+                    <Button type="button" variant="secondary" onClick={() => void fetch(false)} disabled={loading}>
+                        {loading ? "Caricamento..." : "Mostra altri"}
                     </Button>
-                ) : (
-                    <span className="muted">Fine lista</span>
-                )}
-            </div>
+                </div>
+            ) : null}
         </section>
     );
 }
