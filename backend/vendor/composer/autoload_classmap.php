@@ -11,6 +11,7 @@ return array(
     'App\\Http\\Controllers\\Api\\AuthController' => $baseDir . '/app/Http/Controllers/Api/AuthController.php',
     'App\\Http\\Controllers\\Api\\PhotoController' => $baseDir . '/app/Http/Controllers/Api/PhotoController.php',
     'App\\Http\\Controllers\\Api\\ReviewController' => $baseDir . '/app/Http/Controllers/Api/ReviewController.php',
+    'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Models\\Activity' => $baseDir . '/app/Models/Activity.php',
     'App\\Models\\ActivityPhoto' => $baseDir . '/app/Models/ActivityPhoto.php',
     'App\\Models\\ActivityType' => $baseDir . '/app/Models/ActivityType.php',

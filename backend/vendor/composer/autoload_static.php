@@ -525,6 +525,7 @@ class ComposerStaticInitc57754c93ae34ac3b9b716a0fd2f2149
         'App\\Http\\Controllers\\Api\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/AuthController.php',
         'App\\Http\\Controllers\\Api\\PhotoController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/PhotoController.php',
         'App\\Http\\Controllers\\Api\\ReviewController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/ReviewController.php',
+        'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Models\\Activity' => __DIR__ . '/../..' . '/app/Models/Activity.php',
         'App\\Models\\ActivityPhoto' => __DIR__ . '/../..' . '/app/Models/ActivityPhoto.php',
         'App\\Models\\ActivityType' => __DIR__ . '/../..' . '/app/Models/ActivityType.php',
