@@ -2,9 +2,16 @@
 applyTo: "**"
 ---
 
-# TasteSpot — Piano di sviluppo
+# TasteSpot — Piano di sviluppo (MOBILE — ARCHIVIATO)
 
-## Stato attuale
+> **ARCHIVIATO** — La mobile app React Native è abbandonata. Il prodotto attivo è la web app.
+> - Stato corrente + checkpoint: `docs/web-migration-status.md`
+> - Roadmap web (prossime fasi): `docs/web-roadmap-v2.md`
+> - Istruzioni tecniche web: `.github/copilot-instructions.md`
+>
+> Il contenuto qui sotto è conservato solo come archivio storico dello sviluppo mobile (Fasi 0-16).
+
+## Stato attuale (MOBILE — ARCHIVIATO)
 
 **Ultima fase completata: 16 — Bug fix e miglioramenti post-testing** ✅  
 **Prossima fase: da definire**

@@ -1,25 +1,28 @@
 # TasteSpot — Copilot Instructions
 
-## Current migration status
-- The active product direction is the migration from the Expo mobile app to the React + Vite web app served on the main domain.
-- Before continuing any work on this migration, read `docs/web-migration-status.md` and use it as the canonical source for roadmap, checkpoint, and next phase.
-- If `docs/web-migration-status.md` conflicts with older mobile-era notes in this file, the migration document takes precedence.
+## Current product direction
+- **La mobile app (React Native / Expo) è abbandonata.** Il prodotto attivo è la web app React + Vite.
+- Prima di qualsiasi lavoro, leggi `docs/web-migration-status.md` (stato corrente e checkpoint) e `docs/web-roadmap-v2.md` (prossime fasi).
+- Qualsiasi informazione mobile-era in questo file è obsoleta — i doc web hanno sempre la precedenza.
 
 ## Project overview
-TasteSpot is a React Native mobile app (iOS + Android) for rating and discovering food & drink venues. Built with Expo, TypeScript, Supabase, and MapLibre.
+TasteSpot è una web app mobile-first per valutare e scoprire locali (ristoranti, bar, ecc.). Stack web attivo:
 
 ## Stack
-- **Framework**: React Native + Expo + `expo-dev-client` + TypeScript
-- **Navigation**: Expo Router (file-based, `src/app/`)
-- **Backend**: Supabase (Postgres + Auth + Storage + Realtime)
-- **State management**: Zustand (one store per domain)
-- **Maps**: `@maplibre/maplibre-react-native` + OpenStreetMap tiles
+- **Frontend**: React 19 + Vite + TypeScript
+- **Routing**: React Router v6 (SPA, file `web/src/App.tsx`)
+- **Backend**: Laravel 11 + Sanctum (MySQL in prod, SQLite in locale) — cartella `backend/`
+- **Auth**: Laravel Sanctum — token in `localStorage`
+- **State management**: Zustand (one store per domain, `web/src/stores/`)
+- **Maps**: MapLibre GL JS + OpenFreeMap tiles (`https://tiles.openfreemap.org/styles/liberty`)
 - **Geocoding**: Nominatim API (free, OSM)
-- **i18n**: `i18next` + `react-i18next` (IT default, ES, EN)
-- **Icons**: `@expo/vector-icons` (Ionicons)
-- **Photos**: `expo-image-picker` + Supabase Storage
-- **Error logging**: Sentry (dev: console, prod: Sentry)
-- **UI**: Plain `StyleSheet` + `src/theme/index.ts` design tokens (no UI frameworks)
+- **Foto**: upload multipart → `storage/app/public/photos/`, compressione browser con `browser-image-compression`
+- **Icone**: `react-icons/io5` (Ionicons web)
+- **Styling**: CSS puro con variabili CSS (no Tailwind, no CSS-in-JS) — `web/src/styles/`
+- **Design tokens**: `web/src/theme/index.ts` (colori, spacing, radius — primary `#FF5A35`)
+- **Deployment**: `web/dist/` pre-built committato; GitHub Actions → cPanel git pull
+- **URL produzione**: `https://tastespot.crointhemorning.com`
+- **API produzione**: `https://tastespot.crointhemorning.com/api/v1/`
 
 ## Code conventions
 
@@ -39,58 +42,53 @@ TasteSpot is a React Native mobile app (iOS + Android) for rating and discoverin
 - No comments unless the logic is non-obvious — when adding comments, **English only**
 - Lean and Clean Code: no over-engineering, no premature abstractions
 - One Zustand store per domain (auth, activities, types, reviews)
-- All user-facing strings must go through `i18next` — no hardcoded UI strings
+- All user-facing strings in italiano (i18n pianificata per Fase 12)
 
 ### File structure
 ```
-src/
-  app/            ← Expo Router routes
-    (auth)/       ← unauthenticated screens
-    (tabs)/       ← main 4-tab navigation
-    activity/     ← activity detail, add, review
-    private/      ← user account area
-  components/     ← reusable UI components
-  stores/         ← Zustand stores (one file per domain)
-  lib/            ← supabase.ts, logger.ts, i18n.ts
-  hooks/          ← custom hooks
-  types/          ← shared TypeScript types
-  theme/          ← design tokens (index.ts)
-  locales/        ← it.ts, es.ts, en.ts
+web/src/
+  App.tsx           ← routing SPA (React Router)
+  pages/            ← una pagina per route
+  components/       ← componenti riutilizzabili
+  stores/           ← Zustand stores (auth, activities, types, reviews, location)
+  lib/              ← api.ts (HTTP client Sanctum), logger.ts
+  styles/           ← base.css, layout.css, features.css (variabili CSS)
+  theme/            ← index.ts (design tokens TypeScript)
+  types/            ← tipi condivisi
+backend/
+  routes/api.php    ← tutte le route /api/v1/
+  app/Http/Controllers/  ← controller Laravel
+  app/Models/       ← modelli Eloquent
+  database/migrations/   ← migration MySQL
 ```
 
 ### Navigation
-- `(auth)` group: login, register — visible when not authenticated
-- `(tabs)` group: Home (map), Favorites, Nearby, Private area — visible when authenticated
-- Auth guard in root `src/app/_layout.tsx` — uses `<Redirect>` in render (NOT `router.replace` in useEffect)
-- `private/` routes have **no** `_layout.tsx` — they are direct children of the root Stack
-- `ScreenHeader` requires `topInset` prop on non-tab screens to account for safe area insets
+- Route pubbliche (`/login`, `/register`): componente `GuestRoute`
+- Route protette: componente `ProtectedRoute` — controlla token in `authStore`
+- Bottom nav: 4 tab (Mappa `/`, Preferiti `/favorites`, Vicino `/nearby`, Profilo `/profile`)
+- Pagine non-tab (activity detail, form, ecc.): no tab bar, back button in-page
 
 ### Lists & data loading
-- All lists use lazy loading / cursor pagination via Supabase
-- Never load all records at once — use `FlatList` with `onEndReached`
+- Tutte le liste usano lazy load con paginazione (cursor-based)
+- `activitiesStore.fetch(reset)`: `reset=true` per prima pagina, `reset=false` per load-more
 
 ### Rating system
-- 5 smile levels: 😞😕😐🙂😝 → values: 1, 3, 5.5, 7.5, 10
-- 4 categories: location, food, service, price/quality
-- Average score calculated from selected categories only
+- 5 smile: 😞😕😐🙂😝 → valori: 1, 3.5, 6, 8, 10
+- 4 categorie: location, food, service, price/quality
+- Media ponderata (pesi in `web/src/config/scoring.ts` se esiste, altrimenti media semplice)
 
-### Supabase
-- All tables have RLS — users can only access their own data
-- Use `supabase` client from `src/lib/supabase.ts`
-- Prefer Supabase Realtime for live updates where applicable
-- `activity_types` has a `display_order` column (integer) — fetch ordered by `display_order ASC`
+### API e auth
+- Client HTTP: `web/src/lib/api.ts` — aggiunge `Authorization: Bearer {token}` da `authStore`
+- Token Sanctum salvato in `localStorage` chiave `auth_token`
+- Tutte le chiamate API passano per `api.get/post/put/delete` — mai `fetch` diretto
 
 ### Maps
-- Use `@maplibre/maplibre-react-native` v10 — never `react-native-maps` or Google Maps SDK
-- **Prop name is `mapStyle`** (NOT `styleURL` — that prop doesn't exist in v10 and is silently ignored)
-- Map style: `https://tiles.openfreemap.org/styles/liberty` (vector tiles, free, no API key)
-- iOS ATS: `NSAllowsArbitraryLoads: true` required in both `app.json` (`ios.infoPlist`) and `ios/TasteSpot/Info.plist`
-- `UserLocation` must use `renderMode="native"` — the default Animated mode crashes on RN 0.83+
-- Camera zoom: set via `defaultSettings` + call `setCamera` inside `onDidFinishLoadingMap` callback
-- Geocoding/reverse geocoding/autocomplete: Nominatim API
-- Default location fallback: Genova, Italy (lat: 44.4056, lng: 8.9463)
-- Stale closure in async location functions: use `useLocationStore.getState()` instead of destructured state
-- POI pre-fill: on long-press use `map.queryRenderedFeatures(point)` to extract OSM feature properties (`name`, `amenity`, `addr:street`, `phone`, etc.) and pass them as URL params to `activity/add` for pre-compilation
+- MapLibre GL JS (web) — mai react-native-maps o Google Maps
+- Map style: `https://tiles.openfreemap.org/styles/liberty` (gratuito, no API key)
+- Geocoding/autocomplete: Nominatim API
+- Default location fallback: Genova (lat: 44.4056, lng: 8.9463)
+- POI pre-fill: click su feature mappa → query params `name`, `address`, `lat`, `lng`, `phone` → `ActivityFormPage`
+- MapPage è **fullscreen** — nessun padding/card wrapper, search bar e filtri assoluti sopra la mappa
 
 ## Workflow
 

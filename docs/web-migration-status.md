@@ -2,7 +2,7 @@
 
 ## Canonical resume note
 Questo file e' la fonte canonica per capire dove siamo arrivati nella migrazione web.
-Quando si riprende il lavoro, leggere prima questo documento e poi continuare dalla prossima fase aperta.
+Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roadmap-v2.md` per le fasi successive.
 
 ## Product decision
 - Strategia scelta: abbandono progressivo dell'app Expo/React Native e migrazione verso una web app React + Vite.
@@ -97,8 +97,8 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 ## Resume prompts
 Usare uno di questi prompt per riprendere il lavoro:
 
-1. `Leggi docs/web-migration-status.md e continua dalla prossima fase aperta.`
-2. `Leggi docs/web-migration-status.md e avvia hardening post-migrazione (bundle + monitoraggio + smoke test).`
+1. `Leggi docs/web-migration-status.md e docs/web-roadmap-v2.md e continua dalla prossima fase aperta.`
+2. `Leggi docs/web-migration-status.md e docs/web-roadmap-v2.md e avvia la Fase 10 (UI Redesign).`
 3. `Leggi docs/web-migration-status.md, verifica il checkpoint e continua da develop.`
 
 ## Update rule
