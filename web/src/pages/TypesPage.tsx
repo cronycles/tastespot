@@ -115,7 +115,7 @@ export function TypesPage() {
 
     return (
         <>
-            <section className="page-card">
+            <section className="page-card types-page">
                 <div className="panel-title-row">
                     <h1>Tipologie attivita'</h1>
                     <Button onClick={openCreate}>

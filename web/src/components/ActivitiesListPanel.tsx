@@ -125,74 +125,76 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
     }
 
     return (
-        <section className="page-card">
-            <div className="panel-title-row">
-                <div className="content-stack">
-                    {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-                    <h1>{title}</h1>
+        <section className="page-card activities-panel">
+            <div className="activities-panel-head">
+                <div className="panel-title-row">
+                    <div className="content-stack">
+                        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+                        <h1>{title}</h1>
+                    </div>
+                    <Button type="button" onClick={() => navigate("/activity/add")}>
+                        + Aggiungi
+                    </Button>
                 </div>
-                <Button type="button" onClick={() => navigate("/activity/add")}>
-                    + Aggiungi
-                </Button>
-            </div>
 
-            <div className="search-bar-row">
-                <div className="activities-search-input-wrap">
-                    <IoSearchOutline className="activities-search-icon" />
-                    <input
-                        id="activities-search"
-                        className="activities-search-input"
-                        type="text"
-                        inputMode="search"
-                        value={query}
-                        onChange={event => setQuery(event.target.value)}
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        enterKeyHint="search"
-                        placeholder="Nome, indirizzo, tag"
-                    />
-                </div>
-                <button
-                    type="button"
-                    className={`search-icon-btn${hasPermission ? " active" : ""}`}
-                    onClick={() => void requestAndFetch()}
-                    title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
-                    aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
-                >
-                    <IoLocationOutline />
-                </button>
-            </div>
-
-            <div className="filter-chips-scroll">
-                {!fixedFavoritesOnly ? (
-                    <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
-                        {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
-                    </button>
-                ) : null}
-                <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
-                    Tutte
-                </button>
-                {types.map(type => (
+                <div className="search-bar-row">
+                    <div className="activities-search-input-wrap">
+                        <IoSearchOutline className="activities-search-icon" />
+                        <input
+                            id="activities-search"
+                            className="activities-search-input"
+                            type="text"
+                            inputMode="search"
+                            value={query}
+                            onChange={event => setQuery(event.target.value)}
+                            autoComplete="off"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            enterKeyHint="search"
+                            placeholder="Nome, indirizzo, tag"
+                        />
+                    </div>
                     <button
-                        key={type.id}
                         type="button"
-                        className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
-                        onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
+                        className={`search-icon-btn${hasPermission ? " active" : ""}`}
+                        onClick={() => void requestAndFetch()}
+                        title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+                        aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
                     >
-                        {type.name}
+                        <IoLocationOutline />
                     </button>
-                ))}
-                <div className="chip-separator" />
-                <button type="button" className={`activities-chip${sortKey === "alpha" ? " active" : ""}`} onClick={() => toggleSort("alpha")}>
-                    A-Z{sortKey === "alpha" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
-                </button>
-                <button type="button" className={`activities-chip${sortKey === "last_viewed" ? " active" : ""}`} onClick={() => toggleSort("last_viewed")}>
-                    Recenti{sortKey === "last_viewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
-                </button>
-                <button type="button" className={`activities-chip${sortKey === "distance" ? " active" : ""}`} onClick={() => toggleSort("distance")}>
-                    Vicini{sortKey === "distance" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
-                </button>
+                </div>
+
+                <div className="filter-chips-scroll">
+                    {!fixedFavoritesOnly ? (
+                        <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
+                            {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
+                        </button>
+                    ) : null}
+                    <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
+                        Tutte
+                    </button>
+                    {types.map(type => (
+                        <button
+                            key={type.id}
+                            type="button"
+                            className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
+                            onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
+                        >
+                            {type.name}
+                        </button>
+                    ))}
+                    <div className="chip-separator" />
+                    <button type="button" className={`activities-chip${sortKey === "alpha" ? " active" : ""}`} onClick={() => toggleSort("alpha")}>
+                        A-Z{sortKey === "alpha" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                    <button type="button" className={`activities-chip${sortKey === "last_viewed" ? " active" : ""}`} onClick={() => toggleSort("last_viewed")}>
+                        Recenti{sortKey === "last_viewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                    <button type="button" className={`activities-chip${sortKey === "distance" ? " active" : ""}`} onClick={() => toggleSort("distance")}>
+                        Vicini{sortKey === "distance" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                </div>
             </div>
 
             {visible.length === 0 && !loading ? (
@@ -205,7 +207,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
             ) : null}
 
             {visible.length > 0 ? (
-                <div className="list">
+                <div className="list activities-panel-list">
                     {visible.map(entry => (
                         <div className="surface-item activities-item" key={entry.id}>
                             <div className="activities-item-main">

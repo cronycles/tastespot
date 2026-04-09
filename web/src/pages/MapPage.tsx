@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import maplibregl, { type MapGeoJSONFeature, type Marker } from "maplibre-gl";
-import { IoHeart, IoHeartOutline, IoLocateOutline, IoSearchOutline } from "react-icons/io5";
+import { IoAdd, IoHeart, IoHeartOutline, IoLocateOutline, IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitiesStore";
@@ -106,7 +106,7 @@ export function MapPage() {
     const userMarkerRef = useRef<Marker | null>(null);
     const activityPopupRef = useRef<maplibregl.Popup | null>(null);
 
-    const { activities, fetch, loading, hasMore } = useActivitiesStore();
+    const { activities, fetch } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
     const { coords, hasPermission, requestAndFetch } = useLocationStore();
 
@@ -115,7 +115,6 @@ export function MapPage() {
     const [favoritesOnly, setFavoritesOnly] = useState(false);
     const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
     const [selectedPlace, setSelectedPlace] = useState<PlaceSuggestion | null>(null);
-    const [searchFeedback, setSearchFeedback] = useState<string | null>(null);
     const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
     const [suggestionsLoading, setSuggestionsLoading] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -163,7 +162,6 @@ export function MapPage() {
             if (nearestActivity && nearestActivity.distance <= 16) {
                 setSelectedActivityId(nearestActivity.entry.id);
                 setSelectedPlace(null);
-                setSearchFeedback(null);
                 placeMarkerRef.current?.remove();
                 placeMarkerRef.current = null;
                 return;
@@ -325,7 +323,7 @@ export function MapPage() {
                         .map(typeId => `<span style="display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${typeNamesById.get(typeId) ?? 'Tipo'}</span>`)
                         .join('')}
                 </div>
-                <button class="map-popup-detail" style="width: 100%; padding: 6px 8px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">Apri dettaglio</button>
+                <button class="map-popup-detail" style="width: 100%; padding: 8px; background: #FF5A35; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">Apri dettaglio</button>
             </div>
         `;
 
@@ -368,7 +366,6 @@ export function MapPage() {
             markerEl.onclick = () => {
                 setSelectedActivityId(entry.id);
                 setSelectedPlace(null);
-                setSearchFeedback(null);
                 placeMarkerRef.current?.remove();
                 placeMarkerRef.current = null;
                 map.flyTo({ center: [entry.lng!, entry.lat!], zoom: 16.5, duration: 700 });
@@ -387,7 +384,6 @@ export function MapPage() {
     function handleSelectFromList(entry: ActivityWithDetails): void {
         setSelectedActivityId(entry.id);
         setSelectedPlace(null);
-        setSearchFeedback(null);
         placeMarkerRef.current?.remove();
         placeMarkerRef.current = null;
         if (entry.lat != null && entry.lng != null) {
@@ -416,7 +412,6 @@ export function MapPage() {
         placeMarkerRef.current = new maplibregl.Marker({ element: placeElement, anchor: "bottom" }).setLngLat([place.lng, place.lat]).addTo(mapRef.current);
         mapRef.current.flyTo({ center: [place.lng, place.lat], zoom: 17.5, duration: 700 });
         setSelectedPlace(place);
-        setSearchFeedback(null);
     }
 
     async function geocodePlace(text: string): Promise<PlaceSuggestion | null> {
@@ -599,7 +594,6 @@ export function MapPage() {
 
         if (suggestion.kind === "activity") {
             setQuery(suggestion.label);
-            setSearchFeedback("Trovata attivita' salvata sulla mappa.");
             handleSelectFromList(suggestion.activity);
             return;
         }
@@ -612,7 +606,6 @@ export function MapPage() {
     async function handleSearchSubmit(): Promise<void> {
         const trimmedQuery = query.trim();
         if (!trimmedQuery) {
-            setSearchFeedback(null);
             return;
         }
 
@@ -624,15 +617,12 @@ export function MapPage() {
         const firstVisible = visibleActivities.find(entry => entry.lat != null && entry.lng != null);
         if (firstVisible && mapRef.current) {
             setSelectedActivityId(firstVisible.id);
-            setSearchFeedback("Trovata attivita' salvata sulla mappa.");
             mapRef.current.flyTo({ center: [firstVisible.lng!, firstVisible.lat!], zoom: 15, duration: 700 });
             return;
         }
 
-        setSearchFeedback("Cerco luogo sulla mappa...");
         const place = await geocodePlace(trimmedQuery);
         if (!place || !mapRef.current) {
-            setSearchFeedback("Nessun luogo trovato con questa ricerca.");
             return;
         }
 
@@ -649,20 +639,15 @@ export function MapPage() {
     }
 
     return (
-        <section className="page-card">
-            <div className="panel-title-row">
-                <h1>Mappa attivita'</h1>
-                <Button type="button" onClick={() => navigate("/activity/add")}>
-                    + Aggiungi
-                </Button>
-            </div>
+        <div className="map-page">
+            <div className="map-fullscreen" ref={mapContainerRef} />
 
-            <div className="search-bar-row">
-                <div className="activities-search-input-wrap">
-                    <IoSearchOutline className="activities-search-icon" />
+            <div className="map-overlay-top">
+                <div className="map-search-wrap">
+                    <IoSearchOutline className="map-search-icon" />
                     <input
                         id="map-search"
-                        className="activities-search-input"
+                        className="map-search-input"
                         type="text"
                         inputMode="search"
                         value={query}
@@ -676,7 +661,7 @@ export function MapPage() {
                         autoCorrect="off"
                         spellCheck={false}
                         enterKeyHint="search"
-                        placeholder="Attivita o luogo sulla mappa"
+                        placeholder="Attività o luogo sulla mappa"
                     />
                     {showSuggestions && query.trim().length >= 2 ? (
                         <div className="search-suggestions-panel">
@@ -698,97 +683,65 @@ export function MapPage() {
                         </div>
                     ) : null}
                 </div>
-                <button type="button" className="search-icon-btn" onClick={() => void handleSearchSubmit()} title="Cerca" aria-label="Cerca">
-                    <IoSearchOutline />
-                </button>
-                <button
-                    type="button"
-                    className={`search-icon-btn${hasPermission ? " active" : ""}`}
-                    onClick={handleCenterOnUser}
-                    title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
-                    aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
-                >
-                    <IoLocateOutline />
-                </button>
-            </div>
-            {searchFeedback ? <p className="muted search-feedback">{searchFeedback}</p> : null}
 
-            <div className="filter-chips-scroll">
-                <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
-                    {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
-                </button>
-                <div className="chip-separator" />
-                <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
-                    Tutte
-                </button>
-                {types.map(type => (
-                    <button
-                        key={type.id}
-                        type="button"
-                        className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
-                        onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
-                    >
-                        {type.name}
+                <div className="map-filter-row">
+                    <button type="button" className={`map-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
+                        {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
                     </button>
-                ))}
+                    <div className="chip-separator" />
+                    <button type="button" className={`map-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
+                        Tutte
+                    </button>
+                    {types.map(type => (
+                        <button
+                            key={type.id}
+                            type="button"
+                            className={`map-chip${selectedTypeId === type.id ? " active" : ""}`}
+                            onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
+                        >
+                            {type.name}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            <div className="map-canvas" ref={mapContainerRef} />
+            <button
+                type="button"
+                className={`map-fab map-fab--locate${hasPermission ? " active" : ""}`}
+                onClick={handleCenterOnUser}
+                title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+                aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+            >
+                <IoLocateOutline />
+            </button>
+
+            <button
+                type="button"
+                className="map-fab map-fab--add"
+                onClick={() => navigate("/activity/add")}
+                aria-label="Aggiungi attività"
+            >
+                <IoAdd />
+            </button>
 
             {selectedPlace ? (
-                <div className="map-selection-card map-poi-card">
-                    <div className="activities-item-header">
-                        <h3 className="map-poi-title">{selectedPlace.label}</h3>
-                    </div>
-                    <p className="muted map-poi-address">{selectedPlace.details}</p>
-                    <p className="muted map-poi-coords">
-                        Lat {selectedPlace.lat.toFixed(5)} · Lng {selectedPlace.lng.toFixed(5)}
-                    </p>
-                    <div className="inline-actions">
-                        <Button
-                            type="button"
-                            onClick={() =>
-                                navigate(
-                                    `/activity/add?name=${encodeURIComponent(selectedPlace.label)}&address=${encodeURIComponent(selectedPlace.details)}&lat=${selectedPlace.lat}&lng=${selectedPlace.lng}`,
-                                )
-                            }
-                        >
-                            Aggiungi attivita qui
-                        </Button>
-                    </div>
-                </div>
-            ) : null}
-
-            <div className="content-stack">
-                <h3>Lista attivita'</h3>
-                {visibleActivities.length === 0 && !loading ? <p className="muted">Nessuna attivita' visibile con i filtri correnti.</p> : null}
-                {visibleActivities.length > 0 ? (
-                    <div className="list">
-                        {visibleActivities.map(entry => (
-                            <button
-                                key={entry.id}
-                                type="button"
-                                className={`list-item activities-item map-list-item${effectiveSelectedActivityId === entry.id ? " active" : ""}`}
-                                onClick={() => handleSelectFromList(entry)}
-                            >
-                                <div className="activities-item-header">
-                                    <span className="activities-name-link">{entry.name}</span>
-                                    {entry.is_favorite ? <IoHeart /> : <IoHeartOutline />}
-                                </div>
-                                {entry.address ? <span className="muted">{entry.address}</span> : null}
-                            </button>
-                        ))}
-                    </div>
-                ) : null}
-            </div>
-
-            {hasMore ? (
-                <div className="inline-actions">
-                    <Button type="button" variant="secondary" onClick={() => void fetch(false)} disabled={loading}>
-                        {loading ? "Caricamento..." : "Mostra altri"}
+                <div className="map-bottom-card">
+                    <h3>{selectedPlace.label}</h3>
+                    {selectedPlace.details && selectedPlace.details !== selectedPlace.label ? (
+                        <p className="muted">{selectedPlace.details}</p>
+                    ) : null}
+                    <Button
+                        type="button"
+                        onClick={() =>
+                            navigate(
+                                `/activity/add?name=${encodeURIComponent(selectedPlace.label)}&address=${encodeURIComponent(selectedPlace.details)}&lat=${selectedPlace.lat}&lng=${selectedPlace.lng}`,
+                            )
+                        }
+                    >
+                        Aggiungi attività qui
                     </Button>
                 </div>
             ) : null}
-        </section>
+        </div>
     );
 }

@@ -19,6 +19,7 @@
 }
 
 .app-header {
+    grid-row: 1;
     height: 52px;
     padding: 8px 14px;
     display: flex;
@@ -57,11 +58,19 @@
 }
 
 .app-content {
+    grid-row: 2;
     padding: 14px 12px 10px;
     overflow-y: auto;
     display: grid;
     align-content: start;
     gap: 12px;
+}
+
+.app-content--map {
+    padding: 0;
+    overflow: hidden;
+    display: block;
+    position: relative;
 }
 
 .page-card,
@@ -126,6 +135,7 @@
 }
 
 .nav-bar {
+    grid-row: 3;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;

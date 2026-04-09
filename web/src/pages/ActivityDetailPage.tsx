@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { IoCreateOutline, IoHeart, IoHeartOutline, IoTrashOutline } from "react-icons/io5";
 import imageCompression from "browser-image-compression";
 import { Button } from "@/components/Button";
 import { SMILE_VALUES } from "@/config/scoring";
@@ -137,18 +138,29 @@ export function ActivityDetailPage() {
     }
 
     return (
-        <section className="page-card">
-            <div className="panel-title-row">
+        <section className="page-card activity-detail-page">
+            <div className="activity-detail-hero">
                 <div className="content-stack">
                     <h1>{activity.name}</h1>
                     {activity.address ? <p className="muted">{activity.address}</p> : null}
                 </div>
-                <Button type="button" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
-                    Modifica
-                </Button>
+                <div className="activity-detail-actions">
+                    <button type="button" className="detail-action-button" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
+                        <IoCreateOutline />
+                        <span>Modifica</span>
+                    </button>
+                    <button type="button" className="detail-action-button" onClick={() => void toggleFavorite(activity.id)}>
+                        {activity.is_favorite ? <IoHeart /> : <IoHeartOutline />}
+                        <span>{activity.is_favorite ? "Preferito" : "Preferiti"}</span>
+                    </button>
+                    <button type="button" className="detail-action-button danger" onClick={() => void handleDelete()}>
+                        <IoTrashOutline />
+                        <span>Elimina</span>
+                    </button>
+                </div>
             </div>
 
-            <div className="content-stack">
+            <div className="content-stack activity-detail-section">
                 <h3>Dettagli</h3>
                 {activity.phone ? <p>Telefono: {activity.phone}</p> : null}
                 {activity.lat != null && activity.lng != null ? (
@@ -159,7 +171,7 @@ export function ActivityDetailPage() {
                 {activity.notes ? <p className="muted">{activity.notes}</p> : null}
             </div>
 
-            <div className="content-stack">
+            <div className="content-stack activity-detail-section">
                 <h3>Tipologie</h3>
                 <div className="activities-meta-row">
                     {activity.type_ids.map(typeId => (
@@ -170,7 +182,7 @@ export function ActivityDetailPage() {
                 </div>
             </div>
 
-            <div className="content-stack">
+            <div className="content-stack activity-detail-section">
                 <h3>Tag</h3>
                 {activity.tags.length === 0 ? (
                     <p className="muted">Nessun tag</p>
@@ -185,7 +197,7 @@ export function ActivityDetailPage() {
                 )}
             </div>
 
-            <div className="content-stack">
+            <div className="content-stack activity-detail-section">
                 <h3>Punteggi medi</h3>
                 {averageScore === null ? (
                     <p className="muted">Nessuna recensione ancora presente</p>
@@ -215,7 +227,7 @@ export function ActivityDetailPage() {
                 )}
             </div>
 
-            <div className="content-stack">
+            <div className="content-stack activity-detail-section">
                 <h3>Recensioni per tipologia</h3>
                 {reviewsLoading ? <p className="muted">Caricamento recensioni...</p> : null}
                 {reviewsError ? <div className="status-banner error">{reviewsError}</div> : null}
@@ -236,7 +248,7 @@ export function ActivityDetailPage() {
                 </div>
             </div>
 
-            <div className="content-stack">
+            <div className="content-stack activity-detail-section">
                 <h3>Foto</h3>
                 <div className="inline-actions">
                     <label className="activity-upload-label">
@@ -262,14 +274,6 @@ export function ActivityDetailPage() {
                 )}
             </div>
 
-            <div className="inline-actions">
-                <Button type="button" variant={activity.is_favorite ? "primary" : "secondary"} onClick={() => void toggleFavorite(activity.id)}>
-                    {activity.is_favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
-                </Button>
-                <Button type="button" variant="danger" onClick={() => void handleDelete()}>
-                    Elimina attivita'
-                </Button>
-            </div>
         </section>
     );
 }

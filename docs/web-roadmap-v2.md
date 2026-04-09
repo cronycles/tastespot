@@ -1,8 +1,8 @@
 # TasteSpot Web — Roadmap v2
 
 **Data**: Aprile 2026  
-**Stato attuale**: Fasi 0-9 completate (migrazione da React Native → Web completa e in produzione)  
-**Prossima fase**: 10 — UI Redesign  
+**Stato attuale**: Fasi 0-9 completate, Fase 10 completata lato implementazione/codice  
+**Prossima fase**: 11 — Feature Gap Fix  
 **Priorità**: Mobile-first. Desktop responsive secondario.  
 
 ---
@@ -97,14 +97,14 @@ Dopo la migrazione completa alla web app (Fasi 0-9), l'analisi ha rivelato che:
 - Bottoni: arancio primario, rosso per danger
 
 ### Validazione Fase 10
-- [ ] Colori arancio visibili ovunque (nav active, FAB, bottoni, chips)
-- [ ] Map Page è fullscreen senza header sopra, mappa occupa tutta l'area
-- [ ] Search bar e filtri flottanti sopra la mappa
-- [ ] FAB "+" arancio in basso a destra sulla mappa
-- [ ] Nessun glassmorphism visibile (no backdrop-blur, no rgba superfici)
-- [ ] Sfondo app è `#FAFAFA`, carte sono `#FFFFFF`
-- [ ] Nav bar: tab attivo arancio
-- [ ] Lista attività rimossa dalla MapPage
+- [x] Colori arancio visibili ovunque (nav active, FAB, bottoni, chips)
+- [x] Map Page è fullscreen senza header sopra, mappa occupa tutta l'area
+- [x] Search bar e filtri flottanti sopra la mappa
+- [x] FAB "+" arancio in basso a destra sulla mappa
+- [x] Nessun glassmorphism visibile (no backdrop-blur, no rgba superfici)
+- [x] Sfondo app è `#FAFAFA`, carte sono `#FFFFFF`
+- [x] Nav bar: tab attivo arancio
+- [x] Lista attività rimossa dalla MapPage
 - [ ] Build senza errori, deploy OK
 
 ---
@@ -205,7 +205,7 @@ Strategia:
 
 - **Branch**: develop  
 - **Commit base**: `b4c2596`  
-- **Da fare**: Fase 10 → 11 → 12 → 13  
+- **Da fare**: Fase 11 → 12 → 13 (deploy Fase 10 da completare)  
 - **Produzione**: https://tastespot.crointhemorning.com  
 - **Dev locale**: `npm run start` dalla root  
 

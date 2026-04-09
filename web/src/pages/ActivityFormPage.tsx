@@ -164,7 +164,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
     }
 
     return (
-        <section className="page-card">
+        <section className="page-card form-page">
             <div className="content-stack">
                 <h1>{mode === "add" ? "Nuova attivita'" : "Modifica attivita'"}</h1>
                 <p className="muted">Compila i dettagli del posto che vuoi salvare.</p>

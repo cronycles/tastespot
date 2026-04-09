@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { IoArrowBackOutline, IoHeartOutline, IoHomeOutline, IoMapOutline, IoPersonOutline, IoWalkOutline } from "react-icons/io5";
+import { IoArrowBackOutline, IoHeartOutline, IoMapOutline, IoPersonOutline, IoWalkOutline } from "react-icons/io5";
 
 const navItems = [
     { to: "/", label: "Mappa", icon: IoMapOutline, end: true },
@@ -8,30 +8,28 @@ const navItems = [
     { to: "/profile", label: "Profilo", icon: IoPersonOutline, end: false },
 ] as const;
 
+const TAB_PATHS = ["/favorites", "/nearby", "/profile"];
+
 export function AppLayout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const isRootTabRoute =
-        location.pathname === "/" || location.pathname.startsWith("/favorites") || location.pathname.startsWith("/nearby") || location.pathname.startsWith("/profile");
+    const isTabRoute =
+        location.pathname === "/" ||
+        TAB_PATHS.some(path => location.pathname === path || location.pathname.startsWith(path + "/"));
+    const isMapRoute = location.pathname === "/";
 
     return (
         <div className="app-shell">
             <div className="app-frame">
-                <header className="app-header">
-                    <div className="app-header-brand">TasteSpot</div>
-                    <div className="app-header-actions">
-                        {!isRootTabRoute ? (
-                            <button type="button" className="app-header-action" onClick={() => navigate(-1)} aria-label="Torna indietro">
-                                <IoArrowBackOutline />
-                            </button>
-                        ) : null}
-                        <button type="button" className="app-header-action" onClick={() => navigate("/")} aria-label="Vai alla home">
-                            <IoHomeOutline />
+                {!isTabRoute ? (
+                    <header className="app-header">
+                        <button type="button" className="app-header-action" onClick={() => navigate(-1)} aria-label="Torna indietro">
+                            <IoArrowBackOutline />
                         </button>
-                    </div>
-                </header>
+                    </header>
+                ) : null}
 
-                <main className="app-content">
+                <main className={`app-content${isMapRoute ? " app-content--map" : ""}`}>
                     <Outlet />
                 </main>
 

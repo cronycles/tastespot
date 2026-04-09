@@ -15,7 +15,7 @@ export function ProfilePage() {
     }
 
     return (
-        <section className="profile-card">
+        <section className="profile-card profile-page">
             <div className="content-stack">
                 <h1>Profilo</h1>
             </div>

@@ -46,6 +46,9 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Fase 8 completata: pagina Nearby web collegata a geolocalizzazione browser con ordinamento distanza predefinito.
 - Profilo web aggiornato con dati reali utente (`auth/me`) e scorciatoie rapide a Nearby e Preferiti.
 - Fase 9 completata: deploy produzione aggiornato per includere build e publish automatico della SPA web.
+- Fase 10 completata lato codice: redesign UI mobile-like con palette arancio, superfici solide, app shell aggiornata e MapPage fullscreen.
+- Fase 10d completata: restyling liste/dettaglio/form (header liste con filtri, dettaglio attivita' flat con action row a icone, pulizia profilo e tipologie).
+- Verifica tecnica Fase 10 completata: `cd web && npm run build` OK.
 - Workflow separati: quality check web su `develop/main` e deploy produzione vincolato a `main`.
 - `backend/public/.htaccess` aggiornato per supportare SPA + API sullo stesso dominio.
 - Script root aggiunti: `local:web` e `local:start:web`.
@@ -63,16 +66,17 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Fase 7: completata
 - Fase 8: completata
 - Fase 9: completata
+- Fase 10: completata lato implementazione (in attesa deploy produzione)
 
 ## Current checkpoint
 - Branch di lavoro: `develop`
-- Commit checkpoint: `b4c2596`
+- Commit checkpoint: `b4c2596` (base di partenza)
 - Commit message: `Implement Phase 9 production deploy for web + backend`
-- Stato worktree al checkpoint: pulito
+- Stato worktree al checkpoint: modifiche locali Fase 10 in corso di finalizzazione
 
 ## Next recommended phase
-- Prossima fase consigliata: **Fase 10 — UI Redesign (design system mobile-like)**
-- Obiettivo: portare il linguaggio visivo della web app allo stesso livello della mobile app (colori arancio, superfici bianche, mappa fullscreen, niente glassmorphism).
+- Prossima fase consigliata: **Fase 11 — Feature Gap Fix**
+- Obiettivo: completare i requisiti funzionali mancanti (change password, verifica prefill POI, gallery landscape, E2E mobile).
 - Dettaglio: vedi `docs/web-roadmap-v2.md`
 
 ## Key files already touched
@@ -90,6 +94,10 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - `web/src/pages/ActivityAddPage.tsx`
 - `web/src/pages/ActivityEditPage.tsx`
 - `web/src/pages/ActivityDetailPage.tsx`
+- `web/src/components/AppLayout.tsx`
+- `web/src/styles/base.css`
+- `web/src/styles/layout.css`
+- `web/src/styles/features.css`
 - `backend/public/.htaccess`
 - `README.md`
 - `package.json`
