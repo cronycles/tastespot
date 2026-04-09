@@ -71,8 +71,9 @@ Quando si riprende il lavoro, leggere prima questo documento e poi continuare da
 - Stato worktree al checkpoint: pulito
 
 ## Next recommended phase
-- Prossima fase consigliata: hardening post-migrazione
-- Obiettivo: ridurre bundle size (code splitting map), aggiungere smoke test deploy e monitoraggio errori runtime web.
+- Prossima fase consigliata: **Fase 10 — UI Redesign (design system mobile-like)**
+- Obiettivo: portare il linguaggio visivo della web app allo stesso livello della mobile app (colori arancio, superfici bianche, mappa fullscreen, niente glassmorphism).
+- Dettaglio: vedi `docs/web-roadmap-v2.md`
 
 ## Key files already touched
 - `web/src/App.tsx`
