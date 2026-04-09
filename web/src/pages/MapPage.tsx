@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import maplibregl, { type Marker } from "maplibre-gl";
+import maplibregl, { type MapGeoJSONFeature, type Marker } from "maplibre-gl";
 import { IoHeart, IoHeartOutline, IoLocateOutline, IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
@@ -48,6 +48,55 @@ function compactPlaceLabel(value: string): string {
     return `${parts[0]}, ${parts[1]}`;
 }
 
+function firstNonEmptyString(...values: Array<unknown>): string | null {
+    for (const value of values) {
+        if (typeof value === "string") {
+            const trimmed = value.trim();
+            if (trimmed.length > 0) {
+                return trimmed;
+            }
+        }
+    }
+
+    return null;
+}
+
+function placeFromMapFeature(feature: MapGeoJSONFeature, lat: number, lng: number): PlaceSuggestion | null {
+    const props = (feature.properties ?? {}) as Record<string, unknown>;
+
+    const label = firstNonEmptyString(
+        props.name,
+        props.brand,
+        props["addr:housename"],
+        props.amenity,
+        props.shop,
+        props.tourism,
+        props.leisure,
+        props.building,
+    );
+
+    if (!label) {
+        return null;
+    }
+
+    const street = firstNonEmptyString(props["addr:street"]);
+    const number = firstNonEmptyString(props["addr:housenumber"]);
+    const city = firstNonEmptyString(props["addr:city"], props["addr:town"], props["addr:village"]);
+    const postcode = firstNonEmptyString(props["addr:postcode"]);
+    const country = firstNonEmptyString(props["addr:country"]);
+
+    const streetLine = [street, number].filter(Boolean).join(" ");
+    const details = [streetLine, city, postcode, country].filter(Boolean).join(", ");
+
+    return {
+        id: `poi:${String(feature.id ?? `${lat}:${lng}`)}`,
+        label,
+        details: details || label,
+        lat,
+        lng,
+    };
+}
+
 export function MapPage() {
     const navigate = useNavigate();
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -90,6 +139,42 @@ export function MapPage() {
         });
 
         map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
+
+        const onMapClick = (event: maplibregl.MapMouseEvent) => {
+            const nearbyFeatures = map.queryRenderedFeatures(
+                [
+                    [event.point.x - 8, event.point.y - 8],
+                    [event.point.x + 8, event.point.y + 8],
+                ],
+                {},
+            );
+
+            const poi = nearbyFeatures
+                .map(feature => placeFromMapFeature(feature, event.lngLat.lat, event.lngLat.lng))
+                .find((entry): entry is PlaceSuggestion => entry !== null);
+
+            if (poi) {
+                centerOnExternalPlace(poi);
+                return;
+            }
+
+            void reverseGeocodePlace(event.lngLat.lat, event.lngLat.lng).then(place => {
+                if (place) {
+                    centerOnExternalPlace(place);
+                    return;
+                }
+
+                centerOnExternalPlace({
+                    id: `point:${event.lngLat.lat}:${event.lngLat.lng}`,
+                    label: "Punto selezionato",
+                    details: `Lat ${event.lngLat.lat.toFixed(5)} · Lng ${event.lngLat.lng.toFixed(5)}`,
+                    lat: event.lngLat.lat,
+                    lng: event.lngLat.lng,
+                });
+            });
+        };
+
+        map.on("click", onMapClick);
         mapRef.current = map;
 
         const onResize = () => map.resize();
@@ -103,6 +188,7 @@ export function MapPage() {
             placeMarkerRef.current = null;
             userMarkerRef.current?.remove();
             userMarkerRef.current = null;
+            map.off("click", onMapClick);
             map.remove();
             mapRef.current = null;
         };
@@ -283,6 +369,42 @@ export function MapPage() {
             id: `${lat}:${lng}`,
             label: compactPlaceLabel(displayName),
             details: displayName,
+            lat,
+            lng,
+        };
+    }
+
+    async function reverseGeocodePlace(lat: number, lng: number): Promise<PlaceSuggestion | null> {
+        const params = new URLSearchParams({
+            format: "jsonv2",
+            lat: String(lat),
+            lon: String(lng),
+            zoom: "18",
+            "accept-language": "it",
+        });
+
+        const response = await window.fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+            headers: {
+                Accept: "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = (await response.json()) as { display_name?: string; name?: string };
+        const details = firstNonEmptyString(data.display_name);
+        const label = firstNonEmptyString(data.name, details ? compactPlaceLabel(details) : null, "Punto selezionato");
+
+        if (!label) {
+            return null;
+        }
+
+        return {
+            id: `reverse:${lat}:${lng}`,
+            label,
+            details: details ?? label,
             lat,
             lng,
         };

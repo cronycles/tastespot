@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { useActivitiesStore, type ActivityWithDetails, type CreateActivityData, type UpdateActivityData } from "@/stores/activitiesStore";
 import { useTypesStore } from "@/stores/typesStore";
@@ -40,16 +40,21 @@ function parseMaybeFloat(value: string): number | null {
 
 export function ActivityFormPage({ mode, activity }: Props) {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { create, update } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const queryName = mode === "add" ? (searchParams.get("name") ?? "") : "";
+    const queryLat = mode === "add" ? (searchParams.get("lat") ?? "") : "";
+    const queryLng = mode === "add" ? (searchParams.get("lng") ?? "") : "";
+
     const [form, setForm] = useState<FormState>(() => ({
-        name: activity?.name ?? "",
+        name: activity?.name ?? queryName,
         address: activity?.address ?? "",
-        lat: activity?.lat != null ? String(activity.lat) : "",
-        lng: activity?.lng != null ? String(activity.lng) : "",
+        lat: activity?.lat != null ? String(activity.lat) : queryLat,
+        lng: activity?.lng != null ? String(activity.lng) : queryLng,
         phone: activity?.phone ?? "",
         notes: activity?.notes ?? "",
         tagsInput: "",
