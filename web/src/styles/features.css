@@ -280,7 +280,7 @@
 
 .activities-search-input:focus {
     outline: none;
-    border-color: rgba(15, 118, 110, 0.7);
+    border-color: var(--color-primary);
     box-shadow: var(--focus-ring);
     background: var(--color-surface-strong);
 }
@@ -555,8 +555,8 @@
 }
 
 .map-poi-card {
-    border-color: rgba(37, 99, 235, 0.22);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 255, 0.98) 100%);
+    border-color: rgba(255, 90, 53, 0.25);
+    background: var(--color-surface);
 }
 
 .map-poi-title {
@@ -579,7 +579,7 @@
 }
 
 .map-list-item.active {
-    border-color: rgba(15, 118, 110, 0.35);
+    border-color: rgba(255, 90, 53, 0.35);
     background: var(--color-accent-ghost);
 }
 
