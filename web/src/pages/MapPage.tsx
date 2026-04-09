@@ -104,8 +104,9 @@ export function MapPage() {
     const markersRef = useRef<Marker[]>([]);
     const placeMarkerRef = useRef<Marker | null>(null);
     const userMarkerRef = useRef<Marker | null>(null);
+    const activityPopupRef = useRef<maplibregl.Popup | null>(null);
 
-    const { activities, fetch, loading, hasMore, toggleFavorite } = useActivitiesStore();
+    const { activities, fetch, loading, hasMore } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
     const { coords, hasPermission, requestAndFetch } = useLocationStore();
 
@@ -215,6 +216,8 @@ export function MapPage() {
             placeMarkerRef.current = null;
             userMarkerRef.current?.remove();
             userMarkerRef.current = null;
+            activityPopupRef.current?.remove();
+            activityPopupRef.current = null;
             map.off("click", onMapClick);
             map.remove();
             mapRef.current = null;
@@ -297,6 +300,51 @@ export function MapPage() {
         }
         return visibleActivities.find(entry => entry.id === effectiveSelectedActivityId) ?? null;
     }, [effectiveSelectedActivityId, visibleActivities]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !selectedActivity || selectedActivity.lat == null || selectedActivity.lng == null) {
+            activityPopupRef.current?.remove();
+            activityPopupRef.current = null;
+            return;
+        }
+
+        activityPopupRef.current?.remove();
+
+        const popupContent = document.createElement('div');
+        popupContent.className = 'map-activity-popup';
+        popupContent.innerHTML = `
+            <div style="padding: 12px; max-width: 280px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; flex: 1;">${selectedActivity.name}</h4>
+                    <button class="map-popup-close" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 0; color: #666;" title="Chiudi">✕</button>
+                </div>
+                ${selectedActivity.address ? `<p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${selectedActivity.address}</p>` : ''}
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
+                    ${selectedActivity.type_ids
+                        .map(typeId => `<span style="display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${typeNamesById.get(typeId) ?? 'Tipo'}</span>`)
+                        .join('')}
+                </div>
+                <button class="map-popup-detail" style="width: 100%; padding: 6px 8px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">Apri dettaglio</button>
+            </div>
+        `;
+
+        const closeBtn = popupContent.querySelector('.map-popup-close');
+        closeBtn?.addEventListener('click', () => {
+            setSelectedActivityId(null);
+            activityPopupRef.current?.remove();
+            activityPopupRef.current = null;
+        });
+
+        const detailBtn = popupContent.querySelector('.map-popup-detail');
+        detailBtn?.addEventListener('click', () => {
+            navigate(`/activity/${selectedActivity.id}`);
+        });
+
+        const popup = new maplibregl.Popup({ offset: [0, -30], closeButton: false, closeOnClick: false });
+        popup.setLngLat([selectedActivity.lng, selectedActivity.lat]).setDOMContent(popupContent).addTo(map);
+        activityPopupRef.current = popup;
+    }, [selectedActivity, typeNamesById, navigate]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -687,31 +735,7 @@ export function MapPage() {
 
             <div className="map-canvas" ref={mapContainerRef} />
 
-            {selectedActivity ? (
-                <div className="map-selection-card">
-                    <div className="activities-item-header">
-                        <h3>{selectedActivity.name}</h3>
-                        <button type="button" className="activities-favorite-button" onClick={() => void toggleFavorite(selectedActivity.id)} aria-label="Toggle preferito">
-                            {selectedActivity.is_favorite ? <IoHeart /> : <IoHeartOutline />}
-                        </button>
-                    </div>
-                    {selectedActivity.address ? <p className="muted">{selectedActivity.address}</p> : null}
-                    <div className="activities-meta-row">
-                        {selectedActivity.type_ids.map(typeId => (
-                            <span className="tag-pill" key={typeId}>
-                                {typeNamesById.get(typeId) ?? "Tipo"}
-                            </span>
-                        ))}
-                    </div>
-                    <div className="inline-actions">
-                        <Button type="button" onClick={() => navigate(`/activity/${selectedActivity.id}`)}>
-                            Apri dettaglio
-                        </Button>
-                    </div>
-                </div>
-            ) : null}
-
-            {!selectedActivity && selectedPlace ? (
+            {selectedPlace ? (
                 <div className="map-selection-card map-poi-card">
                     <div className="activities-item-header">
                         <h3 className="map-poi-title">{selectedPlace.label}</h3>
