@@ -119,6 +119,7 @@ export function MapPage() {
     const [suggestionsLoading, setSuggestionsLoading] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const placeSuggestionsRequestRef = useRef(0);
+    const visibleActivitiesRef = useRef<ActivityWithDetails[]>([]);
 
     useEffect(() => {
         void fetch(true);
@@ -141,6 +142,32 @@ export function MapPage() {
         map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
 
         const onMapClick = (event: maplibregl.MapMouseEvent) => {
+            const clickTarget = event.originalEvent.target;
+            if (clickTarget instanceof Element && clickTarget.closest('.map-marker, .map-poi-pin')) {
+                return;
+            }
+
+            const projectedClick = map.project(event.lngLat);
+            const nearestActivity = visibleActivitiesRef.current
+                .filter(entry => entry.lat != null && entry.lng != null)
+                .map(entry => {
+                    const projectedActivity = map.project([entry.lng!, entry.lat!]);
+                    const deltaX = projectedActivity.x - projectedClick.x;
+                    const deltaY = projectedActivity.y - projectedClick.y;
+                    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    return { entry, distance };
+                })
+                .sort((first, second) => first.distance - second.distance)[0];
+
+            if (nearestActivity && nearestActivity.distance <= 16) {
+                setSelectedActivityId(nearestActivity.entry.id);
+                setSelectedPlace(null);
+                setSearchFeedback(null);
+                placeMarkerRef.current?.remove();
+                placeMarkerRef.current = null;
+                return;
+            }
+
             const nearbyFeatures = map.queryRenderedFeatures(
                 [
                     [event.point.x - 8, event.point.y - 8],
@@ -166,7 +193,7 @@ export function MapPage() {
 
                 centerOnExternalPlace({
                     id: `point:${event.lngLat.lat}:${event.lngLat.lng}`,
-                    label: "Punto selezionato",
+                    label: 'Punto selezionato',
                     details: `Lat ${event.lngLat.lat.toFixed(5)} · Lng ${event.lngLat.lng.toFixed(5)}`,
                     lat: event.lngLat.lat,
                     lng: event.lngLat.lng,
@@ -174,7 +201,7 @@ export function MapPage() {
             });
         };
 
-        map.on("click", onMapClick);
+        map.on('click', onMapClick);
         mapRef.current = map;
 
         const onResize = () => map.resize();
@@ -244,13 +271,17 @@ export function MapPage() {
                 return true;
             }
 
-            const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? "");
-            const haystack = normalizeText([entry.name, entry.address ?? "", ...(entry.tags ?? []), ...typeNames].join(" "));
+            const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? '');
+            const haystack = normalizeText([entry.name, entry.address ?? '', ...(entry.tags ?? []), ...typeNames].join(' '));
             return haystack.includes(normalizedQuery);
         });
 
         return sortByName(filtered);
     }, [activities, favoritesOnly, query, selectedTypeId, typeNamesById]);
+
+    useEffect(() => {
+        visibleActivitiesRef.current = visibleActivities;
+    }, [visibleActivities]);
 
     const effectiveSelectedActivityId = useMemo(() => {
         if (!selectedActivityId) {
@@ -289,6 +320,9 @@ export function MapPage() {
             markerEl.onclick = () => {
                 setSelectedActivityId(entry.id);
                 setSelectedPlace(null);
+                setSearchFeedback(null);
+                placeMarkerRef.current?.remove();
+                placeMarkerRef.current = null;
                 map.flyTo({ center: [entry.lng!, entry.lat!], zoom: 16.5, duration: 700 });
             };
 
@@ -306,6 +340,8 @@ export function MapPage() {
         setSelectedActivityId(entry.id);
         setSelectedPlace(null);
         setSearchFeedback(null);
+        placeMarkerRef.current?.remove();
+        placeMarkerRef.current = null;
         if (entry.lat != null && entry.lng != null) {
             mapRef.current?.flyTo({ center: [entry.lng, entry.lat], zoom: 16.5, duration: 700 });
         }
@@ -687,7 +723,11 @@ export function MapPage() {
                     <div className="inline-actions">
                         <Button
                             type="button"
-                            onClick={() => navigate(`/activity/add?name=${encodeURIComponent(selectedPlace.label)}&lat=${selectedPlace.lat}&lng=${selectedPlace.lng}`)}
+                            onClick={() =>
+                                navigate(
+                                    `/activity/add?name=${encodeURIComponent(selectedPlace.label)}&address=${encodeURIComponent(selectedPlace.details)}&lat=${selectedPlace.lat}&lng=${selectedPlace.lng}`,
+                                )
+                            }
                         >
                             Aggiungi attivita qui
                         </Button>
