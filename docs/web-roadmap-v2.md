@@ -1,7 +1,7 @@
 # TasteSpot Web — Roadmap v2
 
 **Data**: Aprile 2026  
-**Stato attuale**: Fasi 0-9 completate, Fase 10 completata lato implementazione/codice  
+**Stato attuale**: Fasi 0-10 completate su `develop`  
 **Prossima fase**: 11 — Feature Gap Fix  
 **Priorità**: Mobile-first. Desktop responsive secondario.  
 
@@ -105,7 +105,7 @@ Dopo la migrazione completa alla web app (Fasi 0-9), l'analisi ha rivelato che:
 - [x] Sfondo app è `#FAFAFA`, carte sono `#FFFFFF`
 - [x] Nav bar: tab attivo arancio
 - [x] Lista attività rimossa dalla MapPage
-- [ ] Build senza errori, deploy OK
+- [x] Build senza errori, deploy OK
 
 ---
 
@@ -204,8 +204,8 @@ Strategia:
 ## Checkpoint Corrente
 
 - **Branch**: develop  
-- **Commit base**: `b4c2596`  
-- **Da fare**: Fase 11 → 12 → 13 (deploy Fase 10 da completare)  
+- **Commit base**: `d07129d`  
+- **Da fare**: Fase 11 → 12 → 13  
 - **Produzione**: https://tastespot.crointhemorning.com  
 - **Dev locale**: `npm run start` dalla root  
 

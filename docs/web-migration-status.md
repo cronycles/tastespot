@@ -66,13 +66,13 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Fase 7: completata
 - Fase 8: completata
 - Fase 9: completata
-- Fase 10: completata lato implementazione (in attesa deploy produzione)
+- Fase 10: completata
 
 ## Current checkpoint
 - Branch di lavoro: `develop`
-- Commit checkpoint: `b4c2596` (base di partenza)
-- Commit message: `Implement Phase 9 production deploy for web + backend`
-- Stato worktree al checkpoint: modifiche locali Fase 10 in corso di finalizzazione
+- Commit checkpoint: `d07129d`
+- Commit message: `chiusura Fase 10 UI redesign`
+- Stato worktree al checkpoint: allineato alla chiusura Fase 10
 
 ## Next recommended phase
 - Prossima fase consigliata: **Fase 11 — Feature Gap Fix**
@@ -106,7 +106,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 Usare uno di questi prompt per riprendere il lavoro:
 
 1. `Leggi docs/web-migration-status.md e docs/web-roadmap-v2.md e continua dalla prossima fase aperta.`
-2. `Leggi docs/web-migration-status.md e docs/web-roadmap-v2.md e avvia la Fase 10 (UI Redesign).`
+2. `Leggi docs/web-migration-status.md e docs/web-roadmap-v2.md e avvia la Fase 11 (Feature Gap Fix).`
 3. `Leggi docs/web-migration-status.md, verifica il checkpoint e continua da develop.`
 
 ## Update rule
