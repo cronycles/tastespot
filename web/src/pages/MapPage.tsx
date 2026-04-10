@@ -178,6 +178,13 @@ export function MapPage() {
         void fetchTypes();
     }, [fetch, fetchTypes]);
 
+    // Auto-request geolocation on mount: if the user already granted permission the
+    // browser resolves immediately; if not, the native prompt appears once. Either
+    // way, once coords update the existing flyTo effect centres the map automatically.
+    useEffect(() => {
+        void requestAndFetch();
+    }, [requestAndFetch]);
+
     useEffect(() => {
         if (!mapContainerRef.current || mapRef.current) {
             return;
