@@ -3,6 +3,7 @@ import maplibregl, { type MapGeoJSONFeature, type Marker } from "maplibre-gl";
 import { IoAdd, IoHeart, IoHeartOutline, IoLocateOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
+import { getMarkerSymbol } from "@/lib/activityTypeIcons";
 import { api } from "@/lib/api";
 import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitiesStore";
 import { useLocationStore } from "@/stores/locationStore";
@@ -313,6 +314,7 @@ export function MapPage() {
     }, [coords.lat, coords.lng, hasPermission]);
 
     const typeNamesById = useMemo(() => new Map(types.map(type => [type.id, type.name])), [types]);
+    const typeIconKeyById = useMemo(() => new Map(types.map(type => [type.id, type.icon_key])), [types]);
 
     const visibleActivities = useMemo(() => {
         const normalizedQuery = normalizeText(query);
@@ -419,6 +421,8 @@ export function MapPage() {
             const markerEl = document.createElement("button");
             markerEl.type = "button";
             markerEl.className = `map-marker${effectiveSelectedActivityId === entry.id ? " active" : ""}`;
+            const firstTypeIconKey = entry.type_ids.map(typeId => typeIconKeyById.get(typeId)).find(iconKey => typeof iconKey === "string");
+            markerEl.textContent = getMarkerSymbol(firstTypeIconKey);
             markerEl.title = entry.name;
             markerEl.setAttribute("aria-label", `Apri ${entry.name}`);
             markerEl.onclick = () => {
@@ -433,7 +437,7 @@ export function MapPage() {
 
             markersRef.current.push(marker);
         });
-    }, [effectiveSelectedActivityId, visibleActivities]);
+    }, [effectiveSelectedActivityId, typeIconKeyById, visibleActivities]);
 
     async function handleCenterOnUser(): Promise<void> {
         await requestAndFetch();

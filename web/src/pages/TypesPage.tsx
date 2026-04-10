@@ -1,38 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import {
-    IoAdd,
-    IoArrowDown,
-    IoArrowUp,
-    IoBeerOutline,
-    IoBasketOutline,
-    IoCafeOutline,
-    IoClose,
-    IoFastFoodOutline,
-    IoIceCreamOutline,
-    IoNutritionOutline,
-    IoPencilOutline,
-    IoPizzaOutline,
-    IoRestaurantOutline,
-    IoStorefrontOutline,
-    IoTrashOutline,
-    IoWineOutline,
-} from "react-icons/io5";
+import { IoAdd, IoArrowDown, IoArrowUp, IoClose, IoPencilOutline, IoTrashOutline } from "react-icons/io5";
 import { Button } from "@/components/Button";
+import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
 import { AVAILABLE_ICONS, DEFAULT_ICON_KEY, type ActivityType } from "@/types";
 import { useTypesStore } from "@/stores/typesStore";
-
-const iconMap = {
-    "restaurant-outline": IoRestaurantOutline,
-    "cafe-outline": IoCafeOutline,
-    "beer-outline": IoBeerOutline,
-    "wine-outline": IoWineOutline,
-    "pizza-outline": IoPizzaOutline,
-    "fast-food-outline": IoFastFoodOutline,
-    "ice-cream-outline": IoIceCreamOutline,
-    "nutrition-outline": IoNutritionOutline,
-    "storefront-outline": IoStorefrontOutline,
-    "basket-outline": IoBasketOutline,
-} as const;
 
 const EMPTY_FORM = {
     name: "",
@@ -146,7 +117,7 @@ export function TypesPage() {
                 {sortedTypes.length > 0 ? (
                     <div className="list">
                         {sortedTypes.map((type, index) => {
-                            const Icon = iconMap[type.icon_key as keyof typeof iconMap] ?? IoStorefrontOutline;
+                            const Icon = getActivityTypeIcon(type.icon_key);
 
                             return (
                                 <div className="surface-item types-item" key={type.id}>
@@ -238,7 +209,7 @@ export function TypesPage() {
                             <h3>Icona</h3>
                             <div className="types-icon-grid">
                                 {AVAILABLE_ICONS.map(iconKey => {
-                                    const Icon = iconMap[iconKey];
+                                    const Icon = getActivityTypeIcon(iconKey);
                                     const active = form.iconKey === iconKey;
 
                                     return (

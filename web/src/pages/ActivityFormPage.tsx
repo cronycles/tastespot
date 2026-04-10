@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/Button";
+import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
 import { useActivitiesStore, type ActivityWithDetails, type CreateActivityData, type UpdateActivityData } from "@/stores/activitiesStore";
 import { useTypesStore } from "@/stores/typesStore";
 
@@ -204,24 +205,37 @@ export function ActivityFormPage({ mode, activity }: Props) {
                 </div>
 
                 <div className="content-stack">
-                    <h3>Tipologie *</h3>
-                    <div className="inline-actions">
-                        <Button type="button" variant="secondary" onClick={() => navigate("/private/types")}>
-                            {types.length === 0 ? "Crea tipologie" : "Gestisci tipologie"}
+                    <div className="activity-types-header">
+                        <h3>Tipologie *</h3>
+                        <Button type="button" variant="secondary" className="activity-manage-types-button" onClick={() => navigate("/private/types")}>
+                            {types.length === 0 ? "Crea" : "Gestisci"}
                         </Button>
                     </div>
-                    {types.length === 0 ? <p className="muted">Nessuna tipologia disponibile. Creane almeno una per continuare.</p> : null}
-                    <div className="activities-chip-row">
-                        {types.map(type => (
-                            <button
-                                key={type.id}
-                                type="button"
-                                className={`activities-chip${form.selectedTypeIds.includes(type.id) ? " active" : ""}`}
-                                onClick={() => toggleType(type.id)}
-                            >
-                                {type.name}
-                            </button>
-                        ))}
+                    {types.length === 0 ? (
+                        <p className="muted">Nessuna tipologia disponibile. Creane almeno una per continuare.</p>
+                    ) : (
+                        <p className="muted">Seleziona una o piu' tipologie per classificare l'attivita'.</p>
+                    )}
+                    <div className="activity-types-grid">
+                        {types.map(type =>
+                            (() => {
+                                const Icon = getActivityTypeIcon(type.icon_key);
+
+                                return (
+                                    <button
+                                        key={type.id}
+                                        type="button"
+                                        className={`activity-type-choice${form.selectedTypeIds.includes(type.id) ? " active" : ""}`}
+                                        onClick={() => toggleType(type.id)}
+                                    >
+                                        <span className="activity-type-choice-icon">
+                                            <Icon />
+                                        </span>
+                                        <span className="activity-type-choice-label">{type.name}</span>
+                                    </button>
+                                );
+                            })(),
+                        )}
                     </div>
                 </div>
 

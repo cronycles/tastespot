@@ -174,6 +174,7 @@ Stato: da eseguire su device reale.
 - Geocoding spostato da chiamate browser dirette verso proxy backend (`/api/v1/geo/search`, `/api/v1/geo/reverse`).
 - Proxy backend con cache, fallback query e fallback provider in caso di 429/vuoto da Nominatim.
 - Debounce ricerca mappa ottimizzato e soglia minima ricerca impostata a 3 caratteri.
+- Marker attivita' in mappa aggiornati con icona tipologia/default icon per distinguere visivamente i punti.
 
 Stato: implementato e verificato con build/lint.
 

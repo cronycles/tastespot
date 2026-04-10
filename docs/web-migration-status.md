@@ -60,6 +60,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Geocoding web spostato dietro API backend (`/geo/search`, `/geo/reverse`) per evitare CORS browser e ridurre errori da rate limit.
 - Nuovo proxy geocoding backend con cache, fallback query e fallback provider (Photon) in caso di risposta vuota o 429 da Nominatim.
 - Ottimizzazioni performance ricerca: debounce frontend ridotto a 220ms, soglia minima ricerca impostata a 3 caratteri, timeout upstream ridotti lato backend.
+- Marker attivita' in mappa aggiornati: ora mostrano icona tipologia (o icona default) invece del solo punto arancione.
 - Workflow separati: quality check web su `develop/main` e deploy produzione vincolato a `main`.
 - `backend/public/.htaccess` aggiornato per supportare SPA + API sullo stesso dominio.
 - Script root aggiunti: `local:web` e `local:start:web`.
