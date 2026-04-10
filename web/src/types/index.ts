@@ -46,6 +46,15 @@ export type Review = {
   updated_at: string
 }
 
+export type ActivityReviewSummary = {
+  activity_type_id: string | null
+  score_location: number | null
+  score_food: number | null
+  score_service: number | null
+  score_price: number | null
+  updated_at: string | null
+}
+
 export type Favorite = {
   user_id: string
   activity_id: string

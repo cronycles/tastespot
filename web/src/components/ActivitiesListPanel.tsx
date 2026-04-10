@@ -4,7 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitiesStore";
 import { useLocationStore } from "@/stores/locationStore";
+import { calcActivityAvgScore } from "@/stores/reviewsStore";
 import { useTypesStore } from "@/stores/typesStore";
+
+type CategoryKey = "location" | "food" | "service" | "price";
 
 type SortKey = "alpha" | "last_viewed" | "last_reviewed" | "distance";
 type SortDir = "asc" | "desc";
@@ -26,6 +29,42 @@ type Props = {
     autoRequestLocation?: boolean;
     initialQuery?: string;
 };
+
+const CATEGORY_OPTIONS: Array<{ key: CategoryKey; label: string }> = [
+    { key: "location", label: "Location" },
+    { key: "food", label: "Cibo" },
+    { key: "service", label: "Servizio" },
+    { key: "price", label: "Conto" },
+];
+
+function clampScore(value: number): number {
+    return Math.min(10, Math.max(0, value));
+}
+
+function parseScoreInput(value: string): number {
+    const parsed = Number.parseFloat(value);
+    if (!Number.isFinite(parsed)) {
+        return 0;
+    }
+
+    return clampScore(parsed);
+}
+
+function getReviewScore(entry: ActivityWithDetails["review_summaries"][number], category: CategoryKey): number | null {
+    if (category === "location") {
+        return entry.score_location;
+    }
+
+    if (category === "food") {
+        return entry.score_food;
+    }
+
+    if (category === "service") {
+        return entry.score_service;
+    }
+
+    return entry.score_price;
+}
 
 function distanceKm(lat1: number, lng1: number, lat2: number | null, lng2: number | null): number {
     if (lat2 == null || lng2 == null) {
@@ -119,10 +158,15 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
     const { coords, hasPermission, requestAndFetch } = useLocationStore();
 
     const [query, setQuery] = useState(initialQuery);
-    const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
+    const [selectedTypeIds, setSelectedTypeIds] = useState<string[]>([]);
     const [favoritesOnly, setFavoritesOnly] = useState(false);
     const [sortKey, setSortKey] = useState<SortKey>(initialSortKey);
     const [sortDir, setSortDir] = useState<SortDir>(initialSortDir);
+    const [avgScoreMin, setAvgScoreMin] = useState("0");
+    const [avgScoreMax, setAvgScoreMax] = useState("10");
+    const [selectedCategories, setSelectedCategories] = useState<CategoryKey[]>([]);
+    const [categoryScoreMin, setCategoryScoreMin] = useState("0");
+    const [categoryScoreMax, setCategoryScoreMax] = useState("10");
 
     useEffect(() => {
         setQuery(initialQuery);
@@ -148,14 +192,40 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
     const visible = useMemo(() => {
         const normalizedQuery = normalizeText(query);
         const activeFavoritesOnly = fixedFavoritesOnly || favoritesOnly;
+        const effectiveAvgMin = parseScoreInput(avgScoreMin);
+        const effectiveAvgMax = Math.max(effectiveAvgMin, parseScoreInput(avgScoreMax));
+        const effectiveCategoryMin = parseScoreInput(categoryScoreMin);
+        const effectiveCategoryMax = Math.max(effectiveCategoryMin, parseScoreInput(categoryScoreMax));
 
         const filtered = activities.filter(entry => {
             if (activeFavoritesOnly && !entry.is_favorite) {
                 return false;
             }
 
-            if (selectedTypeId && !entry.type_ids.includes(selectedTypeId)) {
+            if (selectedTypeIds.length > 0 && !selectedTypeIds.some(typeId => entry.type_ids.includes(typeId))) {
                 return false;
+            }
+
+            const averageScore = calcActivityAvgScore(entry.review_summaries);
+            if (averageScore !== null && (averageScore < effectiveAvgMin || averageScore > effectiveAvgMax)) {
+                return false;
+            }
+
+            if (averageScore === null && effectiveAvgMin > 0) {
+                return false;
+            }
+
+            if (selectedCategories.length > 0) {
+                const matchesCategoryFilters = entry.review_summaries.some(reviewSummary => {
+                    return selectedCategories.every(category => {
+                        const score = getReviewScore(reviewSummary, category);
+                        return score !== null && score >= effectiveCategoryMin && score <= effectiveCategoryMax;
+                    });
+                });
+
+                if (!matchesCategoryFilters) {
+                    return false;
+                }
             }
 
             if (!normalizedQuery) {
@@ -169,7 +239,25 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
         });
 
         return sortActivities(filtered, sortKey, sortDir, coords.lat, coords.lng);
-    }, [activities, coords.lat, coords.lng, favoritesOnly, fixedFavoritesOnly, query, selectedTypeId, sortDir, sortKey, typeNamesById]);
+    }, [activities, avgScoreMax, avgScoreMin, categoryScoreMax, categoryScoreMin, coords.lat, coords.lng, favoritesOnly, fixedFavoritesOnly, query, selectedCategories, selectedTypeIds, sortDir, sortKey, typeNamesById]);
+
+    function toggleTypeFilter(typeId: string): void {
+        setSelectedTypeIds(current => (current.includes(typeId) ? current.filter(entry => entry !== typeId) : [...current, typeId]));
+    }
+
+    function toggleCategoryFilter(category: CategoryKey): void {
+        setSelectedCategories(current => (current.includes(category) ? current.filter(entry => entry !== category) : [...current, category]));
+    }
+
+    function resetFilters(): void {
+        setFavoritesOnly(false);
+        setSelectedTypeIds([]);
+        setAvgScoreMin("0");
+        setAvgScoreMax("10");
+        setSelectedCategories([]);
+        setCategoryScoreMin("0");
+        setCategoryScoreMax("10");
+    }
 
     function toggleSort(key: SortKey): void {
         if (key === sortKey) {
@@ -230,20 +318,74 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
                                 {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
                             </button>
                         ) : null}
-                        <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
+                        <button type="button" className={`activities-chip${selectedTypeIds.length === 0 ? " active" : ""}`} onClick={() => setSelectedTypeIds([])}>
                             Tutte
                         </button>
                         {types.map(type => (
                             <button
                                 key={type.id}
                                 type="button"
-                                className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
-                                onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
+                                className={`activities-chip${selectedTypeIds.includes(type.id) ? " active" : ""}`}
+                                onClick={() => toggleTypeFilter(type.id)}
                             >
                                 {type.name}
                             </button>
                         ))}
                     </div>
+                </div>
+
+                <div className="activities-filters-grid">
+                    <div className="activities-filter-card">
+                        <div className="activities-filter-head">
+                            <span className="chips-caption">Punteggio medio</span>
+                            <span className="muted">Range 0-10</span>
+                        </div>
+                        <div className="activities-range-grid">
+                            <label className="field activities-inline-field">
+                                <span>Min</span>
+                                <input type="number" min={0} max={10} step={0.5} value={avgScoreMin} onChange={event => setAvgScoreMin(event.target.value)} />
+                            </label>
+                            <label className="field activities-inline-field">
+                                <span>Max</span>
+                                <input type="number" min={0} max={10} step={0.5} value={avgScoreMax} onChange={event => setAvgScoreMax(event.target.value)} />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="activities-filter-card">
+                        <div className="activities-filter-head">
+                            <span className="chips-caption">Categorie voto</span>
+                            <span className="muted">Almeno una recensione deve rispettare il range</span>
+                        </div>
+                        <div className="activities-chip-row">
+                            {CATEGORY_OPTIONS.map(category => (
+                                <button
+                                    key={category.key}
+                                    type="button"
+                                    className={`activities-chip${selectedCategories.includes(category.key) ? " active" : ""}`}
+                                    onClick={() => toggleCategoryFilter(category.key)}
+                                >
+                                    {category.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="activities-range-grid">
+                            <label className="field activities-inline-field">
+                                <span>Min</span>
+                                <input type="number" min={0} max={10} step={0.5} value={categoryScoreMin} onChange={event => setCategoryScoreMin(event.target.value)} />
+                            </label>
+                            <label className="field activities-inline-field">
+                                <span>Max</span>
+                                <input type="number" min={0} max={10} step={0.5} value={categoryScoreMax} onChange={event => setCategoryScoreMax(event.target.value)} />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="inline-actions activities-filters-actions">
+                    <Button type="button" variant="secondary" onClick={resetFilters}>
+                        Reset filtri
+                    </Button>
                 </div>
 
                 <div className="chips-section">

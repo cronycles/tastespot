@@ -39,9 +39,9 @@ Prompt di resume consigliato:
 - Branch di lavoro: `develop`
 - Stato worktree: locale non ancora committato
 - Base implementata: auth, map, tipologie, lista, dettaglio, recensioni, profilo, sicurezza, deploy
-- Fase completata piu' recente: `Fase 1 — Allineamento Funzionale Critico`
-- Prossima fase consigliata: `Fase 2 — Filtri Lista Completi`
-- Focus immediato: multi-tipologia, range media, categorie voto con range
+- Fase completata piu' recente: `Fase 2 — Filtri Lista Completi`
+- Prossima fase consigliata: `Fase 3 — Data Layer e Paginazione Reale`
+- Focus immediato: paginazione backend vera, `has_more` reale, valutazione filtri/sorting server-side
 
 ---
 
@@ -177,6 +177,8 @@ Questi punti impattano direttamente il comportamento base del prodotto e falsano
 
 ## Fase 2 — Filtri Lista Completi
 
+**Stato**: completata il 10 aprile 2026
+
 ### Scope
 
 - tipologie multi-select
@@ -201,6 +203,14 @@ Il documento requisiti insiste molto sulla capacita' di filtrare i risultati in 
 
 - l'utente puo' combinare tipologie, preferiti, media min-max e categorie voto
 - il comportamento e' coerente con il requisito: una attivita' appare se almeno una review per tipologia soddisfa il filtro categorie
+
+### Implementato
+
+- filtro tipologie portato a multi-select
+- aggiunto filtro punteggio medio min-max
+- aggiunto filtro categorie voto con range condiviso
+- aggiunto reset filtri
+- esteso il payload attivita' con `review_summaries` minime per valutare i filtri in lista
 
 ## Fase 3 — Data Layer e Paginazione Reale
 

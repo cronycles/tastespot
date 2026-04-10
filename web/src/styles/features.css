@@ -294,6 +294,53 @@
     gap: 8px;
 }
 
+.activities-filters-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.activities-filter-card {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background: var(--color-surface-strong);
+}
+
+.activities-filter-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.activities-range-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.activities-inline-field {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+}
+
+.activities-inline-field span {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+}
+
+.activities-inline-field input {
+    width: 100%;
+}
+
+.activities-filters-actions {
+    justify-content: flex-start;
+}
+
 .search-feedback {
     margin-top: 8px;
     font-size: 0.84rem;

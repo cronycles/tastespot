@@ -22,6 +22,7 @@ class ActivityController extends Controller
             ->withMax('reviews as latest_reviewed_at', 'updated_at')
             ->with([
                 'types:id',
+                'reviews:id,activity_id,activity_type_id,score_location,score_food,score_service,score_price,updated_at',
                 'photos' => fn($q) => $q->orderBy('display_order'),
             ]);
     }
@@ -46,6 +47,14 @@ class ActivityController extends Controller
             'updated_at'     => $activity->updated_at->toISOString(),
             'type_ids'       => $activity->types->pluck('id')->values()->toArray(),
             'is_favorite'    => (bool) ($activity->is_favorite ?? false),
+            'review_summaries' => $activity->reviews->map(fn($review) => [
+                'activity_type_id' => $review->activity_type_id,
+                'score_location' => $review->score_location,
+                'score_food' => $review->score_food,
+                'score_service' => $review->score_service,
+                'score_price' => $review->score_price,
+                'updated_at' => $review->updated_at?->toISOString(),
+            ])->values()->toArray(),
             'photos'         => $activity->photos->map(fn($p) => [
                 'id'            => $p->id,
                 'activity_id'   => $activity->id,

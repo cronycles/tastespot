@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import { api } from '@/lib/api'
-import type { Activity, ActivityPhoto } from '@/types'
+import type { Activity, ActivityPhoto, ActivityReviewSummary } from '@/types'
 
 const PAGE_SIZE = 20
 
 export type ActivityWithDetails = Activity & {
   type_ids: string[]
   is_favorite: boolean
+  review_summaries: ActivityReviewSummary[]
   photos: ActivityPhoto[]
 }
 

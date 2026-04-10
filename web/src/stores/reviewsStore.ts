@@ -3,6 +3,8 @@ import { CATEGORY_WEIGHTS } from '@/config/scoring'
 import { api } from '@/lib/api'
 import type { Review } from '@/types'
 
+type ScoreLikeReview = Pick<Review, 'score_location' | 'score_food' | 'score_service' | 'score_price'>
+
 export type ReviewWithType = Review & {
   type_name: string | null
   type_icon_key: string | null
@@ -21,7 +23,7 @@ export type UpsertReviewData = {
   notes: string | null
 }
 
-export function calcActivityAvgScore(reviews: Review[]): number | null {
+export function calcActivityAvgScore(reviews: ScoreLikeReview[]): number | null {
   let weightedSum = 0
   let totalWeight = 0
 
@@ -48,13 +50,13 @@ export function calcActivityAvgScore(reviews: Review[]): number | null {
   return weightedSum / totalWeight
 }
 
-export function calcCategoryAvgs(reviews: Review[]): {
+export function calcCategoryAvgs(reviews: ScoreLikeReview[]): {
   location: number | null
   food: number | null
   service: number | null
   price: number | null
 } {
-  const avg = (key: keyof Pick<Review, 'score_location' | 'score_food' | 'score_service' | 'score_price'>) => {
+  const avg = (key: keyof ScoreLikeReview) => {
     const values = reviews.map((review) => review[key]).filter((value): value is number => value !== null)
     if (values.length === 0) {
       return null
