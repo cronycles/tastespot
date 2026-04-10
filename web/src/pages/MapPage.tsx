@@ -147,7 +147,6 @@ export function MapPage() {
     const navigate = useNavigate();
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
-    const skipInitialCoordsFlyRef = useRef(true);
     const markersRef = useRef<Marker[]>([]);
     const placeMarkerRef = useRef<Marker | null>(null);
     const userMarkerRef = useRef<Marker | null>(null);
@@ -258,11 +257,21 @@ export function MapPage() {
         void fetchTypes();
     }, [fetch, fetchTypes]);
 
-    // Auto-request geolocation on mount: if the user already granted permission the
-    // browser resolves immediately; if not, the native prompt appears once. Either
-    // way, once coords update the existing flyTo effect centres the map automatically.
+    // Auto-request geolocation only on first entry (no saved map view): when returning
+    // from add/detail pages we preserve the exact previous view without recentering.
     useEffect(() => {
-        void requestAndFetch();
+        if (lastMapView) {
+            return;
+        }
+
+        void requestAndFetch().then(() => {
+            const latest = useLocationStore.getState().coords;
+            mapRef.current?.flyTo({
+                center: [latest.lng, latest.lat],
+                zoom: 13,
+                duration: 900,
+            });
+        });
     }, [requestAndFetch]);
 
     useEffect(() => {
@@ -370,23 +379,6 @@ export function MapPage() {
             mapRef.current = null;
         };
     }, []);
-
-    useEffect(() => {
-        if (!mapRef.current) {
-            return;
-        }
-
-        if (skipInitialCoordsFlyRef.current) {
-            skipInitialCoordsFlyRef.current = false;
-            return;
-        }
-
-        mapRef.current.flyTo({
-            center: [coords.lng, coords.lat],
-            zoom: 13,
-            duration: 900,
-        });
-    }, [coords.lat, coords.lng]);
 
     useEffect(() => {
         const map = mapRef.current;
