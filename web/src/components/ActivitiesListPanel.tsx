@@ -167,6 +167,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
     const [favoritesOnly, setFavoritesOnly] = useState(false);
     const [sortKey, setSortKey] = useState<SortKey>(initialSortKey);
     const [sortDir, setSortDir] = useState<SortDir>(initialSortDir);
+    const [showFilters, setShowFilters] = useState(false);
     const [avgScoreMin, setAvgScoreMin] = useState("0");
     const [avgScoreMax, setAvgScoreMax] = useState("10");
     const [selectedCategories, setSelectedCategories] = useState<CategoryKey[]>([]);
@@ -264,6 +265,13 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
         setCategoryScoreMax("10");
     }
 
+    const activeFiltersCount =
+        (fixedFavoritesOnly ? 0 : favoritesOnly ? 1 : 0) +
+        selectedTypeIds.length +
+        (avgScoreMin !== "0" || avgScoreMax !== "10" ? 1 : 0) +
+        selectedCategories.length +
+        (categoryScoreMin !== "0" || categoryScoreMax !== "10" ? 1 : 0);
+
     function toggleSort(key: SortKey): void {
         if (key === sortKey) {
             setSortDir(current => (current === "asc" ? "desc" : "asc"));
@@ -316,81 +324,89 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
                 </div>
 
                 <div className="chips-section">
-                    <span className="chips-caption">Filtri</span>
-                    <div className="filter-chips-scroll">
-                        {!fixedFavoritesOnly ? (
-                            <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
-                                {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
-                            </button>
-                        ) : null}
-                        <button type="button" className={`activities-chip${selectedTypeIds.length === 0 ? " active" : ""}`} onClick={() => setSelectedTypeIds([])}>
-                            Tutte
+                    <div className="activities-filter-toggle-row">
+                        <button type="button" className={`activities-chip activities-filter-toggle${showFilters ? " active" : ""}`} onClick={() => setShowFilters(current => !current)}>
+                            Filtri{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
                         </button>
-                        {types.map(type => (
-                            <button
-                                key={type.id}
-                                type="button"
-                                className={`activities-chip${selectedTypeIds.includes(type.id) ? " active" : ""}`}
-                                onClick={() => toggleTypeFilter(type.id)}
-                            >
-                                {type.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="activities-filters-grid">
-                    <div className="activities-filter-card">
-                        <div className="activities-filter-head">
-                            <span className="chips-caption">Punteggio medio</span>
-                            <span className="muted">Range 0-10</span>
-                        </div>
-                        <div className="activities-range-grid">
-                            <label className="field activities-inline-field">
-                                <span>Min</span>
-                                <input type="number" min={0} max={10} step={0.5} value={avgScoreMin} onChange={event => setAvgScoreMin(event.target.value)} />
-                            </label>
-                            <label className="field activities-inline-field">
-                                <span>Max</span>
-                                <input type="number" min={0} max={10} step={0.5} value={avgScoreMax} onChange={event => setAvgScoreMax(event.target.value)} />
-                            </label>
-                        </div>
+                        {activeFiltersCount > 0 ? (
+                            <Button type="button" variant="secondary" onClick={resetFilters}>
+                                Reset
+                            </Button>
+                        ) : null}
                     </div>
 
-                    <div className="activities-filter-card">
-                        <div className="activities-filter-head">
-                            <span className="chips-caption">Categorie voto</span>
-                            <span className="muted">Almeno una recensione deve rispettare il range</span>
-                        </div>
-                        <div className="activities-chip-row">
-                            {CATEGORY_OPTIONS.map(category => (
-                                <button
-                                    key={category.key}
-                                    type="button"
-                                    className={`activities-chip${selectedCategories.includes(category.key) ? " active" : ""}`}
-                                    onClick={() => toggleCategoryFilter(category.key)}
-                                >
-                                    {category.label}
+                    {showFilters ? (
+                        <div className="activities-filters-panel">
+                            <div className="filter-chips-scroll">
+                                {!fixedFavoritesOnly ? (
+                                    <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
+                                        {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
+                                    </button>
+                                ) : null}
+                                <button type="button" className={`activities-chip${selectedTypeIds.length === 0 ? " active" : ""}`} onClick={() => setSelectedTypeIds([])}>
+                                    Tutte
                                 </button>
-                            ))}
-                        </div>
-                        <div className="activities-range-grid">
-                            <label className="field activities-inline-field">
-                                <span>Min</span>
-                                <input type="number" min={0} max={10} step={0.5} value={categoryScoreMin} onChange={event => setCategoryScoreMin(event.target.value)} />
-                            </label>
-                            <label className="field activities-inline-field">
-                                <span>Max</span>
-                                <input type="number" min={0} max={10} step={0.5} value={categoryScoreMax} onChange={event => setCategoryScoreMax(event.target.value)} />
-                            </label>
-                        </div>
-                    </div>
-                </div>
+                                {types.map(type => (
+                                    <button
+                                        key={type.id}
+                                        type="button"
+                                        className={`activities-chip${selectedTypeIds.includes(type.id) ? " active" : ""}`}
+                                        onClick={() => toggleTypeFilter(type.id)}
+                                    >
+                                        {type.name}
+                                    </button>
+                                ))}
+                            </div>
 
-                <div className="inline-actions activities-filters-actions">
-                    <Button type="button" variant="secondary" onClick={resetFilters}>
-                        Reset filtri
-                    </Button>
+                            <div className="activities-filters-grid">
+                                <div className="activities-filter-card">
+                                    <div className="activities-filter-head">
+                                        <span className="chips-caption">Punteggio medio</span>
+                                        <span className="muted">Range 0-10</span>
+                                    </div>
+                                    <div className="activities-range-grid">
+                                        <label className="field activities-inline-field">
+                                            <span>Min</span>
+                                            <input type="number" min={0} max={10} step={0.5} value={avgScoreMin} onChange={event => setAvgScoreMin(event.target.value)} />
+                                        </label>
+                                        <label className="field activities-inline-field">
+                                            <span>Max</span>
+                                            <input type="number" min={0} max={10} step={0.5} value={avgScoreMax} onChange={event => setAvgScoreMax(event.target.value)} />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="activities-filter-card">
+                                    <div className="activities-filter-head">
+                                        <span className="chips-caption">Categorie voto</span>
+                                        <span className="muted">Almeno una recensione deve rispettare il range</span>
+                                    </div>
+                                    <div className="activities-chip-row">
+                                        {CATEGORY_OPTIONS.map(category => (
+                                            <button
+                                                key={category.key}
+                                                type="button"
+                                                className={`activities-chip${selectedCategories.includes(category.key) ? " active" : ""}`}
+                                                onClick={() => toggleCategoryFilter(category.key)}
+                                            >
+                                                {category.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="activities-range-grid">
+                                        <label className="field activities-inline-field">
+                                            <span>Min</span>
+                                            <input type="number" min={0} max={10} step={0.5} value={categoryScoreMin} onChange={event => setCategoryScoreMin(event.target.value)} />
+                                        </label>
+                                        <label className="field activities-inline-field">
+                                            <span>Max</span>
+                                            <input type="number" min={0} max={10} step={0.5} value={categoryScoreMax} onChange={event => setCategoryScoreMax(event.target.value)} />
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
 
                 <div className="chips-section">

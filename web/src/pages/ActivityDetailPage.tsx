@@ -5,15 +5,16 @@ import { IoCreateOutline, IoHeart, IoHeartOutline, IoTrashOutline } from "react-
 import { IoCallOutline, IoNavigateOutline, IoPricetagOutline, IoReaderOutline } from "react-icons/io5";
 import imageCompression from "browser-image-compression";
 import { Button } from "@/components/Button";
+import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
 import { api } from "@/lib/api";
-import { useActivitiesStore } from "@/stores/activitiesStore";
+import { type UpdateActivityData, useActivitiesStore } from "@/stores/activitiesStore";
 import { calcActivityAvgScore, calcCategoryAvgs, useReviewsStore } from "@/stores/reviewsStore";
 import { useTypesStore } from "@/stores/typesStore";
 
 export function ActivityDetailPage() {
     const navigate = useNavigate();
     const params = useParams<{ id: string }>();
-    const { activities, remove, toggleFavorite, addPhoto, removePhoto, markViewed } = useActivitiesStore();
+    const { activities, update, remove, toggleFavorite, addPhoto, removePhoto, markViewed } = useActivitiesStore();
     const types = useTypesStore(state => state.types);
     const fetchReviews = useReviewsStore(state => state.fetch);
     const getForActivity = useReviewsStore(state => state.getForActivity);
@@ -23,6 +24,12 @@ export function ActivityDetailPage() {
     const [photosError, setPhotosError] = useState<string | null>(null);
     const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
     const [showScoreDetails, setShowScoreDetails] = useState(false);
+    const [editingNotes, setEditingNotes] = useState(false);
+    const [editingTags, setEditingTags] = useState(false);
+    const [notesDraft, setNotesDraft] = useState("");
+    const [tagsDraft, setTagsDraft] = useState("");
+    const [metaSaving, setMetaSaving] = useState(false);
+    const [metaError, setMetaError] = useState<string | null>(null);
 
     const activity = useMemo(() => activities.find(entry => entry.id === params.id), [activities, params.id]);
 
@@ -44,6 +51,15 @@ export function ActivityDetailPage() {
 
         void markViewed(params.id);
     }, [markViewed, params.id]);
+
+    useEffect(() => {
+        if (!activity) {
+            return;
+        }
+
+        setNotesDraft(activity.notes ?? "");
+        setTagsDraft(activity.tags.join(", "));
+    }, [activity, activity?.id, activity?.notes, activity?.tags]);
 
     const photoCount = activity?.photos.length ?? 0;
 
@@ -123,6 +139,43 @@ export function ActivityDetailPage() {
         }
 
         navigate("/", { replace: true });
+    }
+
+    function parseTags(value: string): string[] {
+        return value
+            .split(/[,\s]+/)
+            .map(entry => entry.trim().toLowerCase())
+            .filter(entry => entry.length > 0)
+            .filter((entry, index, all) => all.indexOf(entry) === index);
+    }
+
+    async function saveActivityPatch(patch: Partial<UpdateActivityData>): Promise<boolean> {
+        const current = activity;
+        if (!current) {
+            return false;
+        }
+
+        setMetaSaving(true);
+        setMetaError(null);
+        const result = await update(current.id, {
+            name: current.name,
+            address: current.address,
+            lat: current.lat,
+            lng: current.lng,
+            phone: current.phone,
+            notes: current.notes,
+            tags: current.tags,
+            type_ids: current.type_ids,
+            ...patch,
+        });
+        setMetaSaving(false);
+
+        if (result) {
+            setMetaError(result);
+            return false;
+        }
+
+        return true;
     }
 
     async function handlePhotoUpload(event: React.ChangeEvent<HTMLInputElement>): Promise<void> {
@@ -216,6 +269,8 @@ export function ActivityDetailPage() {
         window.location.href = `tel:${phone}`;
     }
 
+    const typeById = new Map(types.map(type => [type.id, type]));
+
     return (
         <section className="page-card activity-detail-page">
             <div className={`activity-detail-hero-v2${heroPhoto ? "" : " no-photo"}`} style={heroPhoto ? { backgroundImage: `url(${heroPhoto.storage_path})` } : undefined}>
@@ -235,48 +290,6 @@ export function ActivityDetailPage() {
             </div>
 
             <div className="activity-detail-sheet">
-                <div className="activity-detail-quick-actions">
-                    <button type="button" className="activity-quick-action" onClick={() => void toggleFavorite(activity.id)}>
-                        {activity.is_favorite ? <IoHeart /> : <IoHeartOutline />}
-                        <span>{activity.is_favorite ? "Preferito" : "Preferiti"}</span>
-                    </button>
-                    <button type="button" className="activity-quick-action" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
-                        <IoCreateOutline />
-                        <span>Modifica</span>
-                    </button>
-                    <button type="button" className="activity-quick-action" onClick={handleOpenDirections} disabled={!directionsUrl}>
-                        <IoNavigateOutline />
-                        <span>Indicazioni</span>
-                    </button>
-                    <button type="button" className="activity-quick-action" onClick={handleCall} disabled={!hasPhone}>
-                        <IoCallOutline />
-                        <span>Chiama</span>
-                    </button>
-                </div>
-
-                <div className="content-stack activity-detail-section">
-                    <h3>Tipologie</h3>
-                    <div className="activities-meta-row">
-                        {activity.type_ids.map(typeId => (
-                            <span className="tag-pill" key={typeId}>
-                                {typeNamesById.get(typeId) ?? "Tipo"}
-                            </span>
-                        ))}
-                    </div>
-
-                    <div className="activity-inline-meta-row">
-                        <IoPricetagOutline />
-                        <span>{activity.tags.length === 0 ? "Nessun tag" : activity.tags.map(tag => `#${tag}`).join(" ")}</span>
-                    </div>
-
-                    <div className="activity-inline-meta-row">
-                        <IoReaderOutline />
-                        <span>{activity.notes?.trim() ? activity.notes : "Nessuna nota"}</span>
-                    </div>
-
-                    {activity.phone ? <p className="muted">Telefono: {activity.phone}</p> : null}
-                </div>
-
                 <div className="content-stack activity-detail-section">
                     <h3>Punteggi medi</h3>
                     {averageScore === null ? (
@@ -316,12 +329,145 @@ export function ActivityDetailPage() {
                 </div>
 
                 <div className="content-stack activity-detail-section">
+                    <div className="activity-detail-heading-row">
+                        <h3>Nome attività</h3>
+                        <Button type="button" variant="secondary" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
+                            <IoCreateOutline /> Modifica
+                        </Button>
+                    </div>
+                    <p className="activity-detail-main-text">{activity.name}</p>
+                </div>
+
+                <div className="content-stack activity-detail-section">
+                    <h3>Indirizzo</h3>
+                    <p className="activity-detail-main-text">{activity.address?.trim() ? activity.address : "Nessun indirizzo"}</p>
+                </div>
+
+                <div className="content-stack activity-detail-section">
+                    <h3>Tipologie</h3>
+                    <div className="activity-types-inline">
+                        {activity.type_ids.map(typeId => {
+                            const type = typeById.get(typeId);
+                            const Icon = getActivityTypeIcon(type?.icon_key);
+
+                            return (
+                                <span className="activity-type-inline-chip" key={typeId}>
+                                    <Icon />
+                                    {type?.name ?? typeNamesById.get(typeId) ?? "Tipo"}
+                                </span>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="activity-detail-quick-actions">
+                    <button type="button" className="activity-quick-action" onClick={() => void toggleFavorite(activity.id)}>
+                        {activity.is_favorite ? <IoHeart /> : <IoHeartOutline />}
+                        <span>{activity.is_favorite ? "Preferito" : "Preferiti"}</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`activity-quick-action${editingNotes ? " active" : ""}`}
+                        onClick={() => {
+                            setEditingNotes(current => !current);
+                            setEditingTags(false);
+                        }}
+                    >
+                        <IoReaderOutline />
+                        <span>Note</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`activity-quick-action${editingTags ? " active" : ""}`}
+                        onClick={() => {
+                            setEditingTags(current => !current);
+                            setEditingNotes(false);
+                        }}
+                    >
+                        <IoPricetagOutline />
+                        <span>Tag</span>
+                    </button>
+                    <button type="button" className="activity-quick-action" onClick={handleOpenDirections} disabled={!directionsUrl}>
+                        <IoNavigateOutline />
+                        <span>Indicazioni</span>
+                    </button>
+                </div>
+
+                {editingNotes ? (
+                    <div className="content-stack activity-detail-section">
+                        <h3>Note generiche</h3>
+                        <textarea rows={3} value={notesDraft} onChange={event => setNotesDraft(event.target.value)} placeholder="Aggiungi una nota" />
+                        <div className="inline-actions">
+                            <Button
+                                type="button"
+                                onClick={() => {
+                                    void saveActivityPatch({
+                                        notes: notesDraft.trim() || null,
+                                    }).then(success => {
+                                        if (success) {
+                                            setEditingNotes(false);
+                                        }
+                                    });
+                                }}
+                                disabled={metaSaving}
+                            >
+                                {metaSaving ? "Salvataggio..." : "Salva note"}
+                            </Button>
+                            <Button type="button" variant="secondary" onClick={() => setEditingNotes(false)}>
+                                Annulla
+                            </Button>
+                        </div>
+                    </div>
+                ) : null}
+
+                {editingTags ? (
+                    <div className="content-stack activity-detail-section">
+                        <h3>Tag</h3>
+                        <textarea rows={2} value={tagsDraft} onChange={event => setTagsDraft(event.target.value)} placeholder="es. economico, brunch, vista" />
+                        <div className="inline-actions">
+                            <Button
+                                type="button"
+                                onClick={() => {
+                                    void saveActivityPatch({
+                                        tags: parseTags(tagsDraft),
+                                    }).then(success => {
+                                        if (success) {
+                                            setEditingTags(false);
+                                        }
+                                    });
+                                }}
+                                disabled={metaSaving}
+                            >
+                                {metaSaving ? "Salvataggio..." : "Salva tag"}
+                            </Button>
+                            <Button type="button" variant="secondary" onClick={() => setEditingTags(false)}>
+                                Annulla
+                            </Button>
+                        </div>
+                    </div>
+                ) : null}
+
+                {metaError ? <div className="status-banner error">{metaError}</div> : null}
+
+                <div className="content-stack activity-detail-section">
+                    <h3>Telefono</h3>
+                    <div className="activity-phone-row">
+                        <span className="activity-detail-main-text">{activity.phone?.trim() ? activity.phone : "Nessun numero"}</span>
+                        <Button type="button" variant="secondary" onClick={handleCall} disabled={!hasPhone}>
+                            <IoCallOutline /> Chiama
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="content-stack activity-detail-section">
                     <h3>Recensioni per tipologia</h3>
                     {reviewsLoading ? <p className="muted">Caricamento recensioni...</p> : null}
                     <div className="reviews-grid">
                         {activity.type_ids.map(typeId => {
                             const existingReview = getForType(activity.id, typeId);
                             const typeName = typeNamesById.get(typeId) ?? "Tipologia";
+                            const reviewAverage = existingReview ? calcActivityAvgScore([existingReview]) : null;
+                            const reviewCategoryAvgs = existingReview ? calcCategoryAvgs([existingReview]) : null;
 
                             return (
                                 <article className="review-card review-summary-card" key={`${typeId}-${existingReview?.id ?? "new"}`}>
@@ -338,7 +484,23 @@ export function ActivityDetailPage() {
 
                                     {existingReview ? (
                                         <>
-                                            <p className="muted">Aggiornata: {new Date(existingReview.updated_at).toLocaleDateString("it-IT")}</p>
+                                            <p className="muted">
+                                                Creata: {new Date(existingReview.created_at).toLocaleDateString("it-IT")}
+                                                {existingReview.updated_at !== existingReview.created_at
+                                                    ? ` · Modificata: ${new Date(existingReview.updated_at).toLocaleDateString("it-IT")}`
+                                                    : ""}
+                                            </p>
+                                            <details className="review-score-dropdown">
+                                                <summary>
+                                                    Punteggio: {formatScore(reviewAverage)}
+                                                </summary>
+                                                <div className="review-score-dropdown-content">
+                                                    <p>Location: {formatScore(reviewCategoryAvgs?.location ?? null)}</p>
+                                                    <p>Cibo: {formatScore(reviewCategoryAvgs?.food ?? null)}</p>
+                                                    <p>Servizio: {formatScore(reviewCategoryAvgs?.service ?? null)}</p>
+                                                    <p>Conto: {formatScore(reviewCategoryAvgs?.price ?? null)}</p>
+                                                </div>
+                                            </details>
                                             {existingReview.notes ? <p>{existingReview.notes}</p> : null}
                                         </>
                                     ) : (

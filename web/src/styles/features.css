@@ -216,6 +216,23 @@
     gap: 6px;
 }
 
+.activities-filter-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.activities-filter-toggle {
+    width: fit-content;
+}
+
+.activities-filters-panel {
+    display: grid;
+    gap: 10px;
+    margin-top: 2px;
+}
+
 .chips-caption {
     font-size: 0.75rem;
     font-weight: 700;
@@ -1178,11 +1195,98 @@
     background: var(--color-accent-soft);
 }
 
+.activity-quick-action.active {
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark);
+    background: var(--color-accent-soft);
+}
+
 .activity-detail-section {
     border: 1px solid var(--color-border);
     border-radius: 14px;
     background: var(--color-surface);
     padding: 14px;
+}
+
+.activity-detail-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.activity-detail-main-text {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.activity-types-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.activity-type-inline-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 10px;
+    border-radius: 11px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+    color: var(--color-text-primary);
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.activity-type-inline-chip svg {
+    color: var(--color-primary-dark);
+}
+
+.activity-detail-section textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface-strong);
+    color: var(--color-text-primary);
+    padding: 10px 11px;
+    font-size: 0.95rem;
+    resize: vertical;
+}
+
+.activity-phone-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.review-score-dropdown {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface-muted);
+    padding: 8px 10px;
+}
+
+.review-score-dropdown summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.review-score-dropdown-content {
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.review-score-dropdown-content p {
+    margin: 0;
 }
 
 .activity-inline-meta-row {
