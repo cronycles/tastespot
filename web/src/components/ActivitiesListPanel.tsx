@@ -440,41 +440,32 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
             {visible.length > 0 ? (
                 <div className="list activities-panel-list">
                     {visible.map(entry => (
-                        <div className="surface-item activities-item" key={entry.id} onClick={() => navigate(`/activity/${entry.id}`)}>
-                            <div className="activities-item-hero">
-                                {entry.photos[0] ? (
-                                    <img src={entry.photos[0].storage_path} alt={`Anteprima di ${entry.name}`} />
-                                ) : (
-                                    <div className="activities-item-placeholder">No Foto</div>
-                                )}
+                        <div className="activities-item" key={entry.id} onClick={() => navigate(`/activity/${entry.id}`)}>
+                            <div className="activities-item-top">
+                                <div className="activities-item-info">
+                                    <span className="activities-name-link">{entry.name}</span>
+                                    <span className="activities-score-badge">{formatAverageScore(entry)}/10</span>
+                                </div>
+                                <div className="activities-item-photo">
+                                    {entry.photos[0] ? (
+                                        <img src={entry.photos[0].storage_path} alt={`Anteprima di ${entry.name}`} />
+                                    ) : (
+                                        <div className="activities-item-placeholder" />
+                                    )}
+                                </div>
                             </div>
-                            <div className="activities-item-main">
-                                <div className="activities-item-header">
-                                    <div className="activities-item-title-block">
-                                        <span className="activities-name-link">{entry.name}</span>
-                                        <span className="activities-score-badge">{formatAverageScore(entry)}/10</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        className="activities-favorite-button"
-                                        onClick={e => {
-                                            e.stopPropagation();
-                                            void toggleFavorite(entry.id);
-                                        }}
-                                        aria-label="Toggle preferito"
-                                    >
-                                        {entry.is_favorite ? <IoHeart /> : <IoHeartOutline />}
-                                    </button>
-                                </div>
-                                {entry.address ? <span className="muted">{entry.address}</span> : null}
-
-                                <div className="activities-meta-row">
-                                    {entry.type_ids.map(typeId => (
-                                        <span className="tag-pill" key={typeId}>
-                                            {typeNamesById.get(typeId) ?? "Tipo"}
-                                        </span>
-                                    ))}
-                                </div>
+                            <div className="activities-item-bottom">
+                                <button
+                                    type="button"
+                                    className="activities-favorite-button"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        void toggleFavorite(entry.id);
+                                    }}
+                                    aria-label="Toggle preferito"
+                                >
+                                    {entry.is_favorite ? <IoHeart /> : <IoHeartOutline />}
+                                </button>
                             </div>
                         </div>
                     ))}
