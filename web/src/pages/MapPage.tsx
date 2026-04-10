@@ -201,6 +201,54 @@ export function MapPage() {
 
         map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
 
+        const LONG_PRESS_MS = 500;
+        let longPressTimer: number | null = null;
+        let longPressIsDragging = false;
+
+        const cancelLongPress = () => {
+            if (longPressTimer !== null) {
+                window.clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        };
+
+        const fireLongPress = (lngLat: maplibregl.LngLat, point: maplibregl.Point) => {
+            const nearbyFeatures = map.queryRenderedFeatures(
+                [
+                    [point.x - 8, point.y - 8],
+                    [point.x + 8, point.y + 8],
+                ],
+                {},
+            );
+
+            const poi = nearbyFeatures.map(feature => placeFromMapFeature(feature, lngLat.lat, lngLat.lng)).find((entry): entry is PlaceSuggestion => entry !== null);
+
+            if (poi) {
+                if (poi.details && poi.details !== poi.label) {
+                    centerOnExternalPlace(poi);
+                    return;
+                }
+                void reverseGeocodePlace(poi.lat, poi.lng).then(reverse => {
+                    centerOnExternalPlace({ ...poi, details: reverse?.details ?? poi.details });
+                });
+                return;
+            }
+
+            void reverseGeocodePlace(lngLat.lat, lngLat.lng).then(place => {
+                if (place) {
+                    centerOnExternalPlace(place);
+                    return;
+                }
+                centerOnExternalPlace({
+                    id: `point:${lngLat.lat}:${lngLat.lng}`,
+                    label: "Punto selezionato",
+                    details: `Lat ${lngLat.lat.toFixed(5)} · Lng ${lngLat.lng.toFixed(5)}`,
+                    lat: lngLat.lat,
+                    lng: lngLat.lng,
+                });
+            });
+        };
+
         const onMapClick = (event: maplibregl.MapMouseEvent) => {
             const clickTarget = event.originalEvent.target;
             if (clickTarget instanceof Element && clickTarget.closest(".map-marker, .map-poi-pin")) {
@@ -224,51 +272,56 @@ export function MapPage() {
                 setSelectedPlace(null);
                 placeMarkerRef.current?.remove();
                 placeMarkerRef.current = null;
+            }
+        };
+
+        const onMapMouseDown = (event: maplibregl.MapMouseEvent) => {
+            const clickTarget = event.originalEvent.target;
+            if (clickTarget instanceof Element && clickTarget.closest(".map-marker, .map-poi-pin")) {
                 return;
             }
+            longPressIsDragging = false;
+            cancelLongPress();
+            const { lngLat, point } = event;
+            longPressTimer = window.setTimeout(() => {
+                if (!longPressIsDragging) fireLongPress(lngLat, point);
+                longPressTimer = null;
+            }, LONG_PRESS_MS);
+        };
 
-            const nearbyFeatures = map.queryRenderedFeatures(
-                [
-                    [event.point.x - 8, event.point.y - 8],
-                    [event.point.x + 8, event.point.y + 8],
-                ],
-                {},
-            );
+        const onMapMouseUp = () => cancelLongPress();
 
-            const poi = nearbyFeatures.map(feature => placeFromMapFeature(feature, event.lngLat.lat, event.lngLat.lng)).find((entry): entry is PlaceSuggestion => entry !== null);
-
-            if (poi) {
-                if (poi.details && poi.details !== poi.label) {
-                    centerOnExternalPlace(poi);
-                    return;
-                }
-
-                void reverseGeocodePlace(poi.lat, poi.lng).then(reverse => {
-                    centerOnExternalPlace({
-                        ...poi,
-                        details: reverse?.details ?? poi.details,
-                    });
-                });
+        const onMapTouchStart = (event: maplibregl.MapTouchEvent) => {
+            if (event.points.length !== 1) {
+                cancelLongPress();
                 return;
             }
+            const target = event.originalEvent.target;
+            if (target instanceof Element && target.closest(".map-marker, .map-poi-pin")) {
+                return;
+            }
+            longPressIsDragging = false;
+            cancelLongPress();
+            const { lngLat, point } = event;
+            longPressTimer = window.setTimeout(() => {
+                if (!longPressIsDragging) fireLongPress(lngLat, point);
+                longPressTimer = null;
+            }, LONG_PRESS_MS);
+        };
 
-            void reverseGeocodePlace(event.lngLat.lat, event.lngLat.lng).then(place => {
-                if (place) {
-                    centerOnExternalPlace(place);
-                    return;
-                }
+        const onMapTouchEnd = () => cancelLongPress();
 
-                centerOnExternalPlace({
-                    id: `point:${event.lngLat.lat}:${event.lngLat.lng}`,
-                    label: "Punto selezionato",
-                    details: `Lat ${event.lngLat.lat.toFixed(5)} · Lng ${event.lngLat.lng.toFixed(5)}`,
-                    lat: event.lngLat.lat,
-                    lng: event.lngLat.lng,
-                });
-            });
+        const onMapDragStart = () => {
+            longPressIsDragging = true;
+            cancelLongPress();
         };
 
         map.on("click", onMapClick);
+        map.on("mousedown", onMapMouseDown);
+        map.on("mouseup", onMapMouseUp);
+        map.on("touchstart", onMapTouchStart);
+        map.on("touchend", onMapTouchEnd);
+        map.on("dragstart", onMapDragStart);
         mapRef.current = map;
 
         const onResize = () => map.resize();
@@ -287,6 +340,12 @@ export function MapPage() {
             activityPopupRef.current?.remove();
             activityPopupRef.current = null;
             map.off("click", onMapClick);
+            map.off("mousedown", onMapMouseDown);
+            map.off("mouseup", onMapMouseUp);
+            map.off("touchstart", onMapTouchStart);
+            map.off("touchend", onMapTouchEnd);
+            map.off("dragstart", onMapDragStart);
+            cancelLongPress();
             const center = map.getCenter();
             lastMapView = { center: [center.lng, center.lat], zoom: map.getZoom() };
             map.remove();
