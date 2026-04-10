@@ -823,6 +823,31 @@
     box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
 }
 
+.review-summary-card .types-toolbar {
+    align-items: start;
+}
+
+.review-summary-card .button {
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+}
+
+.review-page {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
+.review-hero-card {
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+    background: var(--color-surface);
+    padding: 14px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
 .review-scores-grid {
     display: grid;
     gap: 10px;
@@ -1074,20 +1099,30 @@
     border-radius: 16px;
 }
 
-.profile-page > .content-stack:not(.profile-hero-card),
+.profile-page > .content-stack:not(.profile-hero-card):not(.security-hero-card),
 .profile-page > .metric-row,
 .profile-page > .status-banner,
 .profile-page > .profile-actions,
 .profile-page > .button:not(.button-danger),
+.profile-page > .profile-security-form,
 .types-page > .empty-state,
 .types-page > .list,
-.types-editor,
-.types-page > .types-hero-card {
+.types-editor {
     border: 1px solid var(--color-border);
     border-radius: 18px;
     background: var(--color-surface);
     padding: 14px;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.types-page > .types-hero-card,
+.profile-page > .security-hero-card,
+.profile-page > .profile-hero-card {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(14, 19, 31, 0.18), rgba(14, 19, 31, 0.48)), radial-gradient(circle at 90% 8%, rgba(255, 90, 53, 0.42), transparent 52%), #2a3240;
+    color: #ffffff;
+    padding: 14px;
 }
 
 .profile-actions .surface-item {
