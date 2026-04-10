@@ -39,9 +39,9 @@ Prompt di resume consigliato:
 - Branch di lavoro: `develop`
 - Stato worktree: locale non ancora committato
 - Base implementata: auth, map, tipologie, lista, dettaglio, recensioni, profilo, sicurezza, deploy
-- Fase completata piu' recente: `Fase 2 — Filtri Lista Completi`
-- Prossima fase consigliata: `Fase 3 — Data Layer e Paginazione Reale`
-- Focus immediato: paginazione backend vera, `has_more` reale, valutazione filtri/sorting server-side
+- Fase completata piu' recente: `Fase 3 — Data Layer e Paginazione Reale`
+- Prossima fase consigliata: `Fase 4 — Conformita' UX di Liste, Dettaglio e Form`
+- Focus immediato: preview lista, toggle punteggi nel dettaglio, regole form add allineate ai requisiti
 
 ---
 
@@ -214,6 +214,8 @@ Il documento requisiti insiste molto sulla capacita' di filtrare i risultati in 
 
 ## Fase 3 — Data Layer e Paginazione Reale
 
+**Stato**: completata il 10 aprile 2026
+
 ### Scope
 
 - rendere reale la paginazione backend con `offset` e `limit`
@@ -238,6 +240,16 @@ Oggi il lazy loading e' solo apparente: il frontend si comporta come paginato, m
 - il backend rispetta `offset` e `limit`
 - `has_more` e' reale
 - il load more carica davvero pagine successive
+
+### Implementato
+
+- endpoint `GET /activities` aggiornato per validare e applicare `offset` e `limit`
+- `has_more` ora calcolato davvero sul backend con fetch di `limit + 1`
+- store frontend aggiornato con `nextOffset` stabile invece di usare `activities.length`
+
+### Nota residua
+
+- i filtri avanzati sono ancora applicati lato client sui dati caricati fino a quel momento; quindi, finche' non si porta parte dei filtri lato server, un elenco filtrato completo dipende anche dal caricamento progressivo delle pagine
 
 ## Fase 4 — Conformita' UX di Liste, Dettaglio e Form
 

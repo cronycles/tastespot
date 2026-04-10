@@ -38,6 +38,7 @@ type ActivitiesState = {
   activities: ActivityWithDetails[]
   loading: boolean
   hasMore: boolean
+  nextOffset: number
   fetch: (reset?: boolean) => Promise<void>
   create: (data: CreateActivityData) => Promise<string | null>
   update: (id: string, data: UpdateActivityData) => Promise<string | null>
@@ -52,6 +53,7 @@ export const useActivitiesStore = create<ActivitiesState>((set, get) => ({
   activities: [],
   loading: false,
   hasMore: true,
+  nextOffset: 0,
 
   fetch: async (reset = false) => {
     const current = get()
@@ -63,16 +65,18 @@ export const useActivitiesStore = create<ActivitiesState>((set, get) => ({
       return
     }
 
-    const offset = reset ? 0 : current.activities.length
+    const offset = reset ? 0 : current.nextOffset
     set({ loading: true })
 
     try {
       const response = await api.get<{ data: ActivityWithDetails[]; has_more: boolean }>(
         `/activities?offset=${offset}&limit=${PAGE_SIZE}`
       )
+      const fetchedCount = response.data.length
       set({
         activities: reset ? response.data : [...current.activities, ...response.data],
         hasMore: response.has_more,
+        nextOffset: reset ? fetchedCount : current.nextOffset + fetchedCount,
         loading: false,
       })
     } catch {

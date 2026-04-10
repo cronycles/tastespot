@@ -69,12 +69,31 @@ class ActivityController extends Controller
 
     public function index(Request $request)
     {
+        $data = $request->validate([
+            'offset' => ['nullable', 'integer', 'min:0'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $offset = (int) ($data['offset'] ?? 0);
+        $limit = (int) ($data['limit'] ?? 20);
+
         $activities = $this->baseQuery($request->user()->id)
             ->orderBy('name')
+            ->offset($offset)
+            ->limit($limit + 1)
             ->get()
-            ->map(fn($a) => $this->formatActivity($a));
+            ->values();
 
-        return response()->json(['data' => $activities, 'has_more' => false]);
+        $hasMore = $activities->count() > $limit;
+        $page = $activities
+            ->take($limit)
+            ->map(fn($a) => $this->formatActivity($a))
+            ->values();
+
+        return response()->json([
+            'data' => $page,
+            'has_more' => $hasMore,
+        ]);
     }
 
     public function show(Request $request, Activity $activity)
