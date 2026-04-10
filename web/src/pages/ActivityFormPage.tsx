@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
 import { useActivitiesStore, type ActivityWithDetails, type CreateActivityData, type UpdateActivityData } from "@/stores/activitiesStore";
 import { useTypesStore } from "@/stores/typesStore";
+import { DEFAULT_ICON_KEY } from "@/types";
 
 type Props = {
     mode: "add" | "edit";
@@ -39,6 +40,15 @@ function parseMaybeFloat(value: string): number | null {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
+function getFallbackTypeId(typeIds: string[], availableTypes: Array<{ id: string; icon_key: string }>): string | null {
+    if (typeIds.length > 0) {
+        return null;
+    }
+
+    const genericType = availableTypes.find(type => type.icon_key === DEFAULT_ICON_KEY);
+    return genericType?.id ?? null;
+}
+
 export function ActivityFormPage({ mode, activity }: Props) {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -70,10 +80,6 @@ export function ActivityFormPage({ mode, activity }: Props) {
         void fetchTypes();
     }, [fetchTypes]);
 
-    const canSubmit = useMemo(() => {
-        return form.name.trim().length > 0 && form.selectedTypeIds.length > 0;
-    }, [form.name, form.selectedTypeIds.length]);
-
     const typeOptions = useMemo(() => {
         return types.map(type => ({
             ...type,
@@ -81,6 +87,12 @@ export function ActivityFormPage({ mode, activity }: Props) {
             selected: form.selectedTypeIds.includes(type.id),
         }));
     }, [form.selectedTypeIds, types]);
+
+    const fallbackTypeId = useMemo(() => getFallbackTypeId(form.selectedTypeIds, types), [form.selectedTypeIds, types]);
+
+    const canSubmit = useMemo(() => {
+        return form.name.trim().length > 0 && form.address.trim().length > 0 && (form.selectedTypeIds.length > 0 || fallbackTypeId !== null);
+    }, [fallbackTypeId, form.address, form.name, form.selectedTypeIds.length]);
 
     function updateField<K extends keyof FormState>(key: K, value: FormState[K]): void {
         setForm(current => ({ ...current, [key]: value }));
@@ -117,8 +129,15 @@ export function ActivityFormPage({ mode, activity }: Props) {
         event.preventDefault();
         setError(null);
 
-        if (!canSubmit) {
-            setError("Compila almeno nome e una tipologia.");
+        if (form.name.trim().length === 0 || form.address.trim().length === 0) {
+            setError("Compila almeno nome e indirizzo.");
+            return;
+        }
+
+        const effectiveTypeIds = form.selectedTypeIds.length > 0 ? form.selectedTypeIds : fallbackTypeId ? [fallbackTypeId] : [];
+
+        if (effectiveTypeIds.length === 0) {
+            setError("Seleziona almeno una tipologia o crea una tipologia generica.");
             return;
         }
 
@@ -135,7 +154,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
                 phone: form.phone.trim() || null,
                 notes: form.notes.trim() || null,
                 tags: form.tags,
-                type_ids: form.selectedTypeIds,
+                type_ids: effectiveTypeIds,
                 is_favorite: form.isFavorite,
             };
             const result = await create(payload);
@@ -162,7 +181,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
             phone: form.phone.trim() || null,
             notes: form.notes.trim() || null,
             tags: form.tags,
-            type_ids: form.selectedTypeIds,
+            type_ids: effectiveTypeIds,
         };
         const result = await update(activity.id, payload);
         setSaving(false);
@@ -187,8 +206,8 @@ export function ActivityFormPage({ mode, activity }: Props) {
                 </div>
 
                 <div className="field">
-                    <label htmlFor="activity-address">Indirizzo</label>
-                    <input id="activity-address" value={form.address} onChange={event => updateField("address", event.target.value)} placeholder="Es. Via Roma 10, Genova" />
+                    <label htmlFor="activity-address">Indirizzo *</label>
+                    <input id="activity-address" value={form.address} onChange={event => updateField("address", event.target.value)} placeholder="Es. Via Roma 10, Genova" required />
                 </div>
 
                 <div className="activity-coords-grid">
@@ -222,7 +241,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
                     {types.length === 0 ? (
                         <p className="muted">Nessuna tipologia disponibile. Creane almeno una per continuare.</p>
                     ) : (
-                        <p className="muted">Seleziona una o piu' tipologie per classificare l'attivita'.</p>
+                        <p className="muted">Seleziona una o piu' tipologie per classificare l'attivita'. Se non ne scegli nessuna verra' usata una tipologia generica solo se gia' presente.</p>
                     )}
                     <div className="activity-types-grid">
                         {typeOptions.map(type => (

@@ -39,9 +39,9 @@ Prompt di resume consigliato:
 - Branch di lavoro: `develop`
 - Stato worktree: locale non ancora committato
 - Base implementata: auth, map, tipologie, lista, dettaglio, recensioni, profilo, sicurezza, deploy
-- Fase completata piu' recente: `Fase 3 — Data Layer e Paginazione Reale`
-- Prossima fase consigliata: `Fase 4 — Conformita' UX di Liste, Dettaglio e Form`
-- Focus immediato: preview lista, toggle punteggi nel dettaglio, regole form add allineate ai requisiti
+- Fase completata piu' recente: `Fase 4 — Conformita' UX di Liste, Dettaglio e Form`
+- Prossima fase consigliata: `Fase 5 — i18n`
+- Focus immediato: setup traduzioni, switch lingua, rimozione stringhe hardcoded
 
 ---
 
@@ -253,6 +253,8 @@ Oggi il lazy loading e' solo apparente: il frontend si comporta come paginato, m
 
 ## Fase 4 — Conformita' UX di Liste, Dettaglio e Form
 
+**Stato**: completata il 10 aprile 2026
+
 ### Scope
 
 - preview lista allineata ai requisiti con foto e punteggio medio
@@ -277,6 +279,17 @@ Questi sono gap reali ma meno bloccanti dei filtri e del data layer. Hanno senso
 - le preview lista mostrano le informazioni chiave richieste
 - il dettaglio mostra il breakdown punteggi a richiesta
 - il form add applica le regole validate in Fase 0
+
+### Implementato
+
+- preview lista aggiornata con foto e punteggio medio visibile
+- media del dettaglio resa cliccabile con espansione delle categorie
+- indirizzo reso obbligatorio nel form attivita'
+- introdotto fallback tipologia generica solo se esiste gia' una tipologia con icona default `storefront-outline`
+
+### Nota residua
+
+- il fallback tipologia generica usa una euristica coerente con il sistema attuale, ma non esiste ancora un identificatore canonico lato dati per marcare esplicitamente una tipologia come `generica`
 
 ## Fase 5 — i18n
 

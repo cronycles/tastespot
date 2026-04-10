@@ -66,6 +66,11 @@ function getReviewScore(entry: ActivityWithDetails["review_summaries"][number], 
     return entry.score_price;
 }
 
+function formatAverageScore(entry: ActivityWithDetails): string {
+    const averageScore = calcActivityAvgScore(entry.review_summaries);
+    return averageScore === null ? "-" : averageScore.toFixed(1);
+}
+
 function distanceKm(lat1: number, lng1: number, lat2: number | null, lng2: number | null): number {
     if (lat2 == null || lng2 == null) {
         return Number.POSITIVE_INFINITY;
@@ -420,9 +425,19 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
                 <div className="list activities-panel-list">
                     {visible.map(entry => (
                         <div className="surface-item activities-item" key={entry.id} onClick={() => navigate(`/activity/${entry.id}`)}>
+                            <div className="activities-item-hero">
+                                {entry.photos[0] ? (
+                                    <img src={entry.photos[0].storage_path} alt={`Anteprima di ${entry.name}`} />
+                                ) : (
+                                    <div className="activities-item-placeholder">No Foto</div>
+                                )}
+                            </div>
                             <div className="activities-item-main">
                                 <div className="activities-item-header">
-                                    <span className="activities-name-link">{entry.name}</span>
+                                    <div className="activities-item-title-block">
+                                        <span className="activities-name-link">{entry.name}</span>
+                                        <span className="activities-score-badge">{formatAverageScore(entry)}/10</span>
+                                    </div>
                                     <button
                                         type="button"
                                         className="activities-favorite-button"

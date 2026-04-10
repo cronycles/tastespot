@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { IoChevronBackOutline, IoChevronForwardOutline, IoCloseOutline } from "react-icons/io5";
+import { IoChevronBackOutline, IoChevronDownOutline, IoChevronForwardOutline, IoChevronUpOutline, IoCloseOutline } from "react-icons/io5";
 import { IoCreateOutline, IoHeart, IoHeartOutline, IoTrashOutline } from "react-icons/io5";
 import { IoCallOutline, IoNavigateOutline, IoPricetagOutline, IoReaderOutline } from "react-icons/io5";
 import imageCompression from "browser-image-compression";
@@ -22,6 +22,7 @@ export function ActivityDetailPage() {
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [photosError, setPhotosError] = useState<string | null>(null);
     const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
+    const [showScoreDetails, setShowScoreDetails] = useState(false);
 
     const activity = useMemo(() => activities.find(entry => entry.id === params.id), [activities, params.id]);
 
@@ -281,28 +282,36 @@ export function ActivityDetailPage() {
                     {averageScore === null ? (
                         <p className="muted">Nessuna recensione ancora presente</p>
                     ) : (
-                        <div className="metric-row">
-                            <div className="metric-card">
-                                <span className="muted">Media generale</span>
-                                <span className="metric-value">{averageScore.toFixed(1)}/10</span>
-                            </div>
-                            <div className="metric-card">
-                                <span className="muted">Location</span>
-                                <span className="metric-value">{formatScore(categoryAvgs.location)}</span>
-                            </div>
-                            <div className="metric-card">
-                                <span className="muted">Cibo</span>
-                                <span className="metric-value">{formatScore(categoryAvgs.food)}</span>
-                            </div>
-                            <div className="metric-card">
-                                <span className="muted">Servizio</span>
-                                <span className="metric-value">{formatScore(categoryAvgs.service)}</span>
-                            </div>
-                            <div className="metric-card">
-                                <span className="muted">Conto</span>
-                                <span className="metric-value">{formatScore(categoryAvgs.price)}</span>
-                            </div>
-                        </div>
+                        <>
+                            <button type="button" className="activity-score-toggle" onClick={() => setShowScoreDetails(current => !current)}>
+                                <span className="activity-score-toggle-main">
+                                    <span className="muted">Media generale</span>
+                                    <strong>{averageScore.toFixed(1)}/10</strong>
+                                </span>
+                                <span className="activity-score-toggle-icon">{showScoreDetails ? <IoChevronUpOutline /> : <IoChevronDownOutline />}</span>
+                            </button>
+
+                            {showScoreDetails ? (
+                                <div className="metric-row">
+                                    <div className="metric-card">
+                                        <span className="muted">Location</span>
+                                        <span className="metric-value">{formatScore(categoryAvgs.location)}</span>
+                                    </div>
+                                    <div className="metric-card">
+                                        <span className="muted">Cibo</span>
+                                        <span className="metric-value">{formatScore(categoryAvgs.food)}</span>
+                                    </div>
+                                    <div className="metric-card">
+                                        <span className="muted">Servizio</span>
+                                        <span className="metric-value">{formatScore(categoryAvgs.service)}</span>
+                                    </div>
+                                    <div className="metric-card">
+                                        <span className="muted">Conto</span>
+                                        <span className="metric-value">{formatScore(categoryAvgs.price)}</span>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </>
                     )}
                 </div>
 
