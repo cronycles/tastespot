@@ -229,6 +229,11 @@ p {
     box-shadow: var(--shadow-pressable);
 }
 
+.button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
 .button-primary {
     color: #fff;
     background: var(--color-primary);

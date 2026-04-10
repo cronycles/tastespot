@@ -165,35 +165,43 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
                     </button>
                 </div>
 
-                <div className="filter-chips-scroll">
-                    {!fixedFavoritesOnly ? (
-                        <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
-                            {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
+                <div className="chips-section">
+                    <span className="chips-caption">Filtri</span>
+                    <div className="filter-chips-scroll">
+                        {!fixedFavoritesOnly ? (
+                            <button type="button" className={`activities-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
+                                {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
+                            </button>
+                        ) : null}
+                        <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
+                            Tutte
                         </button>
-                    ) : null}
-                    <button type="button" className={`activities-chip${selectedTypeId === null ? " active" : ""}`} onClick={() => setSelectedTypeId(null)}>
-                        Tutte
-                    </button>
-                    {types.map(type => (
-                        <button
-                            key={type.id}
-                            type="button"
-                            className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
-                            onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
-                        >
-                            {type.name}
+                        {types.map(type => (
+                            <button
+                                key={type.id}
+                                type="button"
+                                className={`activities-chip${selectedTypeId === type.id ? " active" : ""}`}
+                                onClick={() => setSelectedTypeId(current => (current === type.id ? null : type.id))}
+                            >
+                                {type.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="chips-section">
+                    <span className="chips-caption">Ordina</span>
+                    <div className="filter-chips-scroll">
+                        <button type="button" className={`activities-chip${sortKey === "alpha" ? " active" : ""}`} onClick={() => toggleSort("alpha")}>
+                            A-Z{sortKey === "alpha" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
                         </button>
-                    ))}
-                    <div className="chip-separator" />
-                    <button type="button" className={`activities-chip${sortKey === "alpha" ? " active" : ""}`} onClick={() => toggleSort("alpha")}>
-                        A-Z{sortKey === "alpha" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
-                    </button>
-                    <button type="button" className={`activities-chip${sortKey === "last_viewed" ? " active" : ""}`} onClick={() => toggleSort("last_viewed")}>
-                        Recenti{sortKey === "last_viewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
-                    </button>
-                    <button type="button" className={`activities-chip${sortKey === "distance" ? " active" : ""}`} onClick={() => toggleSort("distance")}>
-                        Vicini{sortKey === "distance" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
-                    </button>
+                        <button type="button" className={`activities-chip${sortKey === "last_viewed" ? " active" : ""}`} onClick={() => toggleSort("last_viewed")}>
+                            Recenti{sortKey === "last_viewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                        </button>
+                        <button type="button" className={`activities-chip${sortKey === "distance" ? " active" : ""}`} onClick={() => toggleSort("distance")}>
+                            Vicini{sortKey === "distance" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                        </button>
+                    </div>
                 </div>
             </div>
 

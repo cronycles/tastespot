@@ -47,7 +47,7 @@
 .app-header-action {
     width: 36px;
     height: 36px;
-    border-radius: 999px;
+    border-radius: 10px;
     border: 1px solid var(--color-border);
     background: var(--color-surface-muted);
     color: var(--color-text-primary);
@@ -55,6 +55,28 @@
     place-items: center;
     font-size: 1rem;
     cursor: pointer;
+    transition:
+        border-color 120ms ease,
+        background 120ms ease,
+        box-shadow 120ms ease,
+        color 120ms ease,
+        transform 120ms ease;
+}
+
+.app-header-action:hover,
+.app-header-action:focus-visible {
+    border-color: var(--color-primary);
+    background: var(--color-accent-soft);
+    color: var(--color-primary-dark);
+}
+
+.app-header-action:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.app-header-action:active {
+    transform: scale(0.97);
 }
 
 .app-content {

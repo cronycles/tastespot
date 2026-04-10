@@ -74,6 +74,14 @@ export function ActivityFormPage({ mode, activity }: Props) {
         return form.name.trim().length > 0 && form.selectedTypeIds.length > 0;
     }, [form.name, form.selectedTypeIds.length]);
 
+    const typeOptions = useMemo(() => {
+        return types.map(type => ({
+            ...type,
+            Icon: getActivityTypeIcon(type.icon_key),
+            selected: form.selectedTypeIds.includes(type.id),
+        }));
+    }, [form.selectedTypeIds, types]);
+
     function updateField<K extends keyof FormState>(key: K, value: FormState[K]): void {
         setForm(current => ({ ...current, [key]: value }));
     }
@@ -217,25 +225,14 @@ export function ActivityFormPage({ mode, activity }: Props) {
                         <p className="muted">Seleziona una o piu' tipologie per classificare l'attivita'.</p>
                     )}
                     <div className="activity-types-grid">
-                        {types.map(type =>
-                            (() => {
-                                const Icon = getActivityTypeIcon(type.icon_key);
-
-                                return (
-                                    <button
-                                        key={type.id}
-                                        type="button"
-                                        className={`activity-type-choice${form.selectedTypeIds.includes(type.id) ? " active" : ""}`}
-                                        onClick={() => toggleType(type.id)}
-                                    >
-                                        <span className="activity-type-choice-icon">
-                                            <Icon />
-                                        </span>
-                                        <span className="activity-type-choice-label">{type.name}</span>
-                                    </button>
-                                );
-                            })(),
-                        )}
+                        {typeOptions.map(type => (
+                            <button key={type.id} type="button" className={`activity-type-choice${type.selected ? " active" : ""}`} onClick={() => toggleType(type.id)}>
+                                <span className="activity-type-choice-icon">
+                                    <type.Icon />
+                                </span>
+                                <span className="activity-type-choice-label">{type.name}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
 

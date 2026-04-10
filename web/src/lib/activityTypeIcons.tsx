@@ -11,8 +11,9 @@ import {
     IoStorefrontOutline,
     IoWineOutline,
 } from "react-icons/io5";
+import { DEFAULT_ICON_KEY, type AvailableIconKey } from "@/types";
 
-const iconMap: Record<string, IconType> = {
+const iconMap: Record<AvailableIconKey, IconType> = {
     "restaurant-outline": IoRestaurantOutline,
     "cafe-outline": IoCafeOutline,
     "beer-outline": IoBeerOutline,
@@ -25,7 +26,7 @@ const iconMap: Record<string, IconType> = {
     "basket-outline": IoBasketOutline,
 };
 
-const markerSymbolMap: Record<string, string> = {
+const markerSymbolMap: Record<AvailableIconKey, string> = {
     "restaurant-outline": "🍽",
     "cafe-outline": "☕",
     "beer-outline": "🍺",
@@ -38,8 +39,12 @@ const markerSymbolMap: Record<string, string> = {
     "basket-outline": "🛒",
 };
 
+function isKnownIconKey(iconKey: string): iconKey is AvailableIconKey {
+    return iconKey in iconMap;
+}
+
 export function getActivityTypeIcon(iconKey?: string): IconType {
-    if (iconKey && iconMap[iconKey]) {
+    if (iconKey && isKnownIconKey(iconKey)) {
         return iconMap[iconKey];
     }
 
@@ -47,9 +52,9 @@ export function getActivityTypeIcon(iconKey?: string): IconType {
 }
 
 export function getMarkerSymbol(iconKey?: string): string {
-    if (iconKey && markerSymbolMap[iconKey]) {
+    if (iconKey && isKnownIconKey(iconKey)) {
         return markerSymbolMap[iconKey];
     }
 
-    return markerSymbolMap["storefront-outline"];
+    return markerSymbolMap[DEFAULT_ICON_KEY];
 }
