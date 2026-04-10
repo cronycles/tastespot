@@ -478,7 +478,7 @@ export function MapPage() {
                     }
                 }
             })();
-        }, 340);
+        }, 220);
 
         return () => {
             window.clearTimeout(timeoutId);

@@ -24,7 +24,7 @@ class GeoController extends Controller
         $query = trim($validated['q']);
         $limit = (int) ($validated['limit'] ?? 8);
         $lang = trim((string) ($validated['lang'] ?? 'it,en'));
-        $candidates = $this->buildFallbackQueries($query);
+        $candidates = array_slice($this->buildFallbackQueries($query), 0, 2);
 
         foreach ($candidates as $candidate) {
             $cacheKey = sprintf('geo:search:%s:%s:%d', md5($candidate), md5($lang), $limit);
@@ -115,7 +115,7 @@ class GeoController extends Controller
 
     private function fetchSearch(string $query, int $limit, string $lang): array
     {
-        $response = Http::timeout(6)
+        $response = Http::connectTimeout(1)->timeout(2)
             ->acceptJson()
             ->withHeaders($this->nominatimHeaders())
             ->get(self::BASE_URL.'/search', [
@@ -175,7 +175,7 @@ class GeoController extends Controller
     {
         unset($lang);
 
-        $response = Http::timeout(6)
+        $response = Http::connectTimeout(1)->timeout(2)
             ->acceptJson()
             ->withHeaders($this->nominatimHeaders())
             ->get(self::PHOTON_BASE_URL.'/api', [
@@ -239,7 +239,7 @@ class GeoController extends Controller
 
     private function fetchReverse(float $lat, float $lng, string $lang): ?array
     {
-        $response = Http::timeout(6)
+        $response = Http::connectTimeout(1)->timeout(2)
             ->acceptJson()
             ->withHeaders($this->nominatimHeaders())
             ->get(self::BASE_URL.'/reverse', [
