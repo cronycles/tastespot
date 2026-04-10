@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { IoHeart, IoHeartOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
+import { IoFunnelOutline, IoHeart, IoHeartOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitiesStore";
@@ -325,13 +325,14 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
 
                 <div className="chips-section">
                     <div className="activities-filter-toggle-row">
-                        <button type="button" className={`activities-chip activities-filter-toggle${showFilters ? " active" : ""}`} onClick={() => setShowFilters(current => !current)}>
-                            Filtri{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
+                        <button type="button" className={`activities-filter-btn${showFilters ? " open" : ""}${activeFiltersCount > 0 ? " has-filters" : ""}`} onClick={() => setShowFilters(current => !current)}>
+                            <IoFunnelOutline />
+                            <span>Filtri{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}</span>
                         </button>
                         {activeFiltersCount > 0 ? (
-                            <Button type="button" variant="secondary" onClick={resetFilters}>
-                                Reset
-                            </Button>
+                            <button type="button" className="activities-reset-btn" onClick={resetFilters}>
+                                Reset filtri
+                            </button>
                         ) : null}
                     </div>
 
@@ -413,16 +414,16 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
                     <span className="chips-caption">Ordina</span>
                     <div className="filter-chips-scroll">
                         <button type="button" className={`activities-chip${sortKey === "alpha" ? " active" : ""}`} onClick={() => toggleSort("alpha")}>
-                            A-Z{sortKey === "alpha" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                            A-Z {sortKey === "alpha" ? (sortDir === "asc" ? "↑" : "↓") : ""}
                         </button>
                         <button type="button" className={`activities-chip${sortKey === "last_viewed" ? " active" : ""}`} onClick={() => toggleSort("last_viewed")}>
-                            Visti{sortKey === "last_viewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                            Visti {sortKey === "last_viewed" ? (sortDir === "asc" ? "↑" : "↓") : ""}
                         </button>
                         <button type="button" className={`activities-chip${sortKey === "last_reviewed" ? " active" : ""}`} onClick={() => toggleSort("last_reviewed")}>
-                            Recensiti{sortKey === "last_reviewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                            Recensiti {sortKey === "last_reviewed" ? (sortDir === "asc" ? "↑" : "↓") : ""}
                         </button>
                         <button type="button" className={`activities-chip${sortKey === "distance" ? " active" : ""}`} onClick={() => toggleSort("distance")}>
-                            Vicini{sortKey === "distance" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                            Vicini {sortKey === "distance" ? (sortDir === "asc" ? "↑" : "↓") : ""}
                         </button>
                     </div>
                 </div>
