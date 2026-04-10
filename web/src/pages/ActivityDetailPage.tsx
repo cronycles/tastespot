@@ -3,10 +3,8 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { IoChevronBackOutline, IoChevronDownOutline, IoChevronForwardOutline, IoChevronUpOutline, IoCloseOutline } from "react-icons/io5";
 import { IoCreateOutline, IoHeart, IoHeartOutline, IoTrashOutline } from "react-icons/io5";
 import { IoCallOutline, IoNavigateOutline, IoPricetagOutline, IoReaderOutline } from "react-icons/io5";
-import imageCompression from "browser-image-compression";
 import { Button } from "@/components/Button";
 import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
-import { api } from "@/lib/api";
 import { type UpdateActivityData, useActivitiesStore } from "@/stores/activitiesStore";
 import { calcActivityAvgScore, calcCategoryAvgs, useReviewsStore } from "@/stores/reviewsStore";
 import { useTypesStore } from "@/stores/typesStore";
@@ -14,14 +12,12 @@ import { useTypesStore } from "@/stores/typesStore";
 export function ActivityDetailPage() {
     const navigate = useNavigate();
     const params = useParams<{ id: string }>();
-    const { activities, update, remove, toggleFavorite, addPhoto, removePhoto, markViewed } = useActivitiesStore();
+    const { activities, update, remove, toggleFavorite, markViewed } = useActivitiesStore();
     const types = useTypesStore(state => state.types);
     const fetchReviews = useReviewsStore(state => state.fetch);
     const getForActivity = useReviewsStore(state => state.getForActivity);
     const getForType = useReviewsStore(state => state.getForType);
     const reviewsLoading = useReviewsStore(state => state.loading);
-    const [uploadingPhoto, setUploadingPhoto] = useState(false);
-    const [photosError, setPhotosError] = useState<string | null>(null);
     const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
     const [showScoreDetails, setShowScoreDetails] = useState(false);
     const [editingNotes, setEditingNotes] = useState(false);
@@ -51,15 +47,6 @@ export function ActivityDetailPage() {
 
         void markViewed(params.id);
     }, [markViewed, params.id]);
-
-    useEffect(() => {
-        if (!activity) {
-            return;
-        }
-
-        setNotesDraft(activity.notes ?? "");
-        setTagsDraft(activity.tags.join(", "));
-    }, [activity, activity?.id, activity?.notes, activity?.tags]);
 
     const photoCount = activity?.photos.length ?? 0;
 
@@ -178,51 +165,6 @@ export function ActivityDetailPage() {
         return true;
     }
 
-    async function handlePhotoUpload(event: React.ChangeEvent<HTMLInputElement>): Promise<void> {
-        const current = activity;
-        const file = event.target.files?.[0];
-        event.target.value = "";
-        if (!current || !file) {
-            return;
-        }
-
-        setPhotosError(null);
-        setUploadingPhoto(true);
-        try {
-            const compressed = await imageCompression(file, {
-                maxWidthOrHeight: 1200,
-                maxSizeMB: 1,
-                useWebWorker: true,
-            });
-            const uploaded = await api.uploadPhoto(current.id, compressed);
-            addPhoto(current.id, uploaded);
-        } catch {
-            setPhotosError("Errore upload foto. Riprova.");
-        } finally {
-            setUploadingPhoto(false);
-        }
-    }
-
-    async function handlePhotoDelete(photoId: string): Promise<void> {
-        const current = activity;
-        if (!current) {
-            return;
-        }
-
-        const confirmed = window.confirm("Eliminare questa foto?");
-        if (!confirmed) {
-            return;
-        }
-
-        setPhotosError(null);
-        try {
-            await api.delete(`/photos/${photoId}`);
-            removePhoto(current.id, photoId);
-        } catch {
-            setPhotosError("Errore eliminazione foto. Riprova.");
-        }
-    }
-
     function openGallery(index: number): void {
         setGalleryIndex(index);
     }
@@ -276,6 +218,9 @@ export function ActivityDetailPage() {
             <div className={`activity-detail-hero-v2${heroPhoto ? "" : " no-photo"}`} style={heroPhoto ? { backgroundImage: `url(${heroPhoto.storage_path})` } : undefined}>
                 <div className="activity-detail-hero-scrim" />
                 <div className="activity-detail-hero-top">
+                    <button type="button" className="activity-hero-photo-count" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
+                        <IoCreateOutline /> Modifica
+                    </button>
                     {totalPhotos > 0 ? (
                         <button type="button" className="activity-hero-photo-count" onClick={() => openGallery(0)}>
                             Foto {totalPhotos}
@@ -329,21 +274,6 @@ export function ActivityDetailPage() {
                 </div>
 
                 <div className="content-stack activity-detail-section">
-                    <div className="activity-detail-heading-row">
-                        <h3>Nome attività</h3>
-                        <Button type="button" variant="secondary" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
-                            <IoCreateOutline /> Modifica
-                        </Button>
-                    </div>
-                    <p className="activity-detail-main-text">{activity.name}</p>
-                </div>
-
-                <div className="content-stack activity-detail-section">
-                    <h3>Indirizzo</h3>
-                    <p className="activity-detail-main-text">{activity.address?.trim() ? activity.address : "Nessun indirizzo"}</p>
-                </div>
-
-                <div className="content-stack activity-detail-section">
                     <h3>Tipologie</h3>
                     <div className="activity-types-inline">
                         {activity.type_ids.map(typeId => {
@@ -369,7 +299,13 @@ export function ActivityDetailPage() {
                         type="button"
                         className={`activity-quick-action${editingNotes ? " active" : ""}`}
                         onClick={() => {
-                            setEditingNotes(current => !current);
+                            setEditingNotes(current => {
+                                const next = !current;
+                                if (next) {
+                                    setNotesDraft(activity.notes ?? "");
+                                }
+                                return next;
+                            });
                             setEditingTags(false);
                         }}
                     >
@@ -380,7 +316,13 @@ export function ActivityDetailPage() {
                         type="button"
                         className={`activity-quick-action${editingTags ? " active" : ""}`}
                         onClick={() => {
-                            setEditingTags(current => !current);
+                            setEditingTags(current => {
+                                const next = !current;
+                                if (next) {
+                                    setTagsDraft(activity.tags.join(", "));
+                                }
+                                return next;
+                            });
                             setEditingNotes(false);
                         }}
                     >
@@ -512,47 +454,9 @@ export function ActivityDetailPage() {
                     </div>
                 </div>
 
-                <div className="content-stack activity-detail-section">
-                    <h3>Foto</h3>
-                    <div className="inline-actions">
-                        <label className="activity-upload-label">
-                            <input type="file" accept="image/*" onChange={event => void handlePhotoUpload(event)} disabled={uploadingPhoto} />
-                            {uploadingPhoto ? "Upload in corso..." : "Carica foto"}
-                        </label>
-                    </div>
-                    {photosError ? <div className="status-banner error">{photosError}</div> : null}
-
-                    {activity.photos.length === 0 ? (
-                        <p className="muted">Nessuna foto caricata</p>
-                    ) : (
-                        <div className="activity-photo-grid">
-                            {activity.photos.map((photo, index) => (
-                                <div className="activity-photo-card" key={photo.id}>
-                                    <button
-                                        type="button"
-                                        className="activity-photo-preview"
-                                        onClick={() => openGallery(index)}
-                                        aria-label={`Apri foto ${index + 1} di ${totalPhotos}`}
-                                    >
-                                        <img src={photo.storage_path} alt={`Foto ${index + 1} di ${activity.name}`} />
-                                    </button>
-                                    <button type="button" className="activity-photo-delete" onClick={() => void handlePhotoDelete(photo.id)}>
-                                        Elimina
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
                 <Button type="button" variant="danger" onClick={() => void handleDelete()}>
                     <IoTrashOutline /> Elimina attività
                 </Button>
-                {activity.lat != null && activity.lng != null ? (
-                    <p className="muted">
-                        Coordinate: {activity.lat.toFixed(5)}, {activity.lng.toFixed(5)}
-                    </p>
-                ) : null}
             </div>
 
             {activePhoto ? (

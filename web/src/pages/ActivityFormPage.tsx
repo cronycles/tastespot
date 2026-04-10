@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import imageCompression from "browser-image-compression";
 import { Button } from "@/components/Button";
 import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
+import { api } from "@/lib/api";
 import { useActivitiesStore, type ActivityWithDetails, type CreateActivityData, type UpdateActivityData } from "@/stores/activitiesStore";
 import { useTypesStore } from "@/stores/typesStore";
 import { DEFAULT_ICON_KEY } from "@/types";
@@ -52,10 +54,12 @@ function getFallbackTypeId(typeIds: string[], availableTypes: Array<{ id: string
 export function ActivityFormPage({ mode, activity }: Props) {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { create, update } = useActivitiesStore();
+    const { create, update, addPhoto, removePhoto } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [photosError, setPhotosError] = useState<string | null>(null);
 
     const queryName = mode === "add" ? (searchParams.get("name") ?? "") : "";
     const queryAddress = mode === "add" ? (searchParams.get("address") ?? "") : "";
@@ -123,6 +127,53 @@ export function ActivityFormPage({ mode, activity }: Props) {
             ...current,
             selectedTypeIds: current.selectedTypeIds.includes(typeId) ? current.selectedTypeIds.filter(entry => entry !== typeId) : [...current.selectedTypeIds, typeId],
         }));
+    }
+
+    async function handleEditPhotoUpload(event: React.ChangeEvent<HTMLInputElement>): Promise<void> {
+        if (mode !== "edit" || !activity) {
+            return;
+        }
+
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file) {
+            return;
+        }
+
+        setPhotosError(null);
+        setUploadingPhoto(true);
+        try {
+            const compressed = await imageCompression(file, {
+                maxWidthOrHeight: 1200,
+                maxSizeMB: 1,
+                useWebWorker: true,
+            });
+            const uploaded = await api.uploadPhoto(activity.id, compressed);
+            addPhoto(activity.id, uploaded);
+        } catch {
+            setPhotosError("Errore upload foto. Riprova.");
+        } finally {
+            setUploadingPhoto(false);
+        }
+    }
+
+    async function handleEditPhotoDelete(photoId: string): Promise<void> {
+        if (mode !== "edit" || !activity) {
+            return;
+        }
+
+        const confirmed = window.confirm("Eliminare questa foto?");
+        if (!confirmed) {
+            return;
+        }
+
+        setPhotosError(null);
+        try {
+            await api.delete(`/photos/${photoId}`);
+            removePhoto(activity.id, photoId);
+        } catch {
+            setPhotosError("Errore eliminazione foto. Riprova.");
+        }
     }
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
@@ -279,6 +330,41 @@ export function ActivityFormPage({ mode, activity }: Props) {
                         <input type="checkbox" checked={form.isFavorite} onChange={event => updateField("isFavorite", event.target.checked)} />
                         Aggiungi subito ai preferiti
                     </label>
+                ) : null}
+
+                {mode === "add" ? (
+                    <div className="content-stack">
+                        <h3>Foto</h3>
+                        <p className="muted">Potrai caricare le foto subito dopo la creazione dalla pagina di modifica attività.</p>
+                    </div>
+                ) : null}
+
+                {mode === "edit" && activity ? (
+                    <div className="content-stack">
+                        <h3>Foto</h3>
+                        <div className="inline-actions">
+                            <label className="activity-upload-label">
+                                <input type="file" accept="image/*" onChange={event => void handleEditPhotoUpload(event)} disabled={uploadingPhoto} />
+                                {uploadingPhoto ? "Upload in corso..." : "Carica foto"}
+                            </label>
+                        </div>
+                        {photosError ? <div className="status-banner error">{photosError}</div> : null}
+
+                        {activity.photos.length === 0 ? (
+                            <p className="muted">Nessuna foto caricata</p>
+                        ) : (
+                            <div className="activity-photo-grid">
+                                {activity.photos.map(photo => (
+                                    <div className="activity-photo-card" key={photo.id}>
+                                        <img src={photo.storage_path} alt={`Foto di ${activity.name}`} />
+                                        <button type="button" className="activity-photo-delete" onClick={() => void handleEditPhotoDelete(photo.id)}>
+                                            Elimina
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 ) : null}
 
                 {error ? <div className="status-banner error">{error}</div> : null}
