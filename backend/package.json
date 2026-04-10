@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "restore": "composer install && npm install",
+        "restore": "composer install && php artisan config:clear && npm install",
         "start": "php artisan serve --port=8001",
         "build": "vite build"
     },

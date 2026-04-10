@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/stores/authStore";
@@ -7,11 +7,16 @@ import { useAuthStore } from "@/stores/authStore";
 export function RegisterPage() {
     const navigate = useNavigate();
     const loading = useAuthStore(state => state.loading);
+    const registrationEnabled = useAuthStore(state => state.registrationEnabled);
     const signUp = useAuthStore(state => state.signUp);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
+
+    if (!registrationEnabled) {
+        return <Navigate to="/login" replace />;
+    }
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
         event.preventDefault();

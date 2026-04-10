@@ -50,13 +50,14 @@ export function ActivityFormPage({ mode, activity }: Props) {
     const queryAddress = mode === "add" ? (searchParams.get("address") ?? "") : "";
     const queryLat = mode === "add" ? (searchParams.get("lat") ?? "") : "";
     const queryLng = mode === "add" ? (searchParams.get("lng") ?? "") : "";
+    const queryPhone = mode === "add" ? (searchParams.get("phone") ?? "") : "";
 
     const [form, setForm] = useState<FormState>(() => ({
         name: activity?.name ?? queryName,
         address: activity?.address ?? queryAddress,
         lat: activity?.lat != null ? String(activity.lat) : queryLat,
         lng: activity?.lng != null ? String(activity.lng) : queryLng,
-        phone: activity?.phone ?? "",
+        phone: activity?.phone ?? queryPhone,
         notes: activity?.notes ?? "",
         tagsInput: "",
         tags: activity?.tags ?? [],

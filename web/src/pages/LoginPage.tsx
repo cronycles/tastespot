@@ -12,6 +12,7 @@ export function LoginPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const loading = useAuthStore(state => state.loading);
+    const registrationEnabled = useAuthStore(state => state.registrationEnabled);
     const signIn = useAuthStore(state => state.signIn);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -51,10 +52,12 @@ export function LoginPage() {
                     </Button>
                 </form>
 
-                <div className="auth-footer">
-                    <span>Non hai ancora un account?</span>
-                    <Link to="/register">Registrati</Link>
-                </div>
+                {registrationEnabled ? (
+                    <div className="auth-footer">
+                        <span>Non hai ancora un account?</span>
+                        <Link to="/register">Registrati</Link>
+                    </div>
+                ) : null}
             </div>
         </div>
     );

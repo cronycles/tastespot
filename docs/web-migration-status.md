@@ -1,16 +1,19 @@
 # TasteSpot Web Migration Status
 
 ## Canonical resume note
+
 Questo file e' la fonte canonica per capire dove siamo arrivati nella migrazione web.
 Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roadmap-v2.md` per le fasi successive.
 
 ## Product decision
+
 - Strategia scelta: abbandono progressivo dell'app Expo/React Native e migrazione verso una web app React + Vite.
 - Backend Laravel mantenuto nello stesso hosting cPanel.
 - URL target: frontend su `https://tastespot.crointhemorning.com/`, backend su `https://tastespot.crointhemorning.com/api/v1/`.
 - Esperienza desiderata: mobile-first, app-like.
 
 ## Approved roadmap
+
 - Fase 0: setup progetto web e integrazione serving SPA
 - Fase 1: core API/auth browser
 - Fase 2: shell app + routing
@@ -23,6 +26,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Fase 9: deploy web automatico
 
 ## What is already implemented
+
 - Directory `web/` creata con Vite + React + TypeScript.
 - Dipendenze installate: `react-router-dom`, `zustand`, `maplibre-gl`, `react-icons`, `browser-image-compression`.
 - Shell SPA iniziale implementata.
@@ -56,6 +60,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Verifiche completate: `cd web && npm run build` e `cd web && npm run lint`.
 
 ## Phase status
+
 - Fase 0: completata
 - Fase 1: completata
 - Fase 2: completata in versione base
@@ -67,19 +72,24 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Fase 8: completata
 - Fase 9: completata
 - Fase 10: completata
+- Fase 11: in corso
 
 ## Current checkpoint
+
 - Branch di lavoro: `develop`
-- Commit checkpoint: `d07129d`
-- Commit message: `chiusura Fase 10 UI redesign`
-- Stato worktree al checkpoint: allineato alla chiusura Fase 10
+- Commit checkpoint: working tree locale non ancora committato
+- Commit message: n/a
+- Stato worktree al checkpoint: avanzamento Fase 11 su change password, prefill POI e gallery fullscreen
 
 ## Next recommended phase
+
 - Prossima fase consigliata: **Fase 11 — Feature Gap Fix**
 - Obiettivo: completare i requisiti funzionali mancanti (change password, verifica prefill POI, gallery landscape, E2E mobile).
+- Stato attuale Fase 11: 11a-11c implementate lato codice; resta da eseguire 11d test E2E su dispositivo mobile reale.
 - Dettaglio: vedi `docs/web-roadmap-v2.md`
 
 ## Key files already touched
+
 - `web/src/App.tsx`
 - `web/src/lib/api.ts`
 - `web/src/stores/authStore.ts`
@@ -94,6 +104,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - `web/src/pages/ActivityAddPage.tsx`
 - `web/src/pages/ActivityEditPage.tsx`
 - `web/src/pages/ActivityDetailPage.tsx`
+- `backend/tests/Feature/ChangePasswordTest.php`
 - `web/src/components/AppLayout.tsx`
 - `web/src/styles/base.css`
 - `web/src/styles/layout.css`
@@ -103,6 +114,7 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - `package.json`
 
 ## Resume prompts
+
 Usare uno di questi prompt per riprendere il lavoro:
 
 1. `Leggi docs/web-migration-status.md e docs/web-roadmap-v2.md e continua dalla prossima fase aperta.`
@@ -110,7 +122,9 @@ Usare uno di questi prompt per riprendere il lavoro:
 3. `Leggi docs/web-migration-status.md, verifica il checkpoint e continua da develop.`
 
 ## Update rule
+
 Ogni volta che una fase avanza in modo significativo, aggiornare questo file con:
+
 - fase corrente
 - checkpoint git
 - lavoro completato

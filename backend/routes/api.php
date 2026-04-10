@@ -13,6 +13,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/ping', fn () => response()->json(['status' => 'ok', 'version' => '1.0.4']));
 
     // ── Auth pubblico ──────────────────────────────────────────────────────────
+    Route::get('/auth/settings', [AuthController::class, 'settings']);
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login',    [AuthController::class, 'login']);
 
@@ -21,6 +22,7 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me',      [AuthController::class, 'me']);
+        Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 
         // Tipologie
         Route::get('/types',           [ActivityTypeController::class, 'index']);

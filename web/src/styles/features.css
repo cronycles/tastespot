@@ -477,9 +477,16 @@
     padding-bottom: 8px;
 }
 
+.activity-photo-preview {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
 .activity-photo-card img {
     width: 100%;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 4 / 3;
     object-fit: cover;
     display: block;
 }
@@ -490,6 +497,83 @@
     color: var(--color-error);
     font-weight: 700;
     cursor: pointer;
+}
+
+.activity-gallery-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.82);
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+}
+
+.activity-gallery-dialog {
+    position: relative;
+    width: min(100%, 960px);
+    min-height: min(70vh, 640px);
+    display: grid;
+    place-items: center;
+}
+
+.activity-gallery-figure {
+    margin: 0;
+    width: 100%;
+    display: grid;
+    gap: 10px;
+}
+
+.activity-gallery-figure img {
+    width: 100%;
+    max-height: min(78vh, 720px);
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.9);
+}
+
+.activity-gallery-figure figcaption {
+    color: #ffffff;
+    text-align: center;
+    font-weight: 700;
+}
+
+.activity-gallery-close,
+.activity-gallery-nav {
+    position: absolute;
+    border: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.activity-gallery-close {
+    top: 0;
+    right: 0;
+}
+
+.activity-gallery-nav {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.activity-gallery-nav.prev {
+    left: 0;
+}
+
+.activity-gallery-nav.next {
+    right: 0;
+}
+
+.activity-gallery-close svg,
+.activity-gallery-nav svg {
+    font-size: 1.35rem;
 }
 
 .reviews-grid {
@@ -550,7 +634,10 @@
     gap: 4px;
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+    transition:
+        border-color 120ms ease,
+        color 120ms ease,
+        background 120ms ease;
 }
 
 .detail-action-button svg {
@@ -592,6 +679,45 @@
     border-radius: 14px;
 }
 
+.profile-security-form {
+    display: grid;
+    gap: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background: var(--color-surface);
+    padding: 16px;
+}
+
+@media (max-width: 640px) {
+    .activity-gallery-dialog {
+        min-height: auto;
+        width: 100%;
+    }
+
+    .activity-gallery-nav {
+        top: auto;
+        bottom: -56px;
+        transform: none;
+    }
+
+    .activity-gallery-nav.prev {
+        left: calc(50% - 52px);
+    }
+
+    .activity-gallery-nav.next {
+        right: calc(50% - 52px);
+    }
+
+    .activity-gallery-close {
+        top: -6px;
+        right: -2px;
+    }
+
+    .activity-gallery-figure img {
+        max-height: 70vh;
+    }
+}
+
 .map-canvas {
     width: 100%;
     height: min(42vh, 350px);
@@ -610,7 +736,9 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
     cursor: pointer;
     padding: 0;
-    transition: transform 120ms ease, box-shadow 120ms ease;
+    transition:
+        transform 120ms ease,
+        box-shadow 120ms ease;
 }
 
 .map-marker:hover {
@@ -856,7 +984,9 @@
     cursor: pointer;
     font-size: 1.5rem;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-    transition: transform 120ms ease, box-shadow 120ms ease;
+    transition:
+        transform 120ms ease,
+        box-shadow 120ms ease;
 }
 
 .map-fab:active {

@@ -10,8 +10,21 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function settings()
+    {
+        return response()->json([
+            'registration_enabled' => (bool) config('app.registration_enabled'),
+        ]);
+    }
+
     public function register(Request $request)
     {
+        if (! config('app.registration_enabled')) {
+            return response()->json([
+                'message' => 'Registrazione disabilitata temporaneamente.',
+            ], 403);
+        }
+
         $data = $request->validate([
             'name'                  => ['required', 'string', 'max:255'],
             'email'                 => ['required', 'email', 'unique:users'],
@@ -68,5 +81,28 @@ class AuthController extends Controller
     {
         $u = $request->user();
         return response()->json(['id' => $u->id, 'email' => $u->email, 'name' => $u->name]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $data = $request->validate([
+            'old_password'              => ['required', 'string'],
+            'new_password'              => ['required', 'string', 'min:8', 'confirmed'],
+            'new_password_confirmation' => ['required'],
+        ]);
+
+        $user = $request->user();
+
+        if (! Hash::check($data['old_password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'old_password' => ['La password attuale non e\' corretta.'],
+            ]);
+        }
+
+        $user->forceFill([
+            'password' => $data['new_password'],
+        ])->save();
+
+        return response()->json(['message' => 'Password aggiornata.']);
     }
 }

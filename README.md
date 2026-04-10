@@ -14,6 +14,7 @@ Web app per valutare e scoprire attività di ristorazione (bar, ristoranti, gela
 ```bash
 npm run restore
 # installa le dipendenze di backend e web in un colpo solo
+# nel backend esegue anche php artisan config:clear
 ```
 
 **Avvio (dalla root, consigliato):**
@@ -50,6 +51,7 @@ cd web && npm run start       # solo web app Vite su http://127.0.0.1:8000
 - **MySQL** — database di produzione su SupportHost cPanel
 - **Laravel Storage** — foto in `backend/storage/app/public/photos/`, esposte via `/storage/photos/...`
 - **Symlink storage** — `public/storage → storage/app/public`, ricreato automaticamente ad ogni deploy (non committato in git)
+- **Registrazione configurabile** — `APP_REGISTRATION_ENABLED=false` blocca nuove registrazioni lato API
 
 ---
 
@@ -162,10 +164,12 @@ Base URL produzione: `https://tastespot.crointhemorning.com/api/v1/`
 
 | Metodo | Path                       | Descrizione                                                 |
 | ------ | -------------------------- | ----------------------------------------------------------- |
+| GET    | `/auth/settings`           | Config pubblica auth (`registration_enabled`)               |
 | POST   | `/auth/register`           | Registrazione → restituisce token                           |
 | POST   | `/auth/login`              | Login → restituisce token                                   |
 | POST   | `/auth/logout`             | Logout 🔒                                                   |
 | GET    | `/auth/me`                 | Dati utente corrente 🔒                                     |
+| POST   | `/auth/change-password`    | Cambia password con verifica password attuale 🔒            |
 | GET    | `/types`                   | Lista tipologie 🔒                                          |
 | POST   | `/types`                   | Crea tipologia 🔒                                           |
 | PUT    | `/types/:id`               | Modifica tipologia 🔒                                       |
@@ -201,7 +205,7 @@ npm run restore
 
 Esegue automaticamente in sequenza:
 
-- `backend/`: `composer install` + `npm install` + `npm run build` (assets Laravel)
+- `backend/`: `composer install` + `php artisan config:clear` + `npm install`
 - `web/`: `npm install`
 
 ### 2. Inizializza il database (solo la prima volta)
@@ -216,6 +220,14 @@ php artisan storage:link
 
 Il file `backend/.env` è già incluso nel repo configurato per SQLite locale.  
 Il file `web/.env.development` è già incluso (punta a `http://127.0.0.1:8001/api/v1`).
+
+Per bloccare nuove registrazioni in un ambiente di test o staging, imposta nel backend:
+
+```bash
+APP_REGISTRATION_ENABLED=false
+```
+
+Con questa flag disattiva, `POST /api/v1/auth/register` risponde `403` e non crea utenti.
 
 ---
 

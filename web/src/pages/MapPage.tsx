@@ -64,16 +64,7 @@ function firstNonEmptyString(...values: Array<unknown>): string | null {
 function placeFromMapFeature(feature: MapGeoJSONFeature, lat: number, lng: number): PlaceSuggestion | null {
     const props = (feature.properties ?? {}) as Record<string, unknown>;
 
-    const label = firstNonEmptyString(
-        props.name,
-        props.brand,
-        props["addr:housename"],
-        props.amenity,
-        props.shop,
-        props.tourism,
-        props.leisure,
-        props.building,
-    );
+    const label = firstNonEmptyString(props.name, props.brand, props["addr:housename"], props.amenity, props.shop, props.tourism, props.leisure, props.building);
 
     if (!label) {
         return null;
@@ -120,6 +111,67 @@ export function MapPage() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const placeSuggestionsRequestRef = useRef(0);
     const visibleActivitiesRef = useRef<ActivityWithDetails[]>([]);
+    const trimmedQuery = query.trim();
+    const hasSuggestionQuery = trimmedQuery.length >= 2;
+
+    function centerOnExternalPlace(place: PlaceSuggestion): void {
+        if (!mapRef.current) {
+            return;
+        }
+
+        setSelectedActivityId(null);
+        placeMarkerRef.current?.remove();
+
+        const placeElement = document.createElement("button");
+        placeElement.type = "button";
+        placeElement.className = "map-poi-pin";
+        placeElement.title = place.label;
+        placeElement.setAttribute("aria-label", place.label);
+        placeElement.onclick = () => {
+            setSelectedPlace(place);
+            setSelectedActivityId(null);
+        };
+
+        placeMarkerRef.current = new maplibregl.Marker({ element: placeElement, anchor: "bottom" }).setLngLat([place.lng, place.lat]).addTo(mapRef.current);
+        mapRef.current.flyTo({ center: [place.lng, place.lat], zoom: 17.5, duration: 700 });
+        setSelectedPlace(place);
+    }
+
+    async function reverseGeocodePlace(lat: number, lng: number): Promise<PlaceSuggestion | null> {
+        const params = new URLSearchParams({
+            format: "jsonv2",
+            lat: String(lat),
+            lon: String(lng),
+            zoom: "18",
+            "accept-language": "it",
+        });
+
+        const response = await window.fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+            headers: {
+                Accept: "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = (await response.json()) as { display_name?: string; name?: string };
+        const details = firstNonEmptyString(data.display_name);
+        const label = firstNonEmptyString(data.name, details ? compactPlaceLabel(details) : null, "Punto selezionato");
+
+        if (!label) {
+            return null;
+        }
+
+        return {
+            id: `reverse:${lat}:${lng}`,
+            label,
+            details: details ?? label,
+            lat,
+            lng,
+        };
+    }
 
     useEffect(() => {
         void fetch(true);
@@ -143,7 +195,7 @@ export function MapPage() {
 
         const onMapClick = (event: maplibregl.MapMouseEvent) => {
             const clickTarget = event.originalEvent.target;
-            if (clickTarget instanceof Element && clickTarget.closest('.map-marker, .map-poi-pin')) {
+            if (clickTarget instanceof Element && clickTarget.closest(".map-marker, .map-poi-pin")) {
                 return;
             }
 
@@ -175,9 +227,7 @@ export function MapPage() {
                 {},
             );
 
-            const poi = nearbyFeatures
-                .map(feature => placeFromMapFeature(feature, event.lngLat.lat, event.lngLat.lng))
-                .find((entry): entry is PlaceSuggestion => entry !== null);
+            const poi = nearbyFeatures.map(feature => placeFromMapFeature(feature, event.lngLat.lat, event.lngLat.lng)).find((entry): entry is PlaceSuggestion => entry !== null);
 
             if (poi) {
                 centerOnExternalPlace(poi);
@@ -192,7 +242,7 @@ export function MapPage() {
 
                 centerOnExternalPlace({
                     id: `point:${event.lngLat.lat}:${event.lngLat.lng}`,
-                    label: 'Punto selezionato',
+                    label: "Punto selezionato",
                     details: `Lat ${event.lngLat.lat.toFixed(5)} · Lng ${event.lngLat.lng.toFixed(5)}`,
                     lat: event.lngLat.lat,
                     lng: event.lngLat.lng,
@@ -200,7 +250,7 @@ export function MapPage() {
             });
         };
 
-        map.on('click', onMapClick);
+        map.on("click", onMapClick);
         mapRef.current = map;
 
         const onResize = () => map.resize();
@@ -272,8 +322,8 @@ export function MapPage() {
                 return true;
             }
 
-            const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? '');
-            const haystack = normalizeText([entry.name, entry.address ?? '', ...(entry.tags ?? []), ...typeNames].join(' '));
+            const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? "");
+            const haystack = normalizeText([entry.name, entry.address ?? "", ...(entry.tags ?? []), ...typeNames].join(" "));
             return haystack.includes(normalizedQuery);
         });
 
@@ -309,33 +359,36 @@ export function MapPage() {
 
         activityPopupRef.current?.remove();
 
-        const popupContent = document.createElement('div');
-        popupContent.className = 'map-activity-popup';
+        const popupContent = document.createElement("div");
+        popupContent.className = "map-activity-popup";
         popupContent.innerHTML = `
             <div style="padding: 12px; max-width: 280px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
                     <h4 style="margin: 0; font-size: 14px; font-weight: 600; flex: 1;">${selectedActivity.name}</h4>
                     <button class="map-popup-close" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 0; color: #666;" title="Chiudi">✕</button>
                 </div>
-                ${selectedActivity.address ? `<p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${selectedActivity.address}</p>` : ''}
+                ${selectedActivity.address ? `<p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${selectedActivity.address}</p>` : ""}
                 <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
                     ${selectedActivity.type_ids
-                        .map(typeId => `<span style="display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${typeNamesById.get(typeId) ?? 'Tipo'}</span>`)
-                        .join('')}
+                        .map(
+                            typeId =>
+                                `<span style="display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${typeNamesById.get(typeId) ?? "Tipo"}</span>`,
+                        )
+                        .join("")}
                 </div>
                 <button class="map-popup-detail" style="width: 100%; padding: 8px; background: #FF5A35; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">Apri dettaglio</button>
             </div>
         `;
 
-        const closeBtn = popupContent.querySelector('.map-popup-close');
-        closeBtn?.addEventListener('click', () => {
+        const closeBtn = popupContent.querySelector(".map-popup-close");
+        closeBtn?.addEventListener("click", () => {
             setSelectedActivityId(null);
             activityPopupRef.current?.remove();
             activityPopupRef.current = null;
         });
 
-        const detailBtn = popupContent.querySelector('.map-popup-detail');
-        detailBtn?.addEventListener('click', () => {
+        const detailBtn = popupContent.querySelector(".map-popup-detail");
+        detailBtn?.addEventListener("click", () => {
             navigate(`/activity/${selectedActivity.id}`);
         });
 
@@ -391,29 +444,6 @@ export function MapPage() {
         }
     }
 
-    function centerOnExternalPlace(place: PlaceSuggestion): void {
-        if (!mapRef.current) {
-            return;
-        }
-
-        setSelectedActivityId(null);
-        placeMarkerRef.current?.remove();
-
-        const placeElement = document.createElement("button");
-        placeElement.type = "button";
-        placeElement.className = "map-poi-pin";
-        placeElement.title = place.label;
-        placeElement.setAttribute("aria-label", place.label);
-        placeElement.onclick = () => {
-            setSelectedPlace(place);
-            setSelectedActivityId(null);
-        };
-
-        placeMarkerRef.current = new maplibregl.Marker({ element: placeElement, anchor: "bottom" }).setLngLat([place.lng, place.lat]).addTo(mapRef.current);
-        mapRef.current.flyTo({ center: [place.lng, place.lat], zoom: 17.5, duration: 700 });
-        setSelectedPlace(place);
-    }
-
     async function geocodePlace(text: string): Promise<PlaceSuggestion | null> {
         const params = new URLSearchParams({
             q: text,
@@ -453,47 +483,9 @@ export function MapPage() {
         };
     }
 
-    async function reverseGeocodePlace(lat: number, lng: number): Promise<PlaceSuggestion | null> {
-        const params = new URLSearchParams({
-            format: "jsonv2",
-            lat: String(lat),
-            lon: String(lng),
-            zoom: "18",
-            "accept-language": "it",
-        });
-
-        const response = await window.fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
-            headers: {
-                Accept: "application/json",
-            },
-        });
-
-        if (!response.ok) {
-            return null;
-        }
-
-        const data = (await response.json()) as { display_name?: string; name?: string };
-        const details = firstNonEmptyString(data.display_name);
-        const label = firstNonEmptyString(data.name, details ? compactPlaceLabel(details) : null, "Punto selezionato");
-
-        if (!label) {
-            return null;
-        }
-
-        return {
-            id: `reverse:${lat}:${lng}`,
-            label,
-            details: details ?? label,
-            lat,
-            lng,
-        };
-    }
-
     useEffect(() => {
-        const trimmedQuery = query.trim();
-        if (trimmedQuery.length < 2) {
-            setPlaceSuggestions([]);
-            setSuggestionsLoading(false);
+        if (!hasSuggestionQuery) {
+            placeSuggestionsRequestRef.current += 1;
             return;
         }
 
@@ -555,7 +547,7 @@ export function MapPage() {
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [query]);
+    }, [hasSuggestionQuery, trimmedQuery]);
 
     const activitySuggestions = useMemo(() => {
         const normalizedQuery = normalizeText(query);
@@ -579,7 +571,7 @@ export function MapPage() {
     }, [activities, query, typeNamesById]);
 
     const searchSuggestions = useMemo(() => {
-        const placeItems = placeSuggestions.map(place => ({
+        const placeItems = (hasSuggestionQuery ? placeSuggestions : []).map(place => ({
             kind: "place" as const,
             id: `place:${place.id}`,
             label: place.label,
@@ -587,7 +579,7 @@ export function MapPage() {
         }));
 
         return [...activitySuggestions, ...placeItems].slice(0, 8);
-    }, [activitySuggestions, placeSuggestions]);
+    }, [activitySuggestions, hasSuggestionQuery, placeSuggestions]);
 
     function handleSelectSuggestion(suggestion: SearchSuggestion): void {
         setShowSuggestions(false);
@@ -604,7 +596,6 @@ export function MapPage() {
     }
 
     async function handleSearchSubmit(): Promise<void> {
-        const trimmedQuery = query.trim();
         if (!trimmedQuery) {
             return;
         }
@@ -663,9 +654,9 @@ export function MapPage() {
                         enterKeyHint="search"
                         placeholder="Attività o luogo sulla mappa"
                     />
-                    {showSuggestions && query.trim().length >= 2 ? (
+                    {showSuggestions && hasSuggestionQuery ? (
                         <div className="search-suggestions-panel">
-                            {suggestionsLoading ? <p className="muted search-suggestions-empty">Cerco suggerimenti...</p> : null}
+                            {hasSuggestionQuery && suggestionsLoading ? <p className="muted search-suggestions-empty">Cerco suggerimenti...</p> : null}
                             {!suggestionsLoading && searchSuggestions.length === 0 ? <p className="muted search-suggestions-empty">Nessun suggerimento.</p> : null}
                             {!suggestionsLoading && searchSuggestions.length > 0
                                 ? searchSuggestions.map(suggestion => (
@@ -715,21 +706,14 @@ export function MapPage() {
                 <IoLocateOutline />
             </button>
 
-            <button
-                type="button"
-                className="map-fab map-fab--add"
-                onClick={() => navigate("/activity/add")}
-                aria-label="Aggiungi attività"
-            >
+            <button type="button" className="map-fab map-fab--add" onClick={() => navigate("/activity/add")} aria-label="Aggiungi attività">
                 <IoAdd />
             </button>
 
             {selectedPlace ? (
                 <div className="map-bottom-card">
                     <h3>{selectedPlace.label}</h3>
-                    {selectedPlace.details && selectedPlace.details !== selectedPlace.label ? (
-                        <p className="muted">{selectedPlace.details}</p>
-                    ) : null}
+                    {selectedPlace.details && selectedPlace.details !== selectedPlace.label ? <p className="muted">{selectedPlace.details}</p> : null}
                     <Button
                         type="button"
                         onClick={() =>

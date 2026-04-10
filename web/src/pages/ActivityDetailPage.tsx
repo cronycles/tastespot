@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { IoChevronBackOutline, IoChevronForwardOutline, IoCloseOutline } from "react-icons/io5";
 import { IoCreateOutline, IoHeart, IoHeartOutline, IoTrashOutline } from "react-icons/io5";
 import imageCompression from "browser-image-compression";
 import { Button } from "@/components/Button";
@@ -23,6 +24,7 @@ export function ActivityDetailPage() {
     const [photosError, setPhotosError] = useState<string | null>(null);
     const [reviewsError, setReviewsError] = useState<string | null>(null);
     const [savingTypeId, setSavingTypeId] = useState<string | null>(null);
+    const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
 
     const activity = useMemo(() => activities.find(entry => entry.id === params.id), [activities, params.id]);
 
@@ -37,13 +39,58 @@ export function ActivityDetailPage() {
         void fetchReviews(params.id);
     }, [fetchReviews, params.id]);
 
+    const photoCount = activity?.photos.length ?? 0;
+
+    useEffect(() => {
+        if (galleryIndex === null || photoCount === 0) {
+            return;
+        }
+
+        function handleKeyDown(event: KeyboardEvent): void {
+            if (event.key === "Escape") {
+                setGalleryIndex(null);
+                return;
+            }
+
+            if (event.key === "ArrowLeft") {
+                setGalleryIndex(current => {
+                    if (current === null || photoCount === 0) {
+                        return current;
+                    }
+
+                    return (current - 1 + photoCount) % photoCount;
+                });
+                return;
+            }
+
+            if (event.key === "ArrowRight") {
+                setGalleryIndex(current => {
+                    if (current === null || photoCount === 0) {
+                        return current;
+                    }
+
+                    return (current + 1) % photoCount;
+                });
+            }
+        }
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [galleryIndex, photoCount]);
+
     if (!params.id || !activity) {
         return <Navigate to="/" replace />;
     }
 
+    const totalPhotos = activity.photos.length;
     const reviews = getForActivity(activity.id);
     const averageScore = calcActivityAvgScore(reviews);
     const categoryAvgs = calcCategoryAvgs(reviews);
+    const activePhoto = galleryIndex === null ? null : (activity.photos[galleryIndex] ?? null);
+    const activePhotoNumber = galleryIndex === null ? null : galleryIndex + 1;
 
     async function handleDelete(): Promise<void> {
         const current = activity;
@@ -135,6 +182,30 @@ export function ActivityDetailPage() {
         if (error) {
             setReviewsError(error);
         }
+    }
+
+    function openGallery(index: number): void {
+        setGalleryIndex(index);
+    }
+
+    function closeGallery(): void {
+        setGalleryIndex(null);
+    }
+
+    function showPreviousPhoto(): void {
+        if (galleryIndex === null || totalPhotos === 0) {
+            return;
+        }
+
+        setGalleryIndex((galleryIndex - 1 + totalPhotos) % totalPhotos);
+    }
+
+    function showNextPhoto(): void {
+        if (galleryIndex === null || totalPhotos === 0) {
+            return;
+        }
+
+        setGalleryIndex((galleryIndex + 1) % totalPhotos);
     }
 
     return (
@@ -262,9 +333,11 @@ export function ActivityDetailPage() {
                     <p className="muted">Nessuna foto caricata</p>
                 ) : (
                     <div className="activity-photo-grid">
-                        {activity.photos.map(photo => (
+                        {activity.photos.map((photo, index) => (
                             <div className="activity-photo-card" key={photo.id}>
-                                <img src={photo.storage_path} alt="Foto attivita'" />
+                                <button type="button" className="activity-photo-preview" onClick={() => openGallery(index)} aria-label={`Apri foto ${index + 1} di ${totalPhotos}`}>
+                                    <img src={photo.storage_path} alt={`Foto ${index + 1} di ${activity.name}`} />
+                                </button>
                                 <button type="button" className="activity-photo-delete" onClick={() => void handlePhotoDelete(photo.id)}>
                                     Elimina
                                 </button>
@@ -274,6 +347,27 @@ export function ActivityDetailPage() {
                 )}
             </div>
 
+            {activePhoto ? (
+                <div className="activity-gallery-overlay" role="dialog" aria-modal="true" aria-label="Galleria foto" onClick={closeGallery}>
+                    <div className="activity-gallery-dialog" onClick={event => event.stopPropagation()}>
+                        <button type="button" className="activity-gallery-close" onClick={closeGallery} aria-label="Chiudi galleria">
+                            <IoCloseOutline />
+                        </button>
+                        <button type="button" className="activity-gallery-nav prev" onClick={showPreviousPhoto} aria-label="Foto precedente">
+                            <IoChevronBackOutline />
+                        </button>
+                        <figure className="activity-gallery-figure">
+                            <img src={activePhoto.storage_path} alt={`Foto ${activePhotoNumber} di ${activity.name}`} />
+                            <figcaption>
+                                {activePhotoNumber} / {totalPhotos}
+                            </figcaption>
+                        </figure>
+                        <button type="button" className="activity-gallery-nav next" onClick={showNextPhoto} aria-label="Foto successiva">
+                            <IoChevronForwardOutline />
+                        </button>
+                    </div>
+                </div>
+            ) : null}
         </section>
     );
 }
