@@ -68,7 +68,7 @@ TasteSpot/                         ← radice del monorepo Git
 │       ├── deploy.yml             ← GitHub Actions: auto-deploy su push a main
 │       └── web-ci.yml             ← GitHub Actions: lint + build check su develop/main
 ├── docs/
-│   └── web-migration-status.md    ← Roadmap e checkpoint migrazione web
+│   └── web-requirements-remediation-plan.md ← Piano canonico web: stato, gap e fasi
 ├── scripts/
 │   └── deploy.sh                  ← Script bash eseguito da cPanel al deploy
 ├── .cpanel.yml                    ← Entry point deploy cPanel (richiama deploy.sh)

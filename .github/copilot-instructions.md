@@ -2,7 +2,7 @@
 
 ## Current product direction
 - **La mobile app (React Native / Expo) è abbandonata.** Il prodotto attivo è la web app React + Vite.
-- Prima di qualsiasi lavoro, leggi `docs/web-migration-status.md` (stato corrente e checkpoint) e `docs/web-roadmap-v2.md` (prossime fasi).
+- Prima di qualsiasi lavoro, leggi `docs/documento-requisiti.md` e `docs/web-requirements-remediation-plan.md`.
 - Qualsiasi informazione mobile-era in questo file è obsoleta — i doc web hanno sempre la precedenza.
 
 ## Project overview
@@ -73,7 +73,7 @@ backend/
 - `activitiesStore.fetch(reset)`: `reset=true` per prima pagina, `reset=false` per load-more
 
 ### Rating system
-- 5 smile: 😞😕😐🙂😝 → valori: 1, 3.5, 6, 8, 10
+- 5 smile: 😞😕😐🙂😝 → valori target: 1, 3, 5.5, 7.5, 10
 - 4 categorie: location, food, service, price/quality
 - Media ponderata (pesi in `web/src/config/scoring.ts` se esiste, altrimenti media semplice)
 

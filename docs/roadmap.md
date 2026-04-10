@@ -1,7 +1,7 @@
 # TasteSpot — Piano di sviluppo (MOBILE — ARCHIVIATO)
 
 > **ARCHIVIATO** — Questo documento descrive il piano di sviluppo della mobile app React Native (abbandonata).
-> Il prodotto attivo è la web app. Riferimento corrente: `docs/web-roadmap-v2.md` e `docs/web-migration-status.md`.
+> Il prodotto attivo è la web app. Riferimento corrente: `docs/documento-requisiti.md` e `docs/web-requirements-remediation-plan.md`.
 
 ## Stato attuale
 **Fase completata: 6 — Modifica Attività** ✅
