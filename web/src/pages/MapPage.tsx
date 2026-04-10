@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import maplibregl, { type MapGeoJSONFeature, type Marker } from "maplibre-gl";
-import { IoAdd, IoHeart, IoHeartOutline, IoLocateOutline, IoSearchOutline } from "react-icons/io5";
+import { IoAdd, IoHeart, IoHeartOutline, IoLocateOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitiesStore";
@@ -30,7 +30,7 @@ type PlaceSuggestion = {
     lng: number;
 };
 
-type SearchSuggestion = { kind: "activity"; id: string; label: string; activity: ActivityWithDetails } | { kind: "place"; id: string; label: string; place: PlaceSuggestion };
+type SearchSuggestion = { kind: "query"; id: string; label: string; details: string } | { kind: "place"; id: string; label: string; details: string; place: PlaceSuggestion };
 
 type NominatimAddress = {
     house_number?: string;
@@ -165,9 +165,11 @@ export function MapPage() {
     const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
     const [suggestionsLoading, setSuggestionsLoading] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [searchResultsMode, setSearchResultsMode] = useState(false);
     const placeSuggestionsRequestRef = useRef(0);
     const visibleActivitiesRef = useRef<ActivityWithDetails[]>([]);
     const trimmedQuery = query.trim();
+    const hasSearchText = trimmedQuery.length > 0;
     const hasSuggestionQuery = trimmedQuery.length >= 2;
 
     function centerOnExternalPlace(place: PlaceSuggestion): void {
@@ -536,55 +538,6 @@ export function MapPage() {
         });
     }
 
-    function handleSelectFromList(entry: ActivityWithDetails): void {
-        setSelectedActivityId(entry.id);
-        setSelectedPlace(null);
-        placeMarkerRef.current?.remove();
-        placeMarkerRef.current = null;
-        if (entry.lat != null && entry.lng != null) {
-            mapRef.current?.flyTo({ center: [entry.lng, entry.lat], zoom: 16.5, duration: 700 });
-        }
-    }
-
-    async function geocodePlace(text: string): Promise<PlaceSuggestion | null> {
-        const params = new URLSearchParams({
-            q: text,
-            format: "jsonv2",
-            limit: "1",
-            "accept-language": preferredLanguagesHeader(),
-        });
-        const response = await window.fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
-            headers: {
-                Accept: "application/json",
-            },
-        });
-
-        if (!response.ok) {
-            return null;
-        }
-
-        const data = (await response.json()) as Array<{ lat: string; lon: string; display_name?: string }>;
-        const first = data[0];
-        if (!first) {
-            return null;
-        }
-
-        const lat = Number(first.lat);
-        const lng = Number(first.lon);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            return null;
-        }
-
-        const displayName = first.display_name ?? text;
-        return {
-            id: `${lat}:${lng}`,
-            label: compactPlaceLabel(displayName),
-            details: displayName,
-            lat,
-            lng,
-        };
-    }
-
     useEffect(() => {
         if (!hasSuggestionQuery) {
             placeSuggestionsRequestRef.current += 1;
@@ -598,7 +551,8 @@ export function MapPage() {
             const params = new URLSearchParams({
                 q: trimmedQuery,
                 format: "jsonv2",
-                limit: "5",
+                addressdetails: "1",
+                limit: searchResultsMode ? "20" : "8",
                 "accept-language": preferredLanguagesHeader(),
             });
 
@@ -613,7 +567,14 @@ export function MapPage() {
                         return;
                     }
 
-                    const data = (await response.json()) as Array<{ lat: string; lon: string; display_name?: string; place_id?: number }>;
+                    const data = (await response.json()) as Array<{
+                        lat: string;
+                        lon: string;
+                        display_name?: string;
+                        name?: string;
+                        place_id?: number;
+                        address?: NominatimAddress;
+                    }>;
                     const mapped = data
                         .map(item => {
                             const lat = Number(item.lat);
@@ -622,10 +583,13 @@ export function MapPage() {
                                 return null;
                             }
 
+                            const fullAddress = firstNonEmptyString(buildAddressFromNominatim(item.address), item.display_name, trimmedQuery) ?? trimmedQuery;
+                            const label = firstNonEmptyString(item.name, compactPlaceLabel(fullAddress), compactPlaceLabel(item.display_name ?? ""), trimmedQuery) ?? trimmedQuery;
+
                             return {
                                 id: String(item.place_id ?? `${lat}:${lng}`),
-                                label: compactPlaceLabel(item.display_name ?? trimmedQuery),
-                                details: item.display_name ?? trimmedQuery,
+                                label,
+                                details: fullAddress,
                                 lat,
                                 lng,
                             } satisfies PlaceSuggestion;
@@ -649,46 +613,37 @@ export function MapPage() {
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [hasSuggestionQuery, trimmedQuery]);
+    }, [hasSuggestionQuery, searchResultsMode, trimmedQuery]);
 
-    const activitySuggestions = useMemo(() => {
-        const normalizedQuery = normalizeText(query);
-        if (!normalizedQuery) {
+    const searchSuggestions = useMemo(() => {
+        if (!hasSearchText) {
             return [] as SearchSuggestion[];
         }
 
-        return sortByName(activities)
-            .filter(entry => {
-                const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? "");
-                const haystack = normalizeText([entry.name, entry.address ?? "", ...(entry.tags ?? []), ...typeNames].join(" "));
-                return haystack.includes(normalizedQuery);
-            })
-            .slice(0, 5)
-            .map(entry => ({
-                kind: "activity" as const,
-                id: entry.id,
-                label: entry.name,
-                activity: entry,
-            }));
-    }, [activities, query, typeNamesById]);
+        const queryItem: SearchSuggestion = {
+            kind: "query",
+            id: "query:exact",
+            label: trimmedQuery,
+            details: "Mostra tutti i risultati per questa ricerca",
+        };
 
-    const searchSuggestions = useMemo(() => {
         const placeItems = (hasSuggestionQuery ? placeSuggestions : []).map(place => ({
             kind: "place" as const,
             id: `place:${place.id}`,
             label: place.label,
+            details: place.details,
             place,
         }));
 
-        return [...activitySuggestions, ...placeItems].slice(0, 8);
-    }, [activitySuggestions, hasSuggestionQuery, placeSuggestions]);
+        return [queryItem, ...placeItems];
+    }, [hasSearchText, hasSuggestionQuery, placeSuggestions, trimmedQuery]);
 
     function handleSelectSuggestion(suggestion: SearchSuggestion): void {
         setShowSuggestions(false);
 
-        if (suggestion.kind === "activity") {
-            setQuery(suggestion.label);
-            handleSelectFromList(suggestion.activity);
+        if (suggestion.kind === "query") {
+            setSearchResultsMode(true);
+            setShowSuggestions(true);
             return;
         }
 
@@ -719,24 +674,12 @@ export function MapPage() {
             return;
         }
 
-        if (searchSuggestions.length > 0) {
-            handleSelectSuggestion(searchSuggestions[0]);
-            return;
-        }
-
-        const firstVisible = visibleActivities.find(entry => entry.lat != null && entry.lng != null);
-        if (firstVisible && mapRef.current) {
-            setSelectedActivityId(firstVisible.id);
-            mapRef.current.flyTo({ center: [firstVisible.lng!, firstVisible.lat!], zoom: 15, duration: 700 });
-            return;
-        }
-
-        const place = await geocodePlace(trimmedQuery);
-        if (!place || !mapRef.current) {
-            return;
-        }
-
-        centerOnExternalPlace(place);
+        setSearchResultsMode(true);
+        setShowSuggestions(true);
+        setSelectedActivityId(null);
+        setSelectedPlace(null);
+        placeMarkerRef.current?.remove();
+        placeMarkerRef.current = null;
     }
 
     function handleSearchInputKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
@@ -763,9 +706,13 @@ export function MapPage() {
                         value={query}
                         onChange={event => {
                             setQuery(event.target.value);
+                            setSearchResultsMode(false);
                             setShowSuggestions(true);
                         }}
-                        onFocus={() => setShowSuggestions(true)}
+                        onFocus={() => {
+                            setSearchResultsMode(false);
+                            setShowSuggestions(true);
+                        }}
                         onKeyDown={handleSearchInputKeyDown}
                         autoComplete="off"
                         autoCorrect="off"
@@ -773,28 +720,34 @@ export function MapPage() {
                         enterKeyHint="search"
                         placeholder="Attività o luogo sulla mappa"
                     />
-                    {showSuggestions && hasSuggestionQuery ? (
-                        <div className="search-suggestions-panel">
+                    {showSuggestions ? (
+                        <div className="map-search-sheet">
+                            {!hasSearchText ? <p className="muted search-suggestions-empty">Scrivi almeno un termine per cercare.</p> : null}
                             {hasSuggestionQuery && suggestionsLoading ? <p className="muted search-suggestions-empty">Cerco suggerimenti...</p> : null}
-                            {!suggestionsLoading && searchSuggestions.length === 0 ? <p className="muted search-suggestions-empty">Nessun suggerimento.</p> : null}
-                            {!suggestionsLoading && searchSuggestions.length > 0
-                                ? searchSuggestions.map(suggestion => (
+                            {hasSearchText && !suggestionsLoading && searchSuggestions.length === 0 ? <p className="muted search-suggestions-empty">Nessun suggerimento.</p> : null}
+                            {hasSearchText && !suggestionsLoading && searchSuggestions.length > 0
+                                ? searchSuggestions.map((suggestion, index) => (
                                       <button
                                           key={suggestion.id}
                                           type="button"
-                                          className="search-suggestion-item"
+                                          className={`map-search-result${index === 0 ? " map-search-result--query" : ""}`}
                                           onMouseDown={event => event.preventDefault()}
                                           onClick={() => handleSelectSuggestion(suggestion)}
                                       >
-                                          <span className="search-suggestion-title">{suggestion.label}</span>
+                                          <span className="map-search-result-icon">{suggestion.kind === "query" ? <IoSearchOutline /> : <IoLocationOutline />}</span>
+                                          <span className="map-search-result-text">
+                                              <span className="search-suggestion-title">{suggestion.label}</span>
+                                              <span className="search-suggestion-subtitle">{suggestion.details}</span>
+                                          </span>
                                       </button>
                                   ))
                                 : null}
+                            {searchResultsMode && searchSuggestions.length > 1 ? <p className="search-feedback">Seleziona un luogo per aprirlo sulla mappa.</p> : null}
                         </div>
                     ) : null}
                 </div>
 
-                <div className="map-filter-row">
+                <div className={`map-filter-row${showSuggestions ? " map-filter-row--hidden" : ""}`}>
                     <button type="button" className={`map-chip${favoritesOnly ? " active" : ""}`} onClick={() => setFavoritesOnly(current => !current)}>
                         {favoritesOnly ? <IoHeart /> : <IoHeartOutline />} Preferiti
                     </button>
