@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\ActivityTypeController;
+use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\PhotoController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/auth/settings', [AuthController::class, 'settings']);
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login',    [AuthController::class, 'login']);
+    Route::get('/geo/search', [GeoController::class, 'search']);
+    Route::get('/geo/reverse', [GeoController::class, 'reverse']);
 
     // ── Route protette ─────────────────────────────────────────────────────────
     Route::middleware('auth:sanctum')->group(function () {

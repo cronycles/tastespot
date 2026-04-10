@@ -165,6 +165,8 @@ Base URL produzione: `https://tastespot.crointhemorning.com/api/v1/`
 | Metodo | Path                       | Descrizione                                                 |
 | ------ | -------------------------- | ----------------------------------------------------------- |
 | GET    | `/auth/settings`           | Config pubblica auth (`registration_enabled`)               |
+| GET    | `/geo/search`              | Ricerca geocoding (proxy Nominatim con cache/fallback)      |
+| GET    | `/geo/reverse`             | Reverse geocoding (proxy Nominatim con cache)               |
 | POST   | `/auth/register`           | Registrazione → restituisce token                           |
 | POST   | `/auth/login`              | Login → restituisce token                                   |
 | POST   | `/auth/logout`             | Logout 🔒                                                   |

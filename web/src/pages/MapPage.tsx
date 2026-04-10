@@ -3,6 +3,7 @@ import maplibregl, { type MapGeoJSONFeature, type Marker } from "maplibre-gl";
 import { IoAdd, IoHeart, IoHeartOutline, IoLocateOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
+import { api } from "@/lib/api";
 import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitiesStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { useTypesStore } from "@/stores/typesStore";
@@ -32,48 +33,6 @@ type PlaceSuggestion = {
 
 type SearchSuggestion = { kind: "query"; id: string; label: string; details: string } | { kind: "place"; id: string; label: string; details: string; place: PlaceSuggestion };
 
-type NominatimAddress = {
-    house_number?: string;
-    road?: string;
-    pedestrian?: string;
-    cycleway?: string;
-    footway?: string;
-    path?: string;
-    residential?: string;
-    neighbourhood?: string;
-    suburb?: string;
-    city_district?: string;
-    city?: string;
-    town?: string;
-    village?: string;
-    hamlet?: string;
-    municipality?: string;
-    county?: string;
-    state_district?: string;
-    state?: string;
-    region?: string;
-    province?: string;
-    postcode?: string;
-    country?: string;
-};
-
-function compactPlaceLabel(value: string): string {
-    const parts = value
-        .split(",")
-        .map(part => part.trim())
-        .filter(Boolean);
-
-    if (parts.length === 0) {
-        return value;
-    }
-
-    if (parts.length === 1) {
-        return parts[0];
-    }
-
-    return `${parts[0]}, ${parts[1]}`;
-}
-
 function firstNonEmptyString(...values: Array<unknown>): string | null {
     for (const value of values) {
         if (typeof value === "string") {
@@ -94,26 +53,6 @@ function preferredLanguagesHeader(): string {
     }
 
     return navigator.language || "en";
-}
-
-function buildAddressFromNominatim(address?: NominatimAddress): string | null {
-    if (!address) {
-        return null;
-    }
-
-    const street = firstNonEmptyString(address.road, address.pedestrian, address.cycleway, address.footway, address.path, address.residential);
-    const number = firstNonEmptyString(address.house_number);
-    const streetLine = [street, number].filter(Boolean).join(" ");
-
-    const district = firstNonEmptyString(address.neighbourhood, address.suburb, address.city_district);
-    const locality = firstNonEmptyString(address.city, address.town, address.village, address.hamlet, address.municipality);
-    const region = firstNonEmptyString(address.county, address.state_district, address.state, address.region, address.province);
-    const postcode = firstNonEmptyString(address.postcode);
-    const country = firstNonEmptyString(address.country);
-
-    const details = [streetLine, district, locality, region, postcode, country].filter(part => typeof part === "string" && part.length > 0).join(", ");
-
-    return details || null;
 }
 
 function placeFromMapFeature(feature: MapGeoJSONFeature, lat: number, lng: number): PlaceSuggestion | null {
@@ -170,7 +109,7 @@ export function MapPage() {
     const visibleActivitiesRef = useRef<ActivityWithDetails[]>([]);
     const trimmedQuery = query.trim();
     const hasSearchText = trimmedQuery.length > 0;
-    const hasSuggestionQuery = trimmedQuery.length >= 2;
+    const hasSuggestionQuery = trimmedQuery.length >= 3;
 
     function centerOnExternalPlace(place: PlaceSuggestion): void {
         if (!mapRef.current) {
@@ -212,46 +151,14 @@ export function MapPage() {
     }
 
     async function reverseGeocodePlace(lat: number, lng: number): Promise<PlaceSuggestion | null> {
-        const params = new URLSearchParams({
-            format: "jsonv2",
-            lat: String(lat),
-            lon: String(lng),
-            zoom: "18",
-            "accept-language": preferredLanguagesHeader(),
-        });
-
-        const response = await window.fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
-            headers: {
-                Accept: "application/json",
-            },
-        });
-
-        if (!response.ok) {
+        try {
+            const response = await api.get<{ result: PlaceSuggestion | null }>(
+                `/geo/reverse?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}&lang=${encodeURIComponent(preferredLanguagesHeader())}`,
+            );
+            return response.result;
+        } catch {
             return null;
         }
-
-        const data = (await response.json()) as { display_name?: string; name?: string; address?: NominatimAddress };
-        const details = firstNonEmptyString(buildAddressFromNominatim(data.address), data.display_name);
-        const label = firstNonEmptyString(
-            data.name,
-            data.address?.road,
-            data.address?.neighbourhood,
-            data.address?.suburb,
-            details ? compactPlaceLabel(details) : null,
-            "Punto selezionato",
-        );
-
-        if (!label) {
-            return null;
-        }
-
-        return {
-            id: `reverse:${lat}:${lng}`,
-            label,
-            details: details ?? label,
-            lat,
-            lng,
-        };
     }
 
     useEffect(() => {
@@ -548,67 +455,30 @@ export function MapPage() {
         placeSuggestionsRequestRef.current = requestId;
         const timeoutId = window.setTimeout(() => {
             setSuggestionsLoading(true);
-            const params = new URLSearchParams({
-                q: trimmedQuery,
-                format: "jsonv2",
-                addressdetails: "1",
-                limit: searchResultsMode ? "20" : "8",
-                "accept-language": preferredLanguagesHeader(),
-            });
+            void (async () => {
+                const limit = searchResultsMode ? 20 : 8;
 
-            void window
-                .fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
-                    headers: {
-                        Accept: "application/json",
-                    },
-                })
-                .then(async response => {
-                    if (!response.ok || placeSuggestionsRequestRef.current !== requestId) {
+                try {
+                    const response = await api.get<{ results: PlaceSuggestion[] }>(
+                        `/geo/search?q=${encodeURIComponent(trimmedQuery)}&limit=${limit}&lang=${encodeURIComponent(preferredLanguagesHeader())}`,
+                    );
+
+                    if (placeSuggestionsRequestRef.current !== requestId) {
                         return;
                     }
 
-                    const data = (await response.json()) as Array<{
-                        lat: string;
-                        lon: string;
-                        display_name?: string;
-                        name?: string;
-                        place_id?: number;
-                        address?: NominatimAddress;
-                    }>;
-                    const mapped = data
-                        .map(item => {
-                            const lat = Number(item.lat);
-                            const lng = Number(item.lon);
-                            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-                                return null;
-                            }
-
-                            const fullAddress = firstNonEmptyString(buildAddressFromNominatim(item.address), item.display_name, trimmedQuery) ?? trimmedQuery;
-                            const label = firstNonEmptyString(item.name, compactPlaceLabel(fullAddress), compactPlaceLabel(item.display_name ?? ""), trimmedQuery) ?? trimmedQuery;
-
-                            return {
-                                id: String(item.place_id ?? `${lat}:${lng}`),
-                                label,
-                                details: fullAddress,
-                                lat,
-                                lng,
-                            } satisfies PlaceSuggestion;
-                        })
-                        .filter((item): item is PlaceSuggestion => item !== null);
-
-                    setPlaceSuggestions(mapped);
-                })
-                .catch(() => {
+                    setPlaceSuggestions(response.results ?? []);
+                } catch {
                     if (placeSuggestionsRequestRef.current === requestId) {
                         setPlaceSuggestions([]);
                     }
-                })
-                .finally(() => {
+                } finally {
                     if (placeSuggestionsRequestRef.current === requestId) {
                         setSuggestionsLoading(false);
                     }
-                });
-        }, 220);
+                }
+            })();
+        }, 340);
 
         return () => {
             window.clearTimeout(timeoutId);
