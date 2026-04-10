@@ -1,5 +1,6 @@
 import type { IconType } from "react-icons";
 import {
+    IoAppsOutline,
     IoBeerOutline,
     IoBasketOutline,
     IoCafeOutline,
@@ -57,4 +58,18 @@ export function getMarkerSymbol(iconKey?: string): string {
     }
 
     return markerSymbolMap[DEFAULT_ICON_KEY];
+}
+
+export function getActivityMarkerIcon(typeIconKeys: string[]): IconType {
+    const uniqueKnownKeys = [...new Set(typeIconKeys.filter(isKnownIconKey))];
+
+    if (uniqueKnownKeys.length === 1) {
+        return iconMap[uniqueKnownKeys[0]];
+    }
+
+    if (uniqueKnownKeys.length > 1) {
+        return IoAppsOutline;
+    }
+
+    return IoStorefrontOutline;
 }

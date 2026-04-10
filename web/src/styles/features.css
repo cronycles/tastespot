@@ -945,6 +945,12 @@
         box-shadow 120ms ease;
 }
 
+.map-marker svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
 .map-marker:hover {
     transform: scale(1.1);
 }

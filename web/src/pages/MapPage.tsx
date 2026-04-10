@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import maplibregl, { type MapGeoJSONFeature, type Marker } from "maplibre-gl";
 import { IoAdd, IoHeart, IoHeartOutline, IoLocateOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
+import { createRoot, type Root } from "react-dom/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
-import { getMarkerSymbol } from "@/lib/activityTypeIcons";
+import { getActivityMarkerIcon } from "@/lib/activityTypeIcons";
 import { api } from "@/lib/api";
 import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitiesStore";
 import { useLocationStore } from "@/stores/locationStore";
@@ -88,6 +89,7 @@ export function MapPage() {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const markersRef = useRef<Marker[]>([]);
+    const markerRootsRef = useRef<Root[]>([]);
     const placeMarkerRef = useRef<Marker | null>(null);
     const userMarkerRef = useRef<Marker | null>(null);
     const activityPopupRef = useRef<maplibregl.Popup | null>(null);
@@ -274,6 +276,8 @@ export function MapPage() {
 
         return () => {
             window.removeEventListener("resize", onResize);
+            markerRootsRef.current.forEach(root => root.unmount());
+            markerRootsRef.current = [];
             markersRef.current.forEach(marker => marker.remove());
             markersRef.current = [];
             placeMarkerRef.current?.remove();
@@ -412,6 +416,8 @@ export function MapPage() {
 
         markersRef.current.forEach(marker => marker.remove());
         markersRef.current = [];
+        markerRootsRef.current.forEach(root => root.unmount());
+        markerRootsRef.current = [];
 
         visibleActivities.forEach(entry => {
             if (entry.lat == null || entry.lng == null) {
@@ -421,11 +427,17 @@ export function MapPage() {
             const markerEl = document.createElement("button");
             markerEl.type = "button";
             markerEl.className = `map-marker${effectiveSelectedActivityId === entry.id ? " active" : ""}`;
-            const firstTypeIconKey = entry.type_ids.map(typeId => typeIconKeyById.get(typeId)).find(iconKey => typeof iconKey === "string");
-            markerEl.textContent = getMarkerSymbol(firstTypeIconKey);
+            const typeIconKeys = entry.type_ids.map(typeId => typeIconKeyById.get(typeId)).filter((iconKey): iconKey is string => typeof iconKey === "string");
+            const MarkerIcon = getActivityMarkerIcon(typeIconKeys);
+            const markerIconSlot = document.createElement("span");
+            markerEl.appendChild(markerIconSlot);
+            const markerRoot = createRoot(markerIconSlot);
+            markerRoot.render(<MarkerIcon />);
+            markerRootsRef.current.push(markerRoot);
             markerEl.title = entry.name;
             markerEl.setAttribute("aria-label", `Apri ${entry.name}`);
-            markerEl.onclick = () => {
+            markerEl.onclick = e => {
+                e.stopPropagation();
                 setSelectedActivityId(entry.id);
                 setSelectedPlace(null);
                 placeMarkerRef.current?.remove();
@@ -587,6 +599,7 @@ export function MapPage() {
                             setSearchResultsMode(false);
                             setShowSuggestions(true);
                         }}
+                        onBlur={() => setShowSuggestions(false)}
                         onKeyDown={handleSearchInputKeyDown}
                         autoComplete="off"
                         autoCorrect="off"
