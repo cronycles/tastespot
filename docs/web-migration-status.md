@@ -53,6 +53,13 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Fase 10 completata lato codice: redesign UI mobile-like con palette arancio, superfici solide, app shell aggiornata e MapPage fullscreen.
 - Fase 10d completata: restyling liste/dettaglio/form (header liste con filtri, dettaglio attivita' flat con action row a icone, pulizia profilo e tipologie).
 - Verifica tecnica Fase 10 completata: `cd web && npm run build` OK.
+- Fase 11 avanzata: pagina sicurezza account dedicata con cambio password e route `profile/security`.
+- Navigazione back resa coerente: header back su route non-tab e fix `AppLayout` per mostrare header anche su sotto-route (es. `/profile/security`).
+- Search mappa ridisegnata in stile mobile-first: sheet bianco risultati, lista risultati con nome + dettaglio indirizzo, primo item query con icona lente.
+- Submit ricerca aggiornato: invio apre lista risultati; apertura mappa solo al click su POI.
+- Geocoding web spostato dietro API backend (`/geo/search`, `/geo/reverse`) per evitare CORS browser e ridurre errori da rate limit.
+- Nuovo proxy geocoding backend con cache, fallback query e fallback provider (Photon) in caso di risposta vuota o 429 da Nominatim.
+- Ottimizzazioni performance ricerca: debounce frontend ridotto a 220ms, soglia minima ricerca impostata a 3 caratteri, timeout upstream ridotti lato backend.
 - Workflow separati: quality check web su `develop/main` e deploy produzione vincolato a `main`.
 - `backend/public/.htaccess` aggiornato per supportare SPA + API sullo stesso dominio.
 - Script root aggiunti: `local:web` e `local:start:web`.
@@ -79,13 +86,13 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - Branch di lavoro: `develop`
 - Commit checkpoint: working tree locale non ancora committato
 - Commit message: n/a
-- Stato worktree al checkpoint: avanzamento Fase 11 su change password, prefill POI e gallery fullscreen
+- Stato worktree al checkpoint: Fase 11 completata lato codice su 11a-11c + hardening search mappa/geocoding; resta test E2E su device reale (11d)
 
 ## Next recommended phase
 
 - Prossima fase consigliata: **Fase 11 — Feature Gap Fix**
-- Obiettivo: completare i requisiti funzionali mancanti (change password, verifica prefill POI, gallery landscape, E2E mobile).
-- Stato attuale Fase 11: 11a-11c implementate lato codice; resta da eseguire 11d test E2E su dispositivo mobile reale.
+- Obiettivo: chiudere formalmente la fase con validazione su dispositivo reale e consolidare il comportamento mappa in ambiente mobile.
+- Stato attuale Fase 11: 11a-11c implementate lato codice e verificate build/lint; 11d (E2E mobile reale) ancora da eseguire.
 - Dettaglio: vedi `docs/web-roadmap-v2.md`
 
 ## Key files already touched
@@ -99,6 +106,10 @@ Quando si riprende il lavoro, leggere prima questo documento e poi `docs/web-roa
 - `web/src/stores/activitiesStore.ts`
 - `web/src/components/ActivitiesListPanel.tsx`
 - `web/src/pages/MapPage.tsx`
+- `web/src/pages/SecurityPage.tsx`
+- `web/src/components/AppLayout.tsx`
+- `backend/app/Http/Controllers/Api/GeoController.php`
+- `backend/routes/api.php`
 - `web/src/pages/FavoritesPage.tsx`
 - `web/src/pages/ActivityFormPage.tsx`
 - `web/src/pages/ActivityAddPage.tsx`

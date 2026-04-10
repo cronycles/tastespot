@@ -1,8 +1,8 @@
 # TasteSpot Web — Roadmap v2
 
 **Data**: Aprile 2026  
-**Stato attuale**: Fasi 0-10 completate su `develop`  
-**Prossima fase**: 11 — Feature Gap Fix  
+**Stato attuale**: Fasi 0-10 completate, Fase 11 quasi chiusa (manca solo E2E reale) su `develop`  
+**Prossima fase**: completare 11d E2E, poi Fase 12 — i18n  
 **Priorità**: Mobile-first. Desktop responsive secondario.
 
 ---
@@ -166,6 +166,17 @@ Stato: implementato lato codice.
 
 Stato: da eseguire su device reale.
 
+**11e — Search Map UX + Geocoding Hardening** (completata)
+
+- Search suggestions ridisegnate in sheet full-width mobile con primo risultato query esplicita.
+- Invio in searchbar: apre lista risultati; la mappa viene centrata solo scegliendo un POI.
+- Risultati arricchiti con indirizzo completo (non solo via) per distinguere POI con stesso nome.
+- Geocoding spostato da chiamate browser dirette verso proxy backend (`/api/v1/geo/search`, `/api/v1/geo/reverse`).
+- Proxy backend con cache, fallback query e fallback provider in caso di 429/vuoto da Nominatim.
+- Debounce ricerca mappa ottimizzato e soglia minima ricerca impostata a 3 caratteri.
+
+Stato: implementato e verificato con build/lint.
+
 ---
 
 ## Fase 12 — i18n (post-11)
@@ -237,7 +248,7 @@ Strategia:
 ## Checkpoint Corrente
 
 - **Branch**: develop
-- **Commit base**: `d07129d`
-- **Da fare**: Fase 11 → 12 → 13
+- **Commit base**: working tree locale non ancora committato
+- **Da fare**: Fase 11d E2E reale → Fase 12
 - **Produzione**: https://tastespot.crointhemorning.com
 - **Dev locale**: `npm run start` dalla root

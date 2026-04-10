@@ -41,6 +41,7 @@ cd web && npm run start       # solo web app Vite su http://127.0.0.1:8000
 - **React Router** — routing SPA
 - **Zustand** — riuso della logica di stato lato web
 - **MapLibre GL JS** — mappa web attiva
+- **Geocoding web via backend proxy** — endpoint `GET /api/v1/geo/search` e `GET /api/v1/geo/reverse` (cache + fallback provider)
 - **Build output** — `web/dist/`, destinato a essere pubblicato nella root web del dominio
 
 ### Backend — `backend/`
