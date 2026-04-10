@@ -87,14 +87,19 @@ export function TypesPage() {
     return (
         <>
             <section className="page-card types-page">
-                <div className="panel-title-row">
-                    <h1>Tipologie attivita'</h1>
-                    <Button onClick={openCreate}>
-                        <span className="types-add-button">
-                            <IoAdd />
-                            Nuova tipologia
-                        </span>
-                    </Button>
+                <div className="types-hero-card">
+                    <div className="panel-title-row">
+                        <div className="content-stack">
+                            <p className="eyebrow">Catalogo</p>
+                            <h1>Tipologie attivita'</h1>
+                        </div>
+                        <Button onClick={openCreate}>
+                            <span className="types-add-button">
+                                <IoAdd />
+                                Nuova tipologia
+                            </span>
+                        </Button>
+                    </div>
                 </div>
 
                 {loading && sortedTypes.length === 0 ? (

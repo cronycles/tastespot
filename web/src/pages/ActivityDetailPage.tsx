@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { IoChevronBackOutline, IoChevronForwardOutline, IoCloseOutline } from "react-icons/io5";
 import { IoCreateOutline, IoHeart, IoHeartOutline, IoTrashOutline } from "react-icons/io5";
+import { IoCallOutline, IoNavigateOutline, IoPricetagOutline, IoReaderOutline } from "react-icons/io5";
 import imageCompression from "browser-image-compression";
 import { Button } from "@/components/Button";
 import { SMILE_VALUES } from "@/config/scoring";
@@ -91,6 +92,13 @@ export function ActivityDetailPage() {
     const categoryAvgs = calcCategoryAvgs(reviews);
     const activePhoto = galleryIndex === null ? null : (activity.photos[galleryIndex] ?? null);
     const activePhotoNumber = galleryIndex === null ? null : galleryIndex + 1;
+    const heroPhoto = activity.photos[0] ?? null;
+    const hasPhone = Boolean(activity.phone?.trim());
+    const directionsUrl = activity.address?.trim()
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.address)}`
+        : activity.lat != null && activity.lng != null
+          ? `https://www.google.com/maps/search/?api=1&query=${activity.lat},${activity.lng}`
+          : null;
 
     async function handleDelete(): Promise<void> {
         const current = activity;
@@ -208,143 +216,181 @@ export function ActivityDetailPage() {
         setGalleryIndex((galleryIndex + 1) % totalPhotos);
     }
 
+    function handleOpenDirections(): void {
+        if (!directionsUrl) {
+            return;
+        }
+
+        window.open(directionsUrl, "_blank", "noopener,noreferrer");
+    }
+
+    function handleCall(): void {
+        const current = activity;
+        if (!current) {
+            return;
+        }
+
+        const phone = current.phone?.trim();
+        if (!phone) {
+            return;
+        }
+
+        window.location.href = `tel:${phone}`;
+    }
+
     return (
         <section className="page-card activity-detail-page">
-            <div className="activity-detail-hero">
-                <div className="content-stack">
-                    <h1>{activity.name}</h1>
-                    {activity.address ? <p className="muted">{activity.address}</p> : null}
+            <div className={`activity-detail-hero-v2${heroPhoto ? "" : " no-photo"}`} style={heroPhoto ? { backgroundImage: `url(${heroPhoto.storage_path})` } : undefined}>
+                <div className="activity-detail-hero-scrim" />
+                <div className="activity-detail-hero-top">
+                    {totalPhotos > 0 ? (
+                        <button type="button" className="activity-hero-photo-count" onClick={() => openGallery(0)}>
+                            Foto {totalPhotos}
+                        </button>
+                    ) : null}
                 </div>
-                <div className="activity-detail-actions">
-                    <button type="button" className="detail-action-button" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
-                        <IoCreateOutline />
-                        <span>Modifica</span>
-                    </button>
-                    <button type="button" className="detail-action-button" onClick={() => void toggleFavorite(activity.id)}>
+
+                <div className="activity-detail-hero-content">
+                    <h1>{activity.name}</h1>
+                    {activity.address ? <p>{activity.address}</p> : null}
+                </div>
+            </div>
+
+            <div className="activity-detail-sheet">
+                <div className="activity-detail-quick-actions">
+                    <button type="button" className="activity-quick-action" onClick={() => void toggleFavorite(activity.id)}>
                         {activity.is_favorite ? <IoHeart /> : <IoHeartOutline />}
                         <span>{activity.is_favorite ? "Preferito" : "Preferiti"}</span>
                     </button>
-                    <button type="button" className="detail-action-button danger" onClick={() => void handleDelete()}>
-                        <IoTrashOutline />
-                        <span>Elimina</span>
+                    <button type="button" className="activity-quick-action" onClick={() => navigate(`/activity/${activity.id}/edit`)}>
+                        <IoCreateOutline />
+                        <span>Modifica</span>
+                    </button>
+                    <button type="button" className="activity-quick-action" onClick={handleOpenDirections} disabled={!directionsUrl}>
+                        <IoNavigateOutline />
+                        <span>Indicazioni</span>
+                    </button>
+                    <button type="button" className="activity-quick-action" onClick={handleCall} disabled={!hasPhone}>
+                        <IoCallOutline />
+                        <span>Chiama</span>
                     </button>
                 </div>
-            </div>
 
-            <div className="content-stack activity-detail-section">
-                <h3>Dettagli</h3>
-                {activity.phone ? <p>Telefono: {activity.phone}</p> : null}
-                {activity.lat != null && activity.lng != null ? (
-                    <p>
-                        Coordinate: {activity.lat.toFixed(5)}, {activity.lng.toFixed(5)}
-                    </p>
-                ) : null}
-                {activity.notes ? <p className="muted">{activity.notes}</p> : null}
-            </div>
-
-            <div className="content-stack activity-detail-section">
-                <h3>Tipologie</h3>
-                <div className="activities-meta-row">
-                    {activity.type_ids.map(typeId => (
-                        <span className="tag-pill" key={typeId}>
-                            {typeNamesById.get(typeId) ?? "Tipo"}
-                        </span>
-                    ))}
-                </div>
-            </div>
-
-            <div className="content-stack activity-detail-section">
-                <h3>Tag</h3>
-                {activity.tags.length === 0 ? (
-                    <p className="muted">Nessun tag</p>
-                ) : (
+                <div className="content-stack activity-detail-section">
+                    <h3>Tipologie</h3>
                     <div className="activities-meta-row">
-                        {activity.tags.map(tag => (
-                            <span className="tag-pill" key={tag}>
-                                #{tag}
+                        {activity.type_ids.map(typeId => (
+                            <span className="tag-pill" key={typeId}>
+                                {typeNamesById.get(typeId) ?? "Tipo"}
                             </span>
                         ))}
                     </div>
-                )}
-            </div>
 
-            <div className="content-stack activity-detail-section">
-                <h3>Punteggi medi</h3>
-                {averageScore === null ? (
-                    <p className="muted">Nessuna recensione ancora presente</p>
-                ) : (
-                    <div className="metric-row">
-                        <div className="metric-card">
-                            <span className="muted">Media generale</span>
-                            <span className="metric-value">{averageScore.toFixed(1)}/10</span>
-                        </div>
-                        <div className="metric-card">
-                            <span className="muted">Location</span>
-                            <span className="metric-value">{formatScore(categoryAvgs.location)}</span>
-                        </div>
-                        <div className="metric-card">
-                            <span className="muted">Cibo</span>
-                            <span className="metric-value">{formatScore(categoryAvgs.food)}</span>
-                        </div>
-                        <div className="metric-card">
-                            <span className="muted">Servizio</span>
-                            <span className="metric-value">{formatScore(categoryAvgs.service)}</span>
-                        </div>
-                        <div className="metric-card">
-                            <span className="muted">Conto</span>
-                            <span className="metric-value">{formatScore(categoryAvgs.price)}</span>
-                        </div>
+                    <div className="activity-inline-meta-row">
+                        <IoPricetagOutline />
+                        <span>{activity.tags.length === 0 ? "Nessun tag" : activity.tags.map(tag => `#${tag}`).join(" ")}</span>
                     </div>
-                )}
-            </div>
 
-            <div className="content-stack activity-detail-section">
-                <h3>Recensioni per tipologia</h3>
-                {reviewsLoading ? <p className="muted">Caricamento recensioni...</p> : null}
-                {reviewsError ? <div className="status-banner error">{reviewsError}</div> : null}
-                <div className="reviews-grid">
-                    {activity.type_ids.map(typeId => {
-                        const existingReview = getForType(activity.id, typeId);
-                        return (
-                            <ReviewEditorCard
-                                key={`${typeId}-${existingReview?.id ?? "new"}-${existingReview?.updated_at ?? "0"}`}
-                                activityTypeId={typeId}
-                                typeName={typeNamesById.get(typeId) ?? "Tipologia"}
-                                existing={existingReview}
-                                saving={savingTypeId === typeId}
-                                onSave={payload => void handleReviewSave(typeId, payload)}
-                            />
-                        );
-                    })}
+                    <div className="activity-inline-meta-row">
+                        <IoReaderOutline />
+                        <span>{activity.notes?.trim() ? activity.notes : "Nessuna nota"}</span>
+                    </div>
+
+                    {activity.phone ? <p className="muted">Telefono: {activity.phone}</p> : null}
                 </div>
-            </div>
 
-            <div className="content-stack activity-detail-section">
-                <h3>Foto</h3>
-                <div className="inline-actions">
-                    <label className="activity-upload-label">
-                        <input type="file" accept="image/*" onChange={event => void handlePhotoUpload(event)} disabled={uploadingPhoto} />
-                        {uploadingPhoto ? "Upload in corso..." : "Carica foto"}
-                    </label>
-                </div>
-                {photosError ? <div className="status-banner error">{photosError}</div> : null}
-
-                {activity.photos.length === 0 ? (
-                    <p className="muted">Nessuna foto caricata</p>
-                ) : (
-                    <div className="activity-photo-grid">
-                        {activity.photos.map((photo, index) => (
-                            <div className="activity-photo-card" key={photo.id}>
-                                <button type="button" className="activity-photo-preview" onClick={() => openGallery(index)} aria-label={`Apri foto ${index + 1} di ${totalPhotos}`}>
-                                    <img src={photo.storage_path} alt={`Foto ${index + 1} di ${activity.name}`} />
-                                </button>
-                                <button type="button" className="activity-photo-delete" onClick={() => void handlePhotoDelete(photo.id)}>
-                                    Elimina
-                                </button>
+                <div className="content-stack activity-detail-section">
+                    <h3>Punteggi medi</h3>
+                    {averageScore === null ? (
+                        <p className="muted">Nessuna recensione ancora presente</p>
+                    ) : (
+                        <div className="metric-row">
+                            <div className="metric-card">
+                                <span className="muted">Media generale</span>
+                                <span className="metric-value">{averageScore.toFixed(1)}/10</span>
                             </div>
-                        ))}
+                            <div className="metric-card">
+                                <span className="muted">Location</span>
+                                <span className="metric-value">{formatScore(categoryAvgs.location)}</span>
+                            </div>
+                            <div className="metric-card">
+                                <span className="muted">Cibo</span>
+                                <span className="metric-value">{formatScore(categoryAvgs.food)}</span>
+                            </div>
+                            <div className="metric-card">
+                                <span className="muted">Servizio</span>
+                                <span className="metric-value">{formatScore(categoryAvgs.service)}</span>
+                            </div>
+                            <div className="metric-card">
+                                <span className="muted">Conto</span>
+                                <span className="metric-value">{formatScore(categoryAvgs.price)}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="content-stack activity-detail-section">
+                    <h3>Recensioni per tipologia</h3>
+                    {reviewsLoading ? <p className="muted">Caricamento recensioni...</p> : null}
+                    {reviewsError ? <div className="status-banner error">{reviewsError}</div> : null}
+                    <div className="reviews-grid">
+                        {activity.type_ids.map(typeId => {
+                            const existingReview = getForType(activity.id, typeId);
+                            return (
+                                <ReviewEditorCard
+                                    key={`${typeId}-${existingReview?.id ?? "new"}-${existingReview?.updated_at ?? "0"}`}
+                                    activityTypeId={typeId}
+                                    typeName={typeNamesById.get(typeId) ?? "Tipologia"}
+                                    existing={existingReview}
+                                    saving={savingTypeId === typeId}
+                                    onSave={payload => void handleReviewSave(typeId, payload)}
+                                />
+                            );
+                        })}
                     </div>
-                )}
+                </div>
+
+                <div className="content-stack activity-detail-section">
+                    <h3>Foto</h3>
+                    <div className="inline-actions">
+                        <label className="activity-upload-label">
+                            <input type="file" accept="image/*" onChange={event => void handlePhotoUpload(event)} disabled={uploadingPhoto} />
+                            {uploadingPhoto ? "Upload in corso..." : "Carica foto"}
+                        </label>
+                    </div>
+                    {photosError ? <div className="status-banner error">{photosError}</div> : null}
+
+                    {activity.photos.length === 0 ? (
+                        <p className="muted">Nessuna foto caricata</p>
+                    ) : (
+                        <div className="activity-photo-grid">
+                            {activity.photos.map((photo, index) => (
+                                <div className="activity-photo-card" key={photo.id}>
+                                    <button
+                                        type="button"
+                                        className="activity-photo-preview"
+                                        onClick={() => openGallery(index)}
+                                        aria-label={`Apri foto ${index + 1} di ${totalPhotos}`}
+                                    >
+                                        <img src={photo.storage_path} alt={`Foto ${index + 1} di ${activity.name}`} />
+                                    </button>
+                                    <button type="button" className="activity-photo-delete" onClick={() => void handlePhotoDelete(photo.id)}>
+                                        Elimina
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <Button type="button" variant="danger" onClick={() => void handleDelete()}>
+                    <IoTrashOutline /> Elimina attività
+                </Button>
+                {activity.lat != null && activity.lng != null ? (
+                    <p className="muted">
+                        Coordinate: {activity.lat.toFixed(5)}, {activity.lng.toFixed(5)}
+                    </p>
+                ) : null}
             </div>
 
             {activePhoto ? (

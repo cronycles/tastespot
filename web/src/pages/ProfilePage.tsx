@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { IoGridOutline, IoLogOutOutline, IoPersonCircleOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
 import { Button } from "@/components/Button";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -16,8 +17,15 @@ export function ProfilePage() {
 
     return (
         <section className="profile-card profile-page">
-            <div className="content-stack">
+            <div className="content-stack profile-hero-card">
+                <p className="eyebrow">Area privata</p>
                 <h1>Profilo</h1>
+                {user ? (
+                    <div className="profile-hero-meta">
+                        <IoPersonCircleOutline />
+                        <span>{user.email}</span>
+                    </div>
+                ) : null}
             </div>
 
             {user ? (
@@ -45,17 +53,24 @@ export function ProfilePage() {
             ) : null}
 
             <div className="profile-actions">
-                <Link className="surface-item" to="/private/types">
+                <Link className="surface-item profile-action-link" to="/private/types">
+                    <span className="profile-action-icon">
+                        <IoGridOutline />
+                    </span>
                     <strong>Tipologie attività</strong>
                     <span className="muted">Gestisci e riordina le tipologie.</span>
                 </Link>
-                <Link className="surface-item" to="/profile/security">
+                <Link className="surface-item profile-action-link" to="/profile/security">
+                    <span className="profile-action-icon">
+                        <IoShieldCheckmarkOutline />
+                    </span>
                     <strong>Sicurezza account</strong>
                     <span className="muted">Aggiorna la password del tuo account.</span>
                 </Link>
             </div>
 
-            <Button variant="danger" onClick={handleLogout}>
+            <Button variant="danger" className="profile-logout-button" onClick={handleLogout}>
+                <IoLogOutOutline />
                 Esci
             </Button>
         </section>

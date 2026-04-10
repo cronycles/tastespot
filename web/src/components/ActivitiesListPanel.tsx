@@ -217,7 +217,7 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
             {visible.length > 0 ? (
                 <div className="list activities-panel-list">
                     {visible.map(entry => (
-                        <div className="surface-item activities-item" key={entry.id} onClick={() => navigate(`/activity/${entry.id}`)} style={{ cursor: "pointer" }}>
+                        <div className="surface-item activities-item" key={entry.id} onClick={() => navigate(`/activity/${entry.id}`)}>
                             <div className="activities-item-main">
                                 <div className="activities-item-header">
                                     <span className="activities-name-link">{entry.name}</span>

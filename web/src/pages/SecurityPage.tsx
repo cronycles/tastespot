@@ -105,7 +105,8 @@ export function SecurityPage() {
 
     return (
         <section className="profile-card profile-page">
-            <div className="content-stack">
+            <div className="content-stack security-hero-card">
+                <p className="eyebrow">Privacy e accesso</p>
                 <h1>Sicurezza account</h1>
                 <p className="muted">Aggiorna la password del tuo account.</p>
             </div>
