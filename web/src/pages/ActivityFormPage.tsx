@@ -205,6 +205,12 @@ export function ActivityFormPage({ mode, activity }: Props) {
 
                 <div className="content-stack">
                     <h3>Tipologie *</h3>
+                    <div className="inline-actions">
+                        <Button type="button" variant="secondary" onClick={() => navigate("/private/types")}>
+                            {types.length === 0 ? "Crea tipologie" : "Gestisci tipologie"}
+                        </Button>
+                    </div>
+                    {types.length === 0 ? <p className="muted">Nessuna tipologia disponibile. Creane almeno una per continuare.</p> : null}
                     <div className="activities-chip-row">
                         {types.map(type => (
                             <button

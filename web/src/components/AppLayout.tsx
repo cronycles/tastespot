@@ -13,9 +13,7 @@ const TAB_PATHS = ["/favorites", "/nearby", "/profile"];
 export function AppLayout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const isTabRoute =
-        location.pathname === "/" ||
-        TAB_PATHS.some(path => location.pathname === path || location.pathname.startsWith(path + "/"));
+    const isTabRoute = location.pathname === "/" || TAB_PATHS.some(path => location.pathname === path);
     const isMapRoute = location.pathname === "/";
 
     return (

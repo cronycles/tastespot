@@ -9,6 +9,7 @@ import { MapPage } from "@/pages/MapPage";
 import { FavoritesPage } from "@/pages/FavoritesPage";
 import { NearbyPage } from "@/pages/NearbyPage";
 import { ProfilePage } from "@/pages/ProfilePage";
+import { SecurityPage } from "@/pages/SecurityPage";
 import { TypesPage } from "@/pages/TypesPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { ActivityAddPage } from "@/pages/ActivityAddPage";
@@ -71,6 +72,7 @@ function App() {
                     <Route path="favorites" element={<FavoritesPage />} />
                     <Route path="nearby" element={<NearbyPage />} />
                     <Route path="profile" element={<ProfilePage />} />
+                    <Route path="profile/security" element={<SecurityPage />} />
                     <Route path="private/types" element={<TypesPage />} />
                     <Route path="activity/add" element={<ActivityAddPage />} />
                     <Route path="activity/:id" element={<ActivityDetailPage />} />
