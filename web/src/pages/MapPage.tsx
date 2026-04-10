@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import maplibregl, { type MapGeoJSONFeature, type Marker } from "maplibre-gl";
-import { IoAdd, IoHeart, IoHeartOutline, IoLocateOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
+import { IoAdd, IoClose, IoHeart, IoHeartOutline, IoLocateOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
 import { createRoot, type Root } from "react-dom/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
@@ -730,6 +730,18 @@ export function MapPage() {
 
             {selectedPlace ? (
                 <div className="map-bottom-card">
+                    <button
+                        type="button"
+                        className="map-bottom-card-close"
+                        aria-label="Chiudi"
+                        onClick={() => {
+                            setSelectedPlace(null);
+                            placeMarkerRef.current?.remove();
+                            placeMarkerRef.current = null;
+                        }}
+                    >
+                        <IoClose />
+                    </button>
                     <h3>{selectedPlace.label}</h3>
                     {selectedPlace.details && selectedPlace.details !== selectedPlace.label ? <p className="muted">{selectedPlace.details}</p> : null}
                     <Button type="button" onClick={() => void handleAddAtSelectedPlace()}>

@@ -1322,6 +1322,31 @@
     gap: 10px;
 }
 
+.map-bottom-card-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    border-radius: var(--radius-full);
+    color: var(--color-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition:
+        background 0.15s,
+        color 0.15s;
+}
+
+.map-bottom-card-close:hover {
+    background: var(--color-muted-bg);
+    color: var(--color-text);
+}
+
 .map-bottom-card h3 {
     font-size: 0.96rem;
     margin: 0;
