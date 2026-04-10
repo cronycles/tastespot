@@ -217,13 +217,19 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
             {visible.length > 0 ? (
                 <div className="list activities-panel-list">
                     {visible.map(entry => (
-                        <div className="surface-item activities-item" key={entry.id}>
+                        <div className="surface-item activities-item" key={entry.id} onClick={() => navigate(`/activity/${entry.id}`)} style={{ cursor: "pointer" }}>
                             <div className="activities-item-main">
                                 <div className="activities-item-header">
-                                    <button type="button" className="activities-name-link" onClick={() => navigate(`/activity/${entry.id}`)}>
-                                        {entry.name}
-                                    </button>
-                                    <button type="button" className="activities-favorite-button" onClick={() => void toggleFavorite(entry.id)} aria-label="Toggle preferito">
+                                    <span className="activities-name-link">{entry.name}</span>
+                                    <button
+                                        type="button"
+                                        className="activities-favorite-button"
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            void toggleFavorite(entry.id);
+                                        }}
+                                        aria-label="Toggle preferito"
+                                    >
                                         {entry.is_favorite ? <IoHeart /> : <IoHeartOutline />}
                                     </button>
                                 </div>
