@@ -1905,10 +1905,6 @@
 }
 
 /* No-card redesign: keep cards only for activity list items */
-.profile-hero-card,
-.security-hero-card,
-.types-hero-card,
-.review-hero-card,
 .form-page .content-stack,
 .form-page .activity-form > .field,
 .form-page .activity-form > .activity-coords-grid,
@@ -1919,11 +1915,10 @@
 .types-page > .empty-state,
 .types-page > .list,
 .types-editor,
-.profile-page > .content-stack,
+.profile-page > .content-stack:not(.profile-hero-card):not(.security-hero-card),
 .profile-page > .metric-row,
 .profile-page > .status-banner,
 .profile-page > .profile-actions,
-.profile-page > .button,
 .profile-page > .profile-security-form,
 .activity-detail-section,
 .review-card,
@@ -1949,11 +1944,10 @@
 .types-page > .empty-state,
 .types-page > .list,
 .types-editor,
-.profile-page > .content-stack,
+.profile-page > .content-stack:not(.profile-hero-card):not(.security-hero-card),
 .profile-page > .metric-row,
 .profile-page > .status-banner,
 .profile-page > .profile-actions,
-.profile-page > .button,
 .profile-page > .profile-security-form,
 .activity-detail-section,
 .review-card,
@@ -2022,13 +2016,17 @@
     transform: translateY(-2px);
 }
 
-.profile-action-link,
 .types-item {
     padding: 12px 0;
 }
 
+.profile-action-link {
+    padding: 12px 0 12px 50px;
+}
+
 .profile-action-icon {
-    background: transparent;
+    background: var(--color-accent-soft);
+    color: var(--color-primary-dark);
 }
 
 .map-bottom-card {
