@@ -8,6 +8,7 @@ import { useLocationStore } from "@/stores/locationStore";
 import { useTypesStore } from "@/stores/typesStore";
 
 const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+let lastMapView: { center: [number, number]; zoom: number } | null = null;
 
 function normalizeText(value: string): string {
     return value
@@ -30,6 +31,31 @@ type PlaceSuggestion = {
 };
 
 type SearchSuggestion = { kind: "activity"; id: string; label: string; activity: ActivityWithDetails } | { kind: "place"; id: string; label: string; place: PlaceSuggestion };
+
+type NominatimAddress = {
+    house_number?: string;
+    road?: string;
+    pedestrian?: string;
+    cycleway?: string;
+    footway?: string;
+    path?: string;
+    residential?: string;
+    neighbourhood?: string;
+    suburb?: string;
+    city_district?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    hamlet?: string;
+    municipality?: string;
+    county?: string;
+    state_district?: string;
+    state?: string;
+    region?: string;
+    province?: string;
+    postcode?: string;
+    country?: string;
+};
 
 function compactPlaceLabel(value: string): string {
     const parts = value
@@ -59,6 +85,35 @@ function firstNonEmptyString(...values: Array<unknown>): string | null {
     }
 
     return null;
+}
+
+function preferredLanguagesHeader(): string {
+    const langs = Array.isArray(navigator.languages) ? navigator.languages.filter(Boolean) : [];
+    if (langs.length > 0) {
+        return langs.join(",");
+    }
+
+    return navigator.language || "en";
+}
+
+function buildAddressFromNominatim(address?: NominatimAddress): string | null {
+    if (!address) {
+        return null;
+    }
+
+    const street = firstNonEmptyString(address.road, address.pedestrian, address.cycleway, address.footway, address.path, address.residential);
+    const number = firstNonEmptyString(address.house_number);
+    const streetLine = [street, number].filter(Boolean).join(" ");
+
+    const district = firstNonEmptyString(address.neighbourhood, address.suburb, address.city_district);
+    const locality = firstNonEmptyString(address.city, address.town, address.village, address.hamlet, address.municipality);
+    const region = firstNonEmptyString(address.county, address.state_district, address.state, address.region, address.province);
+    const postcode = firstNonEmptyString(address.postcode);
+    const country = firstNonEmptyString(address.country);
+
+    const details = [streetLine, district, locality, region, postcode, country].filter(part => typeof part === "string" && part.length > 0).join(", ");
+
+    return details || null;
 }
 
 function placeFromMapFeature(feature: MapGeoJSONFeature, lat: number, lng: number): PlaceSuggestion | null {
@@ -92,6 +147,7 @@ export function MapPage() {
     const navigate = useNavigate();
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
+    const skipInitialCoordsFlyRef = useRef(true);
     const markersRef = useRef<Marker[]>([]);
     const placeMarkerRef = useRef<Marker | null>(null);
     const userMarkerRef = useRef<Marker | null>(null);
@@ -100,6 +156,7 @@ export function MapPage() {
     const { activities, fetch } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
     const { coords, hasPermission, requestAndFetch } = useLocationStore();
+    const initialCoordsRef = useRef(coords);
 
     const [query, setQuery] = useState("");
     const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
@@ -137,13 +194,29 @@ export function MapPage() {
         setSelectedPlace(place);
     }
 
+    async function withResolvedAddress(place: PlaceSuggestion): Promise<PlaceSuggestion> {
+        if (place.details && place.details !== place.label) {
+            return place;
+        }
+
+        const reverse = await reverseGeocodePlace(place.lat, place.lng);
+        if (!reverse || !reverse.details) {
+            return place;
+        }
+
+        return {
+            ...place,
+            details: reverse.details,
+        };
+    }
+
     async function reverseGeocodePlace(lat: number, lng: number): Promise<PlaceSuggestion | null> {
         const params = new URLSearchParams({
             format: "jsonv2",
             lat: String(lat),
             lon: String(lng),
             zoom: "18",
-            "accept-language": "it",
+            "accept-language": preferredLanguagesHeader(),
         });
 
         const response = await window.fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
@@ -156,9 +229,16 @@ export function MapPage() {
             return null;
         }
 
-        const data = (await response.json()) as { display_name?: string; name?: string };
-        const details = firstNonEmptyString(data.display_name);
-        const label = firstNonEmptyString(data.name, details ? compactPlaceLabel(details) : null, "Punto selezionato");
+        const data = (await response.json()) as { display_name?: string; name?: string; address?: NominatimAddress };
+        const details = firstNonEmptyString(buildAddressFromNominatim(data.address), data.display_name);
+        const label = firstNonEmptyString(
+            data.name,
+            data.address?.road,
+            data.address?.neighbourhood,
+            data.address?.suburb,
+            details ? compactPlaceLabel(details) : null,
+            "Punto selezionato",
+        );
 
         if (!label) {
             return null;
@@ -193,8 +273,8 @@ export function MapPage() {
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
             style: MAP_STYLE_URL,
-            center: [coords.lng, coords.lat],
-            zoom: 12,
+            center: lastMapView?.center ?? [initialCoordsRef.current.lng, initialCoordsRef.current.lat],
+            zoom: lastMapView?.zoom ?? 12,
             attributionControl: false,
         });
 
@@ -237,7 +317,17 @@ export function MapPage() {
             const poi = nearbyFeatures.map(feature => placeFromMapFeature(feature, event.lngLat.lat, event.lngLat.lng)).find((entry): entry is PlaceSuggestion => entry !== null);
 
             if (poi) {
-                centerOnExternalPlace(poi);
+                if (poi.details && poi.details !== poi.label) {
+                    centerOnExternalPlace(poi);
+                    return;
+                }
+
+                void reverseGeocodePlace(poi.lat, poi.lng).then(reverse => {
+                    centerOnExternalPlace({
+                        ...poi,
+                        details: reverse?.details ?? poi.details,
+                    });
+                });
                 return;
             }
 
@@ -274,13 +364,20 @@ export function MapPage() {
             activityPopupRef.current?.remove();
             activityPopupRef.current = null;
             map.off("click", onMapClick);
+            const center = map.getCenter();
+            lastMapView = { center: [center.lng, center.lat], zoom: map.getZoom() };
             map.remove();
             mapRef.current = null;
         };
-    }, [coords.lat, coords.lng]);
+    }, []);
 
     useEffect(() => {
         if (!mapRef.current) {
+            return;
+        }
+
+        if (skipInitialCoordsFlyRef.current) {
+            skipInitialCoordsFlyRef.current = false;
             return;
         }
 
@@ -437,8 +534,14 @@ export function MapPage() {
         });
     }, [effectiveSelectedActivityId, visibleActivities]);
 
-    function handleCenterOnUser(): void {
-        void requestAndFetch();
+    async function handleCenterOnUser(): Promise<void> {
+        await requestAndFetch();
+        const latest = useLocationStore.getState().coords;
+        mapRef.current?.flyTo({
+            center: [latest.lng, latest.lat],
+            zoom: 15,
+            duration: 800,
+        });
     }
 
     function handleSelectFromList(entry: ActivityWithDetails): void {
@@ -456,7 +559,7 @@ export function MapPage() {
             q: text,
             format: "jsonv2",
             limit: "1",
-            "accept-language": "it",
+            "accept-language": preferredLanguagesHeader(),
         });
         const response = await window.fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
             headers: {
@@ -504,7 +607,7 @@ export function MapPage() {
                 q: trimmedQuery,
                 format: "jsonv2",
                 limit: "5",
-                "accept-language": "it",
+                "accept-language": preferredLanguagesHeader(),
             });
 
             void window
@@ -599,7 +702,24 @@ export function MapPage() {
 
         setQuery(suggestion.label);
         setShowSuggestions(false);
-        centerOnExternalPlace(suggestion.place);
+        void withResolvedAddress(suggestion.place).then(enrichedPlace => {
+            centerOnExternalPlace(enrichedPlace);
+        });
+    }
+
+    async function handleAddAtSelectedPlace(): Promise<void> {
+        if (!selectedPlace) {
+            return;
+        }
+
+        const enriched = await withResolvedAddress(selectedPlace);
+        if (enriched.details !== selectedPlace.details) {
+            setSelectedPlace(enriched);
+        }
+
+        navigate(
+            `/activity/add?name=${encodeURIComponent(enriched.label)}&address=${encodeURIComponent(enriched.details !== enriched.label ? enriched.details : "")}&lat=${enriched.lat}&lng=${enriched.lng}`,
+        );
     }
 
     async function handleSearchSubmit(): Promise<void> {
@@ -706,7 +826,7 @@ export function MapPage() {
             <button
                 type="button"
                 className={`map-fab map-fab--locate${hasPermission ? " active" : ""}`}
-                onClick={handleCenterOnUser}
+                onClick={() => void handleCenterOnUser()}
                 title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
                 aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
             >
@@ -721,14 +841,7 @@ export function MapPage() {
                 <div className="map-bottom-card">
                     <h3>{selectedPlace.label}</h3>
                     {selectedPlace.details && selectedPlace.details !== selectedPlace.label ? <p className="muted">{selectedPlace.details}</p> : null}
-                    <Button
-                        type="button"
-                        onClick={() =>
-                            navigate(
-                                `/activity/add?name=${encodeURIComponent(selectedPlace.label)}&address=${encodeURIComponent(selectedPlace.details)}&lat=${selectedPlace.lat}&lng=${selectedPlace.lng}`,
-                            )
-                        }
-                    >
+                    <Button type="button" onClick={() => void handleAddAtSelectedPlace()}>
                         Aggiungi attività qui
                     </Button>
                 </div>
