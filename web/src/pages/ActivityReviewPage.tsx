@@ -28,9 +28,9 @@ type ReviewFormCardProps = {
 
 const SMILE_EMOJI: Record<number, string> = {
     1: "😞",
-    3.5: "😕",
-    6: "😐",
-    8: "🙂",
+    3: "😕",
+    5.5: "😐",
+    7.5: "🙂",
     10: "😝",
 };
 

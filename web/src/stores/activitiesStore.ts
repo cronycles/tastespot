@@ -42,6 +42,7 @@ type ActivitiesState = {
   update: (id: string, data: UpdateActivityData) => Promise<string | null>
   remove: (id: string) => Promise<string | null>
   toggleFavorite: (id: string) => Promise<void>
+  markViewed: (id: string) => Promise<void>
   addPhoto: (activityId: string, photo: ActivityPhoto) => void
   removePhoto: (activityId: string, photoId: string) => void
 }
@@ -154,6 +155,19 @@ export const useActivitiesStore = create<ActivitiesState>((set, get) => ({
           entry.id === id ? { ...entry, is_favorite: current.is_favorite } : entry
         ),
       })
+    }
+  },
+
+  markViewed: async (id) => {
+    try {
+      const response = await api.put<{ last_viewed_at: string }>(`/activities/${id}/viewed`)
+      set({
+        activities: get().activities.map((entry) =>
+          entry.id === id ? { ...entry, last_viewed_at: response.last_viewed_at } : entry
+        ),
+      })
+    } catch {
+      return
     }
   },
 

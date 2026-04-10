@@ -1,4 +1,4 @@
-export const SMILE_VALUES = [1, 3.5, 6, 8, 10] as const
+export const SMILE_VALUES = [1, 3, 5.5, 7.5, 10] as const
 
 export const CATEGORY_WEIGHTS = {
   location: 1,

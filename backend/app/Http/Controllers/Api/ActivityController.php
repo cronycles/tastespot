@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,6 +19,7 @@ class ActivityController extends Controller
             ->withExists([
                 'favorites as is_favorite' => fn($q) => $q->where('user_id', $userId),
             ])
+            ->withMax('reviews as latest_reviewed_at', 'updated_at')
             ->with([
                 'types:id',
                 'photos' => fn($q) => $q->orderBy('display_order'),
@@ -26,6 +28,8 @@ class ActivityController extends Controller
 
     private function formatActivity(Activity $activity): array
     {
+        $latestReviewedAt = $activity->latest_reviewed_at;
+
         return [
             'id'             => $activity->id,
             'user_id'        => (string) $activity->user_id,
@@ -37,6 +41,7 @@ class ActivityController extends Controller
             'notes'          => $activity->notes,
             'tags'           => $activity->tags ?? [],
             'last_viewed_at' => $activity->last_viewed_at?->toISOString(),
+            'latest_reviewed_at' => $latestReviewedAt ? Carbon::parse($latestReviewedAt)->toISOString() : null,
             'created_at'     => $activity->created_at->toISOString(),
             'updated_at'     => $activity->updated_at->toISOString(),
             'type_ids'       => $activity->types->pluck('id')->values()->toArray(),

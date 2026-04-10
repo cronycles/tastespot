@@ -47,4 +47,9 @@ class Activity extends Model
     {
         return $this->hasMany(Favorite::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

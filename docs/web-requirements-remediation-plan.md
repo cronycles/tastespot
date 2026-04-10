@@ -39,8 +39,9 @@ Prompt di resume consigliato:
 - Branch di lavoro: `develop`
 - Stato worktree: locale non ancora committato
 - Base implementata: auth, map, tipologie, lista, dettaglio, recensioni, profilo, sicurezza, deploy
-- Prossima fase consigliata: `Fase 1 — Allineamento Funzionale Critico`
-- Focus immediato: search Home, smile rating, ordinamenti core
+- Fase completata piu' recente: `Fase 1 — Allineamento Funzionale Critico`
+- Prossima fase consigliata: `Fase 2 — Filtri Lista Completi`
+- Focus immediato: multi-tipologia, range media, categorie voto con range
 
 ---
 
@@ -136,6 +137,8 @@ Bloccare definitivamente la baseline di lavoro per la web app, evitando che vecc
 
 ## Fase 1 — Allineamento Funzionale Critico
 
+**Stato**: completata il 10 aprile 2026
+
 ### Scope
 
 - correggere `SMILE_VALUES` ai valori del documento requisiti
@@ -162,6 +165,15 @@ Questi punti impattano direttamente il comportamento base del prodotto e falsano
 - i nuovi voti usano `1, 3, 5.5, 7.5, 10`
 - premendo Invio nella search della Home si raggiunge una lista filtrata
 - gli ordinamenti richiesti sono disponibili o dichiarati con fallback esplicito e coerente
+
+### Implementato
+
+- corretti i valori smile in `web/src/config/scoring.ts`
+- pagina risultati dedicata `\/activities` con query iniziale dalla Home map
+- submit della search Home collegato alla lista risultati filtrata
+- aggiunto ordinamento `Recensiti`
+- collegato `last_viewed_at` al dettaglio attivita' tramite endpoint backend esistente
+- esposto `latest_reviewed_at` nel payload attivita' per supportare l'ordinamento
 
 ## Fase 2 — Filtri Lista Completi
 

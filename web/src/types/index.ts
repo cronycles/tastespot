@@ -21,6 +21,7 @@ export type Activity = {
   created_at: string
   updated_at: string
   last_viewed_at: string | null
+  latest_reviewed_at: string | null
 }
 
 export type ActivityTypeAssignment = {

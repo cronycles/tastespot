@@ -6,7 +6,7 @@ import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitie
 import { useLocationStore } from "@/stores/locationStore";
 import { useTypesStore } from "@/stores/typesStore";
 
-type SortKey = "alpha" | "last_viewed" | "distance";
+type SortKey = "alpha" | "last_viewed" | "last_reviewed" | "distance";
 type SortDir = "asc" | "desc";
 
 function normalizeText(value: string): string {
@@ -24,6 +24,7 @@ type Props = {
     initialSortKey?: SortKey;
     initialSortDir?: SortDir;
     autoRequestLocation?: boolean;
+    initialQuery?: string;
 };
 
 function distanceKm(lat1: number, lng1: number, lat2: number | null, lng2: number | null): number {
@@ -39,37 +40,93 @@ function distanceKm(lat1: number, lng1: number, lat2: number | null, lng2: numbe
     return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function sortActivities(entries: ActivityWithDetails[], sortKey: SortKey, sortDir: SortDir, lat: number, lng: number): ActivityWithDetails[] {
-    const sign = sortDir === "asc" ? 1 : -1;
+function compareIsoDate(first: string | null, second: string | null, sortDir: SortDir): number {
+    if (!first && !second) {
+        return 0;
+    }
 
+    if (!first) {
+        return 1;
+    }
+
+    if (!second) {
+        return -1;
+    }
+
+    return sortDir === "asc" ? first.localeCompare(second) : second.localeCompare(first);
+}
+
+function compareAlpha(first: ActivityWithDetails, second: ActivityWithDetails, sortDir: SortDir): number {
+    const sign = sortDir === "asc" ? 1 : -1;
+    return sign * first.name.localeCompare(second.name, "it");
+}
+
+function sortActivities(entries: ActivityWithDetails[], sortKey: SortKey, sortDir: SortDir, lat: number, lng: number): ActivityWithDetails[] {
     return [...entries].sort((first, second) => {
         if (sortKey === "distance") {
             const firstDistance = distanceKm(lat, lng, first.lat, first.lng);
             const secondDistance = distanceKm(lat, lng, second.lat, second.lng);
-            return sign * (firstDistance - secondDistance);
+            const distanceDiff = sortDir === "asc" ? firstDistance - secondDistance : secondDistance - firstDistance;
+
+            if (distanceDiff !== 0) {
+                return distanceDiff;
+            }
+
+            const viewedFallback = compareIsoDate(first.last_viewed_at, second.last_viewed_at, "desc");
+            if (viewedFallback !== 0) {
+                return viewedFallback;
+            }
+
+            const reviewedFallback = compareIsoDate(first.latest_reviewed_at, second.latest_reviewed_at, "desc");
+            if (reviewedFallback !== 0) {
+                return reviewedFallback;
+            }
+
+            return compareAlpha(first, second, "asc");
         }
 
         if (sortKey === "last_viewed") {
-            const firstViewed = first.last_viewed_at ?? "";
-            const secondViewed = second.last_viewed_at ?? "";
-            return sign * firstViewed.localeCompare(secondViewed);
+            const viewedDiff = compareIsoDate(first.last_viewed_at, second.last_viewed_at, sortDir);
+            if (viewedDiff !== 0) {
+                return viewedDiff;
+            }
+
+            const reviewedFallback = compareIsoDate(first.latest_reviewed_at, second.latest_reviewed_at, "desc");
+            if (reviewedFallback !== 0) {
+                return reviewedFallback;
+            }
+
+            return compareAlpha(first, second, "asc");
         }
 
-        return sign * first.name.localeCompare(second.name, "it");
+        if (sortKey === "last_reviewed") {
+            const reviewedDiff = compareIsoDate(first.latest_reviewed_at, second.latest_reviewed_at, sortDir);
+            if (reviewedDiff !== 0) {
+                return reviewedDiff;
+            }
+
+            return compareAlpha(first, second, "asc");
+        }
+
+        return compareAlpha(first, second, sortDir);
     });
 }
 
-export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow, initialSortKey = "alpha", initialSortDir = "asc", autoRequestLocation = false }: Props) {
+export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow, initialSortKey = "alpha", initialSortDir = "asc", autoRequestLocation = false, initialQuery = "" }: Props) {
     const navigate = useNavigate();
     const { activities, loading, hasMore, fetch, toggleFavorite } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
     const { coords, hasPermission, requestAndFetch } = useLocationStore();
 
-    const [query, setQuery] = useState("");
+    const [query, setQuery] = useState(initialQuery);
     const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
     const [favoritesOnly, setFavoritesOnly] = useState(false);
     const [sortKey, setSortKey] = useState<SortKey>(initialSortKey);
     const [sortDir, setSortDir] = useState<SortDir>(initialSortDir);
+
+    useEffect(() => {
+        setQuery(initialQuery);
+    }, [initialQuery]);
 
     useEffect(() => {
         void fetch(true);
@@ -196,7 +253,10 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
                             A-Z{sortKey === "alpha" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
                         </button>
                         <button type="button" className={`activities-chip${sortKey === "last_viewed" ? " active" : ""}`} onClick={() => toggleSort("last_viewed")}>
-                            Recenti{sortKey === "last_viewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                            Visti{sortKey === "last_viewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                        </button>
+                        <button type="button" className={`activities-chip${sortKey === "last_reviewed" ? " active" : ""}`} onClick={() => toggleSort("last_reviewed")}>
+                            Recensiti{sortKey === "last_reviewed" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
                         </button>
                         <button type="button" className={`activities-chip${sortKey === "distance" ? " active" : ""}`} onClick={() => toggleSort("distance")}>
                             Vicini{sortKey === "distance" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}

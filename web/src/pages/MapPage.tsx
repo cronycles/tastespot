@@ -619,12 +619,7 @@ export function MapPage() {
             return;
         }
 
-        setSearchResultsMode(true);
-        setShowSuggestions(true);
-        setSelectedActivityId(null);
-        setSelectedPlace(null);
-        placeMarkerRef.current?.remove();
-        placeMarkerRef.current = null;
+        navigate(`/activities?query=${encodeURIComponent(trimmedQuery)}`);
     }
 
     function handleSearchInputKeyDown(event: KeyboardEvent<HTMLInputElement>): void {

@@ -13,7 +13,7 @@ import { useTypesStore } from "@/stores/typesStore";
 export function ActivityDetailPage() {
     const navigate = useNavigate();
     const params = useParams<{ id: string }>();
-    const { activities, remove, toggleFavorite, addPhoto, removePhoto } = useActivitiesStore();
+    const { activities, remove, toggleFavorite, addPhoto, removePhoto, markViewed } = useActivitiesStore();
     const types = useTypesStore(state => state.types);
     const fetchReviews = useReviewsStore(state => state.fetch);
     const getForActivity = useReviewsStore(state => state.getForActivity);
@@ -35,6 +35,14 @@ export function ActivityDetailPage() {
         }
         void fetchReviews(params.id);
     }, [fetchReviews, params.id]);
+
+    useEffect(() => {
+        if (!params.id) {
+            return;
+        }
+
+        void markViewed(params.id);
+    }, [markViewed, params.id]);
 
     const photoCount = activity?.photos.length ?? 0;
 
