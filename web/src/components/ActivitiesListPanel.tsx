@@ -445,17 +445,25 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
                             <div className="activities-item-top">
                                 <div className="activities-item-info">
                                     <span className="activities-name-link">{entry.name}</span>
-                                    <span className="activities-score-badge">{formatAverageScore(entry)}/10</span>
+                                    {entry.address ? <span className="activities-item-address">{entry.address}</span> : null}
+                                    {entry.type_ids.length > 0 ? (
+                                        <div className="activities-item-types">
+                                            {entry.type_ids.map(typeId => (
+                                                <span className="activities-item-type-chip" key={typeId}>
+                                                    {typeNamesById.get(typeId) ?? "Tipo"}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : null}
                                 </div>
-                                <div className="activities-item-photo">
-                                    {entry.photos[0] ? (
+                                {entry.photos[0] ? (
+                                    <div className="activities-item-photo">
                                         <img src={entry.photos[0].storage_path} alt={`Anteprima di ${entry.name}`} />
-                                    ) : (
-                                        <div className="activities-item-placeholder" />
-                                    )}
-                                </div>
+                                    </div>
+                                ) : null}
                             </div>
                             <div className="activities-item-bottom">
+                                <span className="activities-score-badge activities-score-badge--bottom">{formatAverageScore(entry)}/10</span>
                                 <button
                                     type="button"
                                     className="activities-favorite-button"
