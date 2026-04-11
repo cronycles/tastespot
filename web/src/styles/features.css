@@ -1956,7 +1956,7 @@
 
 .map-controls-column {
     position: absolute;
-    right: 20px;
+    right: 12px;
     bottom: 88px;
     z-index: 10;
     display: grid;
