@@ -36,7 +36,7 @@ export function LoginPage() {
         <div className="auth-screen">
             <div className="auth-card">
                 <div className="auth-header">
-                    <p className="eyebrow">TasteSpot</p>
+                    <img src="/logo.svg" alt="TasteSpot" className="auth-logo" />
                     <h1>Accedi</h1>
                     <p className="muted">Entra nel tuo account per continuare.</p>
                 </div>

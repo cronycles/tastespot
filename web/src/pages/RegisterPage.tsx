@@ -35,7 +35,7 @@ export function RegisterPage() {
         <div className="auth-screen">
             <div className="auth-card">
                 <div className="auth-header">
-                    <p className="eyebrow">TasteSpot</p>
+                    <img src="/logo.svg" alt="TasteSpot" className="auth-logo" />
                     <h1>Registrati</h1>
                     <p className="muted">Crea il tuo account per iniziare.</p>
                 </div>
