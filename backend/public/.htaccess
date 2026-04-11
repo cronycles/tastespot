@@ -3,6 +3,8 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    DirectoryIndex index.html index.php
+
     RewriteEngine On
 
     # Handle Authorization Header
@@ -17,6 +19,11 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
+
+    # Serve SPA homepage on root when index.html exists.
+    RewriteCond %{REQUEST_URI} ^/?$
+    RewriteCond %{DOCUMENT_ROOT}/index.html -f
+    RewriteRule ^$ index.html [L]
 
     # Keep API and storage requests on Laravel even when a SPA homepage exists.
     RewriteCond %{REQUEST_URI} ^/api/ [OR]

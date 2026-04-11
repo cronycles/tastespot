@@ -37,5 +37,10 @@ fi
 
 cp -rf "$REPO/web/dist"/* "$DEST/public/"
 
+if [ ! -f "$DEST/public/index.html" ]; then
+  echo "[ERRORE] Deploy web incompleto: $DEST/public/index.html mancante."
+  exit 1
+fi
+
 echo "=== Deploy completato ==="
 
