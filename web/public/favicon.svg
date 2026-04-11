@@ -1,14 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Rounded-square background -->
   <rect width="100" height="100" rx="22" fill="#FF5A35"/>
-  <!-- Fork tine left -->
-  <rect x="28" y="12" width="8" height="24" rx="4" fill="white"/>
-  <!-- Fork tine middle -->
-  <rect x="46" y="12" width="8" height="24" rx="4" fill="white"/>
-  <!-- Fork tine right -->
-  <rect x="64" y="12" width="8" height="24" rx="4" fill="white"/>
-  <!-- Base bar connecting tines -->
-  <rect x="28" y="32" width="44" height="8" rx="4" fill="white"/>
-  <!-- Handle tapering to map-pin point -->
-  <path d="M46,40 L54,40 L51.5,78 L50,84 L48.5,78 Z" fill="white"/>
+  <path d="M50 14C36.19 14 25 25.19 25 39c0 15.75 12.86 26.42 21.37 41.34.52.91 1.49 1.47 2.53 1.47s2.01-.56 2.53-1.47C60.57 65.42 75 54.75 75 39c0-13.81-11.19-25-25-25z" fill="white"/>
+  <circle cx="50" cy="39" r="15.2" fill="#FF5A35"/>
+  <path d="M39.8 45.6h20.4" stroke="white" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M42.7 45.6c0-5 3.3-8.8 7.3-8.8 4 0 7.3 3.8 7.3 8.8" stroke="white" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+  <circle cx="50" cy="33.9" r="2.1" fill="white"/>
 </svg>
