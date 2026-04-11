@@ -1922,17 +1922,16 @@
 }
 
 .map-fab {
-    position: absolute;
-    right: 16px;
-    z-index: 10;
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-full);
-    border: none;
+    border: 1px solid var(--color-border);
     display: grid;
     place-items: center;
     cursor: pointer;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     transition:
         transform 120ms ease,
@@ -1944,20 +1943,61 @@
 }
 
 .map-fab--add {
+    position: absolute;
+    right: 16px;
+    z-index: 10;
+    width: 52px;
+    height: 52px;
     bottom: 24px;
     background: var(--color-primary);
     color: #fff;
+    border: none;
+}
+
+.map-controls-column {
+    position: absolute;
+    right: 20px;
+    bottom: 88px;
+    z-index: 10;
+    display: grid;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 999px;
+    background: rgba(250, 250, 250, 0.86);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(6px);
+}
+
+.map-fab--zoom-in,
+.map-fab--zoom-out {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.map-fab--zoom-in {
+    font-size: 1.4rem;
+}
+
+.map-fab--zoom-out {
+    font-size: 1.4rem;
 }
 
 .map-fab--locate {
-    bottom: 88px;
     background: var(--color-surface);
     color: var(--color-text-tertiary);
-    border: 1px solid var(--color-border);
 }
 
 .map-fab--locate.active {
     color: var(--color-primary);
+}
+
+/* Force-hide native MapLibre controls: app uses custom controls only */
+.map-page .maplibregl-ctrl-top-right,
+.map-page .maplibregl-ctrl-top-left,
+.map-page .maplibregl-ctrl-bottom-right,
+.map-page .maplibregl-ctrl-bottom-left {
+    display: none !important;
 }
 
 .map-bottom-card {

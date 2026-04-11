@@ -199,8 +199,6 @@ export function MapPage() {
             attributionControl: false,
         });
 
-        map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
-
         const LONG_PRESS_MS = 500;
         let longPressTimer: number | null = null;
         let longPressIsDragging = false;
@@ -520,6 +518,14 @@ export function MapPage() {
         });
     }
 
+    function handleZoomIn(): void {
+        mapRef.current?.zoomIn({ duration: 220 });
+    }
+
+    function handleZoomOut(): void {
+        mapRef.current?.zoomOut({ duration: 220 });
+    }
+
     useEffect(() => {
         if (!hasSuggestionQuery) {
             placeSuggestionsRequestRef.current += 1;
@@ -709,15 +715,25 @@ export function MapPage() {
                 </div>
             </div>
 
-            <button
-                type="button"
-                className={`map-fab map-fab--locate${hasPermission ? " active" : ""}`}
-                onClick={() => void handleCenterOnUser()}
-                title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
-                aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
-            >
-                <IoLocateOutline />
-            </button>
+            <div className="map-controls-column" aria-label="Controlli mappa">
+                <button type="button" className="map-fab map-fab--zoom-in" onClick={handleZoomIn} aria-label="Aumenta zoom" title="Aumenta zoom">
+                    +
+                </button>
+
+                <button type="button" className="map-fab map-fab--zoom-out" onClick={handleZoomOut} aria-label="Diminuisci zoom" title="Diminuisci zoom">
+                    -
+                </button>
+
+                <button
+                    type="button"
+                    className={`map-fab map-fab--locate${hasPermission ? " active" : ""}`}
+                    onClick={() => void handleCenterOnUser()}
+                    title={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+                    aria-label={hasPermission ? "Aggiorna posizione" : "Abilita posizione"}
+                >
+                    <IoLocateOutline />
+                </button>
+            </div>
 
             <button type="button" className="map-fab map-fab--add" onClick={() => navigate("/activity/add")} aria-label="Aggiungi attività">
                 <IoAdd />
