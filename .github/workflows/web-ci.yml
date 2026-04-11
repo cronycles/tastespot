@@ -28,4 +28,4 @@ jobs:
         run: test -f web/dist/index.html
 
       - name: Verify built assets are present
-        run: ls -1 web/dist/assets | grep -E '\\.(js|css)$'
+        run: ls -1 web/dist/assets | grep -E '\.(js|css)$'
