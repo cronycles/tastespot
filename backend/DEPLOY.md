@@ -37,8 +37,7 @@ git push origin main
                         rm -f public/storage          ← rimuove eventuale symlink sbagliato
                         php artisan storage:link       ← ricrea symlink corretto sul server
                 Step 3: chmod -R 775 storage/ bootstrap/cache/
-               Step 4: npm ci + npm run build in web/
-                  copia web/dist/* → public/ (root SPA)
+               Step 4: copia web/dist/* → public/ (root SPA già buildata in locale)
 ```
 
 **Il `deploy.sh` fa `git pull` da solo** — anche se cPanel non aggiorna il repo, lo script lo aggiorna lui prima di copiare i file.
@@ -161,6 +160,18 @@ git push origin main
 # → GitHub Actions fa il resto automaticamente (~30 secondi)
 ```
 
+### Deploy di una modifica al frontend web
+
+```bash
+# Dalla root del monorepo locale
+npm run prepare:main
+git add web/src web/public web/index.html web/dist
+git commit -m "Descrizione modifica web"
+git push origin main
+```
+
+**Importante:** il server non esegue `npm install`, `npm ci` o `npm run build`. Se `web/dist/` non viene rigenerata e committata prima del push, in produzione resterai con una build vecchia anche se i sorgenti in `web/src/` sono nuovi.
+
 ### Verificare che il deploy sia andato a buon fine
 
 1. GitHub → **Actions** → clicca sull'ultimo workflow → controlla che sia verde
@@ -169,7 +180,11 @@ git push origin main
    curl -s https://tastespot.crointhemorning.com/api/v1/ping
    # Risposta attesa: {"status":"ok","version":"1.0.5"}
    ```
-   > La root URL (`https://tastespot.crointhemorning.com`) restituisce `{"message":"The route / could not be found."}` — è normale, è un'API pura.
+3. Controlla la homepage web:
+   ```bash
+   curl -I https://tastespot.crointhemorning.com/
+   ```
+   Deve rispondere con HTML della SPA, non con JSON Laravel.
 3. Oppure testa il login:
    ```bash
    curl -s https://tastespot.crointhemorning.com/api/v1/auth/login

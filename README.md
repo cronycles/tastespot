@@ -238,14 +238,23 @@ Con questa flag disattiva, `POST /api/v1/auth/register` risponde `403` e non cre
 
 Il deploy è **automatico solo su `main`** quando cambiano file backend/web o script di deploy.
 
+**Regola operativa importante:** se modifichi qualunque file in `web/src/`, `web/public/` o `web/index.html`, prima del push su `main` devi rigenerare `web/dist/` in locale e committarla. In produzione non viene eseguita nessuna build Node: il server copia solo gli artefatti già presenti nel repository.
+
 Per i dettagli completi (setup iniziale server, troubleshooting, gotcha) vedi [`backend/DEPLOY.md`](backend/DEPLOY.md).
 
 **Flusso:**
 
-1. Builda la web app localmente: `cd web && npm run build`
+1. Rigenera la build web localmente: `npm run prepare:main`
 2. Committa `web/dist/` e pusha su `main`
 3. GitHub Actions (`deploy.yml`) triggera il cPanel git pull + deploy
 4. `scripts/deploy.sh` copia `web/dist/*` in `public/` — nessun Node sul server
+
+**Checklist minima prima del push su `main`:**
+
+1. Se hai toccato il frontend, esegui `npm run prepare:main`
+2. Verifica che `web/dist/` sia cambiata insieme ai sorgenti
+3. Committa sia i file sorgente sia `web/dist/`
+4. Solo dopo fai `git push origin main`
 
 ```
 git push origin main
