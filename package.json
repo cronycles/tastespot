@@ -1,8 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build:web": "cd web && npm run build",
-    "prepare:main": "cd web && npm run build",
+    "build:prod": "cd web && npm run build",
     "restore": "(cd backend && npm run restore) && (cd web && npm run restore)",
     "start": "concurrently --names \"BACKEND,WEB\" --prefix-colors \"blue,orange\" \"cd backend && npm run start\" \"cd web && npm run start\""
   },

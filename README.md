@@ -244,14 +244,14 @@ Per i dettagli completi (setup iniziale server, troubleshooting, gotcha) vedi [`
 
 **Flusso:**
 
-1. Rigenera la build web localmente: `npm run prepare:main`
+1. Rigenera la build web localmente: `npm run build:prod`
 2. Committa `web/dist/` e pusha su `main`
 3. GitHub Actions (`deploy.yml`) triggera il cPanel git pull + deploy
 4. `scripts/deploy.sh` copia `web/dist/*` in `public/` — nessun Node sul server
 
 **Checklist minima prima del push su `main`:**
 
-1. Se hai toccato il frontend, esegui `npm run prepare:main`
+1. Se hai toccato il frontend, esegui `npm run build:prod`
 2. Verifica che `web/dist/` sia cambiata insieme ai sorgenti
 3. Committa sia i file sorgente sia `web/dist/`
 4. Solo dopo fai `git push origin main`

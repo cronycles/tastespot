@@ -164,13 +164,13 @@ git push origin main
 
 ```bash
 # Dalla root del monorepo locale
-npm run prepare:main
+npm run build:prod
 git add web/src web/public web/index.html web/dist
 git commit -m "Descrizione modifica web"
 git push origin main
 ```
 
-**Importante:** il server non esegue `npm install`, `npm ci` o `npm run build`. Se `web/dist/` non viene rigenerata e committata prima del push, in produzione resterai con una build vecchia anche se i sorgenti in `web/src/` sono nuovi.
+**Importante:** il server non esegue `npm install`, `npm ci` o `npm run build`. Se non esegui `npm run build:prod` e non committi `web/dist/` prima del push, in produzione resterai con una build vecchia anche se i sorgenti in `web/src/` sono nuovi.
 
 ### Verificare che il deploy sia andato a buon fine
 
