@@ -11,6 +11,17 @@ use Illuminate\Support\Str;
 
 class PhotoController extends Controller
 {
+    public function show(string $user, string $filename)
+    {
+        $path = 'photos/' . $user . '/' . ltrim($filename, '/');
+
+        if (! Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->response($path);
+    }
+
     public function store(Request $request, Activity $activity)
     {
         if ((string) $activity->user_id !== (string) $request->user()->id) {
@@ -40,7 +51,7 @@ class PhotoController extends Controller
         return response()->json([
             'id'            => $photo->id,
             'activity_id'   => $activity->id,
-            'storage_path'  => Storage::disk('public')->url('photos/' . $photo->storage_path),
+            'storage_path'  => url('/api/v1/photos/' . ltrim($photo->storage_path, '/')),
             'display_order' => $photo->display_order,
             'created_at'    => $photo->created_at->toISOString(),
         ], 201);

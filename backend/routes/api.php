@@ -12,6 +12,9 @@ Route::prefix('v1')->group(function () {
 
     // ── Health check ───────────────────────────────────────────────────────────
     Route::get('/ping', fn () => response()->json(['status' => 'ok', 'version' => '1.0.4']));
+    Route::get('/photos/{user}/{filename}', [PhotoController::class, 'show'])
+        ->whereNumber('user')
+        ->where('filename', '.*');
 
     // ── Auth pubblico ──────────────────────────────────────────────────────────
     Route::get('/auth/settings', [AuthController::class, 'settings']);
