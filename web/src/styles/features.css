@@ -1079,11 +1079,11 @@
 .review-card {
     border: 1px solid var(--color-border);
     border-radius: 16px;
-    padding: 14px;
+    padding: 16px;
     background: var(--color-surface);
     display: grid;
-    gap: 12px;
-    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
+    gap: 14px;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.05);
 }
 
 .review-summary-card .types-toolbar {
@@ -1132,7 +1132,7 @@
 
 .activity-detail-hero-v2 {
     position: relative;
-    min-height: 46vh;
+    min-height: 52vh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -1144,7 +1144,7 @@
 }
 
 .activity-detail-hero-v2.no-photo {
-    min-height: 240px;
+    min-height: 200px;
     color: var(--color-text-primary);
     background: radial-gradient(circle at top right, rgba(255, 90, 53, 0.16), transparent 56%), linear-gradient(180deg, #f6f8fb, #eef2f7);
 }
@@ -1203,7 +1203,8 @@
 
 .activity-detail-hero-content h1 {
     margin: 0;
-    font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+    font-size: clamp(1.5rem, 5vw, 2.1rem);
+    line-height: 1.1;
 }
 
 .activity-detail-hero-content p {
@@ -1223,25 +1224,26 @@
 .activity-score-pill {
     width: fit-content;
     display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    align-items: baseline;
+    gap: 4px;
     border-radius: 999px;
-    padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    font-weight: 700;
-    font-size: 0.86rem;
+    padding: 5px 12px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    font-weight: 800;
+    font-size: 1rem;
+    backdrop-filter: blur(4px);
 }
 
 .activity-detail-sheet {
     display: grid;
-    gap: 12px;
+    gap: 0;
     background: var(--color-surface);
-    margin-top: -18px;
+    margin-top: -22px;
     position: relative;
     z-index: 2;
     border-radius: 22px 22px 0 0;
-    padding: 14px;
+    padding: 0 20px 40px;
     box-shadow: 0 -10px 24px rgba(15, 23, 42, 0.14);
 }
 
@@ -1250,7 +1252,8 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     gap: 8px;
-    padding-bottom: 2px;
+    padding: 20px 0 20px;
+    border-bottom: 1px solid var(--color-border);
     scrollbar-width: none;
 }
 
@@ -1261,14 +1264,15 @@
 .activity-quick-action {
     border: 1px solid var(--color-border);
     background: var(--color-surface-muted);
-    border-radius: 12px;
-    min-width: 94px;
-    min-height: 62px;
+    border-radius: 14px;
+    min-width: 72px;
+    min-height: 58px;
     display: grid;
     place-items: center;
-    gap: 4px;
+    gap: 5px;
     color: var(--color-text-secondary);
     cursor: pointer;
+    flex-shrink: 0;
     transition:
         background 0.15s,
         border-color 0.15s,
@@ -1276,18 +1280,19 @@
 }
 
 .activity-quick-action:disabled {
-    opacity: 0.45;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
 .activity-quick-action svg {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
 }
 
 .activity-quick-action span {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
     white-space: nowrap;
+    letter-spacing: 0.01em;
 }
 
 .activity-quick-action:not(:disabled):hover,
@@ -1305,9 +1310,17 @@
 
 .activity-detail-section {
     border: 1px solid var(--color-border);
-    border-radius: 14px;
+    border-radius: 16px;
     background: var(--color-surface);
-    padding: 14px;
+    padding: 16px;
+}
+
+.activity-detail-sheet .activity-detail-section {
+    margin-top: 14px;
+}
+
+.activity-detail-sheet .status-banner {
+    margin-top: 4px;
 }
 
 .activity-detail-heading-row {
@@ -1359,13 +1372,6 @@
     resize: vertical;
 }
 
-.activity-phone-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
 .review-score-dropdown {
     border: 1px solid var(--color-border);
     border-radius: 10px;
@@ -1389,6 +1395,252 @@
 
 .review-score-dropdown-content p {
     margin: 0;
+}
+
+/* ── Activity detail — label eyebrow ───────────────────────────────── */
+.ad-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+}
+
+/* ── Info row (types + phone) ──────────────────────────────────────── */
+.ad-info-row {
+    border: 0;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--color-border);
+    display: grid;
+    gap: 18px;
+}
+
+.ad-info-block {
+    display: grid;
+    gap: 8px;
+}
+
+.ad-info-block .ad-label {
+    margin-bottom: 0;
+}
+
+.ad-info-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+/* ── Score strip ───────────────────────────────────────────────────── */
+.ad-score-strip {
+    border: 0;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.ad-score-cells {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.ad-score-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 12px 6px;
+    text-align: center;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+}
+
+.ad-score-cell:last-child {
+    border-right: 0;
+}
+
+.ad-score-cell-label {
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-tertiary);
+}
+
+.ad-score-cell-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    letter-spacing: -0.02em;
+}
+
+/* ── Reviews section ───────────────────────────────────────────────── */
+.ad-reviews-section {
+    display: grid;
+    gap: 12px;
+    padding-top: 20px;
+}
+
+/* ── Review card re-style ──────────────────────────────────────────── */
+.ad-review-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.ad-review-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ad-review-card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: -0.01em;
+}
+
+.ad-review-avg-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--color-accent-soft);
+    color: var(--color-primary-dark);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.ad-edit-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+    color: var(--color-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        border-color 120ms ease,
+        color 120ms ease,
+        background 120ms ease;
+    white-space: nowrap;
+}
+
+.ad-edit-pill:hover,
+.ad-edit-pill:focus-visible {
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark);
+    background: var(--color-accent-soft);
+}
+
+.ad-edit-pill:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.ad-edit-pill svg {
+    font-size: 0.88rem;
+}
+
+.ad-review-scores {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ad-review-score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 4px;
+    text-align: center;
+    border-right: 1px solid var(--color-border);
+}
+
+.ad-review-score-item:last-child {
+    border-right: 0;
+}
+
+.ad-review-score-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-tertiary);
+}
+
+.ad-review-score-item strong {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    letter-spacing: -0.02em;
+}
+
+.ad-review-notes {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    line-height: 1.5;
+}
+
+.ad-review-date {
+    font-size: 0.78rem;
+    margin: 0;
+}
+
+/* ── Delete button (link-style danger) ─────────────────────────────── */
+.ad-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 59, 48, 0.28);
+    background: transparent;
+    color: var(--color-error);
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background 120ms ease,
+        border-color 120ms ease;
+    margin-top: 16px;
+}
+
+.ad-delete-btn:hover,
+.ad-delete-btn:focus-visible {
+    background: rgba(255, 59, 48, 0.07);
+    border-color: rgba(255, 59, 48, 0.55);
+}
+
+.ad-delete-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.22);
+}
+
+.ad-delete-btn svg {
+    font-size: 1rem;
 }
 
 .activity-inline-meta-row {
