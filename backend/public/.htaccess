@@ -25,9 +25,8 @@
     RewriteCond %{DOCUMENT_ROOT}/index.html -f
     RewriteRule ^$ index.html [L]
 
-    # Keep API and storage requests on Laravel even when a SPA homepage exists.
-    RewriteCond %{REQUEST_URI} ^/api/ [OR]
-    RewriteCond %{REQUEST_URI} ^/storage/
+    # Keep API requests on Laravel even when a SPA homepage exists.
+    RewriteCond %{REQUEST_URI} ^/api/
     RewriteRule ^ index.php [L]
 
     # Serve the web app for client-side routes when index.html is present.
