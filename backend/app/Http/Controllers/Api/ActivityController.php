@@ -58,7 +58,7 @@ class ActivityController extends Controller
             'photos'         => $activity->photos->map(fn($p) => [
                 'id'            => $p->id,
                 'activity_id'   => $activity->id,
-                'storage_path'  => Storage::url('public/photos/' . $p->storage_path),
+                'storage_path'  => Storage::disk('public')->url('photos/' . $p->storage_path),
                 'display_order' => $p->display_order,
                 'created_at'    => $p->created_at->toISOString(),
             ])->toArray(),

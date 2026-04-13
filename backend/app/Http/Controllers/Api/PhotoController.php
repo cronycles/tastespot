@@ -27,7 +27,7 @@ class PhotoController extends Controller
         $storagePath = $userId . '/' . $filename;
 
         // Salva in storage/app/public/photos/{user_id}/
-        $request->file('photo')->storeAs('public/photos/' . $userId, $filename);
+        $request->file('photo')->storeAs('photos/' . $userId, $filename, 'public');
 
         $maxOrder = ActivityPhoto::where('activity_id', $activity->id)->max('display_order') ?? -1;
 
@@ -40,7 +40,7 @@ class PhotoController extends Controller
         return response()->json([
             'id'            => $photo->id,
             'activity_id'   => $activity->id,
-            'storage_path'  => Storage::url('public/photos/' . $photo->storage_path),
+            'storage_path'  => Storage::disk('public')->url('photos/' . $photo->storage_path),
             'display_order' => $photo->display_order,
             'created_at'    => $photo->created_at->toISOString(),
         ], 201);
@@ -53,7 +53,7 @@ class PhotoController extends Controller
         }
 
         // Elimina file fisico
-        Storage::delete('public/photos/' . $photo->storage_path);
+        Storage::disk('public')->delete('photos/' . $photo->storage_path);
 
         $photo->delete();
         return response()->json(null, 204);
