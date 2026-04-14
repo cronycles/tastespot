@@ -1,255 +1,169 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { IoAdd, IoArrowDown, IoArrowUp, IoClose, IoPencilOutline, IoTrashOutline } from "react-icons/io5";
-import { Button } from "@/components/Button";
-import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
-import { AVAILABLE_ICONS, DEFAULT_ICON_KEY, type ActivityType } from "@/types";
-import { useTypesStore } from "@/stores/typesStore";
-
-const EMPTY_FORM = {
-    name: "",
-    description: "",
-    iconKey: DEFAULT_ICON_KEY,
-};
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { IoAdd, IoPencilOutline, IoReorderThreeOutline, IoTrashOutline } from 'react-icons/io5'
+import { Button } from '@/components/Button'
+import { getActivityTypeIcon } from '@/lib/activityTypeIcons'
+import type { ActivityType } from '@/types'
+import { useTypesStore } from '@/stores/typesStore'
 
 export function TypesPage() {
-    const { types, loading, fetch, create, update, remove, reorder } = useTypesStore();
-    const [isOpen, setIsOpen] = useState(false);
-    const [editing, setEditing] = useState<ActivityType | null>(null);
-    const [form, setForm] = useState(EMPTY_FORM);
-    const [formError, setFormError] = useState<string | null>(null);
-    const [saving, setSaving] = useState(false);
+  const navigate = useNavigate()
+  const { types, loading, fetch, remove, reorderByIndex } = useTypesStore()
 
-    useEffect(() => {
-        void fetch();
-    }, [fetch]);
+  useEffect(() => {
+    void fetch()
+  }, [fetch])
 
-    const sortedTypes = useMemo(() => [...types].sort((a, b) => a.display_order - b.display_order), [types]);
+  const sortedTypes = useMemo(
+    () => [...types].sort((a, b) => a.display_order - b.display_order),
+    [types],
+  )
 
-    function openCreate(): void {
-        setEditing(null);
-        setForm(EMPTY_FORM);
-        setFormError(null);
-        setIsOpen(true);
+  // Drag-to-reorder state
+  const listRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{ from: number; to: number } | null>(null)
+  const itemMidsRef = useRef<number[]>([])
+  const [dragging, setDragging] = useState<{ from: number; to: number } | null>(null)
+
+  function startDrag(e: React.PointerEvent<HTMLButtonElement>, fromIndex: number): void {
+    if (!listRef.current) return
+    e.preventDefault()
+    const items = Array.from(listRef.current.querySelectorAll<HTMLElement>('[data-drag-item]'))
+    itemMidsRef.current = items.map((el) => {
+      const r = el.getBoundingClientRect()
+      return r.top + r.height / 2
+    })
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragRef.current = { from: fromIndex, to: fromIndex }
+    setDragging({ from: fromIndex, to: fromIndex })
+  }
+
+  function moveDrag(e: React.PointerEvent<HTMLButtonElement>): void {
+    if (!dragRef.current) return
+    const mids = itemMidsRef.current
+    const y = e.clientY
+    let newIdx = mids.length - 1
+    for (let i = 0; i < mids.length; i++) {
+      if (y < mids[i]) {
+        newIdx = i
+        break
+      }
     }
+    dragRef.current = { ...dragRef.current, to: newIdx }
+    setDragging({ ...dragRef.current })
+  }
 
-    function openEdit(type: ActivityType): void {
-        setEditing(type);
-        setForm({
-            name: type.name,
-            description: type.description ?? "",
-            iconKey: type.icon_key,
-        });
-        setFormError(null);
-        setIsOpen(true);
+  function endDrag(): void {
+    if (!dragRef.current) return
+    const { from, to } = dragRef.current
+    dragRef.current = null
+    setDragging(null)
+    if (from !== to) {
+      void reorderByIndex(from, to)
     }
+  }
 
-    function closePanel(): void {
-        setIsOpen(false);
-        setEditing(null);
-        setFormError(null);
-    }
+  async function handleDelete(type: ActivityType): Promise<void> {
+    const confirmed = window.confirm(
+      `Eliminando "${type.name}" verranno rimosse anche le associazioni con le attivita'. Continuare?`,
+    )
+    if (!confirmed) return
+    const error = await remove(type.id)
+    if (error) window.alert(error)
+  }
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-        event.preventDefault();
-        setFormError(null);
+  return (
+    <section className="page-card types-page">
+      <div className="types-hero-card">
+        <div className="panel-title-row">
+          <div className="content-stack">
+            <p className="eyebrow">Catalogo</p>
+            <h1>Tipologie attivita'</h1>
+          </div>
+          <Button onClick={() => navigate('/private/types/new')}>
+            <span className="types-add-button">
+              <IoAdd />
+              Nuova tipologia
+            </span>
+          </Button>
+        </div>
+      </div>
 
-        if (!form.name.trim()) {
-            setFormError("Il nome e' obbligatorio.");
-            return;
-        }
+      {loading && sortedTypes.length === 0 ? (
+        <div className="empty-state">
+          <div className="content-stack">
+            <h3>Caricamento tipologie...</h3>
+          </div>
+        </div>
+      ) : null}
 
-        setSaving(true);
-        const error = editing
-            ? await update(editing.id, form.name.trim(), form.description || null, form.iconKey)
-            : await create(form.name.trim(), form.description || null, form.iconKey);
-        setSaving(false);
+      {!loading && sortedTypes.length === 0 ? (
+        <div className="empty-state">
+          <div className="content-stack">
+            <h3>Nessuna tipologia</h3>
+            <p className="muted">Crea la prima tipologia con il pulsante in alto.</p>
+          </div>
+        </div>
+      ) : null}
 
-        if (error) {
-            setFormError(error);
-            return;
-        }
+      {sortedTypes.length > 0 ? (
+        <div className={`list${dragging ? ' is-dragging' : ''}`} ref={listRef}>
+          {sortedTypes.map((type, index) => {
+            const Icon = getActivityTypeIcon(type.icon_key)
+            const isDragging = dragging?.from === index
+            const isTarget =
+              dragging !== null && dragging.to === index && dragging.from !== index
 
-        closePanel();
-    }
+            return (
+              <div
+                data-drag-item
+                className={`surface-item types-item${isDragging ? ' types-item--dragging' : ''}${isTarget ? ' types-item--drop-target' : ''}`}
+                key={type.id}
+              >
+                <button
+                  type="button"
+                  className="types-drag-handle"
+                  onPointerDown={(e) => startDrag(e, index)}
+                  onPointerMove={moveDrag}
+                  onPointerUp={endDrag}
+                  aria-label="Trascina per riordinare"
+                >
+                  <IoReorderThreeOutline />
+                </button>
 
-    async function handleDelete(type: ActivityType): Promise<void> {
-        const confirmed = window.confirm(`Eliminando "${type.name}" verranno rimosse anche le associazioni con le attivita'. Continuare?`);
-        if (!confirmed) {
-            return;
-        }
+                <span className="types-main-icon">
+                  <Icon />
+                </span>
 
-        const error = await remove(type.id);
-        if (error) {
-            window.alert(error);
-        }
-    }
-
-    return (
-        <>
-            <section className="page-card types-page">
-                <div className="types-hero-card">
-                    <div className="panel-title-row">
-                        <div className="content-stack">
-                            <p className="eyebrow">Catalogo</p>
-                            <h1>Tipologie attivita'</h1>
-                        </div>
-                        <Button onClick={openCreate}>
-                            <span className="types-add-button">
-                                <IoAdd />
-                                Nuova tipologia
-                            </span>
-                        </Button>
-                    </div>
+                <div className="types-content">
+                  <strong>{type.name}</strong>
+                  {type.description ? <span className="muted">{type.description}</span> : null}
                 </div>
 
-                {loading && sortedTypes.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="content-stack">
-                            <h3>Caricamento tipologie...</h3>
-                        </div>
-                    </div>
-                ) : null}
-
-                {!loading && sortedTypes.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="content-stack">
-                            <h3>Nessuna tipologia</h3>
-                            <p className="muted">Crea la prima tipologia con il pulsante in alto.</p>
-                        </div>
-                    </div>
-                ) : null}
-
-                {sortedTypes.length > 0 ? (
-                    <div className="list">
-                        {sortedTypes.map((type, index) => {
-                            const Icon = getActivityTypeIcon(type.icon_key);
-
-                            return (
-                                <div className="surface-item types-item" key={type.id}>
-                                    <div className="types-reorder-controls">
-                                        <button
-                                            type="button"
-                                            className="types-icon-button"
-                                            onClick={() => void reorder(type.id, "up")}
-                                            disabled={index === 0}
-                                            aria-label="Sposta su"
-                                        >
-                                            <IoArrowUp />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="types-icon-button"
-                                            onClick={() => void reorder(type.id, "down")}
-                                            disabled={index === sortedTypes.length - 1}
-                                            aria-label="Sposta giu'"
-                                        >
-                                            <IoArrowDown />
-                                        </button>
-                                    </div>
-
-                                    <span className="types-main-icon">
-                                        <Icon />
-                                    </span>
-
-                                    <div className="types-content">
-                                        <strong>{type.name}</strong>
-                                        {type.description ? <span className="muted">{type.description}</span> : null}
-                                    </div>
-
-                                    <div className="types-row-actions">
-                                        <button type="button" className="types-icon-button" onClick={() => openEdit(type)} aria-label="Modifica tipologia">
-                                            <IoPencilOutline />
-                                        </button>
-                                        <button type="button" className="types-icon-button danger" onClick={() => void handleDelete(type)} aria-label="Elimina tipologia">
-                                            <IoTrashOutline />
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : null}
-            </section>
-
-            {isOpen ? (
-                <section className="page-card types-editor">
-                    <div className="types-editor-header">
-                        <div className="content-stack">
-                            <h2>{editing ? "Modifica tipologia" : "Nuova tipologia"}</h2>
-                        </div>
-                        <button type="button" className="types-icon-button" onClick={closePanel} aria-label="Chiudi editor">
-                            <IoClose />
-                        </button>
-                    </div>
-
-                    <form className="types-form" onSubmit={event => void handleSubmit(event)}>
-                        <div className="field">
-                            <label htmlFor="type-name">Nome *</label>
-                            <input
-                                id="type-name"
-                                value={form.name}
-                                onChange={event => setForm(current => ({ ...current, name: event.target.value }))}
-                                placeholder="es. Ristorante, Bar, Gelateria"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="type-description">Descrizione</label>
-                            <textarea
-                                id="type-description"
-                                value={form.description}
-                                onChange={event =>
-                                    setForm(current => ({
-                                        ...current,
-                                        description: event.target.value,
-                                    }))
-                                }
-                                placeholder="Descrizione opzionale"
-                                rows={3}
-                            />
-                        </div>
-
-                        <div className="content-stack">
-                            <h3>Icona</h3>
-                            <div className="types-icon-grid">
-                                {AVAILABLE_ICONS.map(iconKey => {
-                                    const Icon = getActivityTypeIcon(iconKey);
-                                    const active = form.iconKey === iconKey;
-
-                                    return (
-                                        <button
-                                            key={iconKey}
-                                            type="button"
-                                            className={`types-icon-cell${active ? " active" : ""}`}
-                                            onClick={() =>
-                                                setForm(current => ({
-                                                    ...current,
-                                                    iconKey,
-                                                }))
-                                            }
-                                            aria-label={`Seleziona icona ${iconKey}`}
-                                        >
-                                            <Icon />
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {formError ? <div className="status-banner error">{formError}</div> : null}
-
-                        <div className="inline-actions">
-                            <Button type="submit" disabled={saving}>
-                                {saving ? "Salvataggio..." : editing ? "Salva modifiche" : "Crea tipologia"}
-                            </Button>
-                            <Button type="button" variant="secondary" onClick={closePanel}>
-                                Annulla
-                            </Button>
-                        </div>
-                    </form>
-                </section>
-            ) : null}
-        </>
-    );
+                <div className="types-row-actions">
+                  <button
+                    type="button"
+                    className="types-icon-button"
+                    onClick={() => navigate(`/private/types/${type.id}/edit`)}
+                    aria-label="Modifica tipologia"
+                  >
+                    <IoPencilOutline />
+                  </button>
+                  <button
+                    type="button"
+                    className="types-icon-button danger"
+                    onClick={() => void handleDelete(type)}
+                    aria-label="Elimina tipologia"
+                  >
+                    <IoTrashOutline />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
+    </section>
+  )
 }
+

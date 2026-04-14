@@ -11,6 +11,7 @@ import { NearbyPage } from "@/pages/NearbyPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { SecurityPage } from "@/pages/SecurityPage";
 import { TypesPage } from "@/pages/TypesPage";
+import { TypeFormPage } from "@/pages/TypeFormPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { ActivityAddPage } from "@/pages/ActivityAddPage";
 import { ActivityEditPage } from "@/pages/ActivityEditPage";
@@ -76,6 +77,8 @@ function App() {
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="profile/security" element={<SecurityPage />} />
                     <Route path="private/types" element={<TypesPage />} />
+                    <Route path="private/types/new" element={<TypeFormPage />} />
+                    <Route path="private/types/:id/edit" element={<TypeFormPage />} />
                     <Route path="activities" element={<ActivitiesPage />} />
                     <Route path="activity/add" element={<ActivityAddPage />} />
                     <Route path="activity/:id" element={<ActivityDetailPage />} />

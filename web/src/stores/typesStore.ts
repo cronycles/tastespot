@@ -15,6 +15,7 @@ type TypesState = {
   ) => Promise<string | null>
   remove: (id: string) => Promise<string | null>
   reorder: (id: string, direction: 'up' | 'down') => Promise<void>
+  reorderByIndex: (fromIndex: number, toIndex: number) => Promise<void>
 }
 
 export const useTypesStore = create<TypesState>((set, get) => ({
@@ -94,6 +95,22 @@ export const useTypesStore = create<TypesState>((set, get) => ({
     set({ types: next })
 
     const ordered = next.map((entry) => entry.id)
+    try {
+      await api.post('/types/reorder', { ordered })
+    } catch {
+      // best effort
+    }
+  },
+
+  reorderByIndex: async (fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return
+    const sorted = [...get().types].sort((a, b) => a.display_order - b.display_order)
+    const next = [...sorted]
+    const [item] = next.splice(fromIndex, 1)
+    next.splice(toIndex, 0, item)
+    const updated = next.map((entry, idx) => ({ ...entry, display_order: idx }))
+    set({ types: updated })
+    const ordered = updated.map((entry) => entry.id)
     try {
       await api.post('/types/reorder', { ordered })
     } catch {

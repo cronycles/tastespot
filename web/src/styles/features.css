@@ -37,6 +37,53 @@
     gap: 4px;
 }
 
+.types-drag-handle {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--color-text-tertiary);
+    display: grid;
+    place-items: center;
+    cursor: grab;
+    font-size: 1.35rem;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: color 120ms ease, background 120ms ease;
+    flex-shrink: 0;
+}
+
+.types-drag-handle:hover {
+    color: var(--color-text-secondary);
+    background: var(--color-surface-muted);
+}
+
+.types-drag-handle:active {
+    cursor: grabbing;
+    color: var(--color-primary-dark);
+}
+
+.types-drag-handle:focus-visible {
+    outline: none;
+    cursor: grabbing;
+}
+
+.types-item--dragging {
+    opacity: 0.45;
+}
+
+.surface-item.types-item--drop-target {
+    background: var(--color-accent-soft);
+    border-color: rgba(255, 90, 53, 0.45);
+}
+
+.list.is-dragging {
+    user-select: none;
+    cursor: grabbing;
+}
+
 .types-main-icon {
     width: 34px;
     height: 34px;
