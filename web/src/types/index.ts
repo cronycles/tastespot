@@ -86,6 +86,7 @@ export const AVAILABLE_ICONS = [
   'nutrition-outline',
   'storefront-outline',
   'basket-outline',
+  'tapas-outline',
 ] as const
 
 export type AvailableIconKey = (typeof AVAILABLE_ICONS)[number]

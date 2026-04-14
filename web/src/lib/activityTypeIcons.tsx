@@ -12,6 +12,7 @@ import {
     IoStorefrontOutline,
     IoWineOutline,
 } from "react-icons/io5";
+import { LuSandwich } from "react-icons/lu";
 import { DEFAULT_ICON_KEY, type AvailableIconKey } from "@/types";
 
 const iconMap: Record<AvailableIconKey, IconType> = {
@@ -25,6 +26,7 @@ const iconMap: Record<AvailableIconKey, IconType> = {
     "nutrition-outline": IoNutritionOutline,
     "storefront-outline": IoStorefrontOutline,
     "basket-outline": IoBasketOutline,
+    "tapas-outline": LuSandwich,
 };
 
 const markerSymbolMap: Record<AvailableIconKey, string> = {
@@ -38,6 +40,7 @@ const markerSymbolMap: Record<AvailableIconKey, string> = {
     "nutrition-outline": "🥗",
     "storefront-outline": "🏬",
     "basket-outline": "🛒",
+    "tapas-outline": "🥪",
 };
 
 function isKnownIconKey(iconKey: string): iconKey is AvailableIconKey {
