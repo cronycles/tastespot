@@ -80,6 +80,8 @@ export const AVAILABLE_ICONS = [
   'cafe-outline',
   'beer-outline',
   'wine-outline',
+  'cocktail-outline',
+  'wine-bar-outline',
   'pizza-outline',
   'fast-food-outline',
   'ice-cream-outline',

@@ -12,7 +12,7 @@ import {
     IoStorefrontOutline,
     IoWineOutline,
 } from "react-icons/io5";
-import { LuSandwich } from "react-icons/lu";
+import { LuMartini, LuSandwich, LuWine } from "react-icons/lu";
 import { DEFAULT_ICON_KEY, type AvailableIconKey } from "@/types";
 
 const iconMap: Record<AvailableIconKey, IconType> = {
@@ -20,6 +20,8 @@ const iconMap: Record<AvailableIconKey, IconType> = {
     "cafe-outline": IoCafeOutline,
     "beer-outline": IoBeerOutline,
     "wine-outline": IoWineOutline,
+    "cocktail-outline": LuMartini,
+    "wine-bar-outline": LuWine,
     "pizza-outline": IoPizzaOutline,
     "fast-food-outline": IoFastFoodOutline,
     "ice-cream-outline": IoIceCreamOutline,
@@ -34,6 +36,8 @@ const markerSymbolMap: Record<AvailableIconKey, string> = {
     "cafe-outline": "☕",
     "beer-outline": "🍺",
     "wine-outline": "🍷",
+    "cocktail-outline": "🍸",
+    "wine-bar-outline": "🍷",
     "pizza-outline": "🍕",
     "fast-food-outline": "🍔",
     "ice-cream-outline": "🍨",
