@@ -1,0 +1,14 @@
+# App Stile and formatting
+- Minimalista, semplice, pulito ma accattivante e moderno
+- inspire in the style of google maps and https://macarfi.com/es mobile version
+- Lean, DRY and Clean Code: no over-engineering, no premature abstractions, no repeat code, human reading code
+- Nessun requisito specifico di accessibilità
+- End of line: **LF**
+- Indent: 2 spaces
+- Prettier: single quotes, no semicolons, trailing commas (es5), print width 100
+- No static methods unless the class itself is static or it is strictly necessary
+- No comments unless the logic is non-obvious — when adding comments, **English only**
+- One Zustand store per domain (auth, activities, types, reviews)
+- All user-facing strings in italiano
+- All texts in config files (thinking in a future i18n develop)
+- uso di codice e librerie opensource o comunque gratis e che non richiedano MAI subscriptions, ne ora ne mai

@@ -1,28 +1,13 @@
-# TasteSpot — Documento dei Requisiti
+# TasteSpot — Documento di conoscimento
 
 ---
 
-## Scopo
+## Cos'è
 
-Creare una web "Mobile First" che consenta agli utenti di valutare le attività di ristorazione (caffè, drink bar, gelaterie, ristoranti, panifici, enoteche, pasticcerie, pizzerie, ecc.), fornendo, se vogliono, valutazioni specifiche delle diverse categorie di voto.
+Web "Mobile First" che consenta agli utenti di valutare le attività di ristorazione (caffè, drink bar, gelaterie, ristoranti, panifici, enoteche, pasticcerie, pizzerie, ecc.), fornendo, se vogliono, valutazioni specifiche delle diverse categorie di voto.
 
----
-
-## Situazione attuale e problema
-
-Le app esistenti presentano limitazioni significative:
-
-- **Punteggio generico**: valutazioni uniche che non distinguono tra vari aspetti (location, cibo, servizio, prezzo).
-- **Scarsa specificità**: le valutazioni non differenziano le offerte diverse di uno stesso luogo (es. un'attività che fa sia drink bar che ristorante).
-- **Ricerca limitata**: gli utenti non possono applicare un filtro che escluda dalle valutazioni, per esempio, i punteggi di location o servizio, per poter guardare e ordinare i risultati SOLO in base alla media voto di cibo e prezzo. Esempio: se a qualcuno non è piaciuta la location ma il cibo sì, abbassa la valutazione da 5 a 2 stelle, ma ad altri utenti la location non importa.
-
----
 
 ## Descrizione della soluzione
-
-### Stile
-- Minimalista, semplice, pulito ma accattivante e moderno
-- Nessun requisito specifico di accessibilità
 
 ---
 
@@ -34,6 +19,8 @@ Una **quicklink bar fissa in basso** sempre visibile con, nell'ordine:
 3. Icona pagina **Lista Attività** (Vicino a me)
 4. Icona pagina **Area Privata Home**
 
+
+> Ogni recensione è legata a una specifica tipologia. Un'attività con N tipologie assegnate ha fino a N recensioni separate. Il punteggio medio dell'attività è la media di tutte le recensioni per-tipologia.
 ---
 
 ## Pagine
@@ -45,7 +32,6 @@ Se l'utente è autenticato → pagina **Home**
 ---
 
 ### Pagina "Home"
-
 - Mostra a pagina intera la mappa, con in alto in floating la barra di ricerca
 - La mappa mostra la zona dove si trova l'utente con le icone delle attività vicine cliccabili (vedi sezione *Icone Attività*)
 - Sotto la barra di ricerca ci sono i filtri (vedi sezione *Filtri*)
@@ -59,7 +45,7 @@ La barra di ricerca permette di cercare:
 - Attività salvate dall'utente (per nome, tag, indirizzo)
 - Un indirizzo o località
 
-Mentre si scrive, la barra dà suggerimenti sia sugli indirizzi (Nominatim) sia sulle attività salvate.
+Mentre si scrive (almeno 3 lettere), la barra dà suggerimenti sia sugli indirizzi (Nominatim) sia sulle attività salvate.
 
 - Click su un'**attività suggerita** → pagina **Dettaglio Attività**
 - Click su un **indirizzo suggerito** → mappa si sposta all'indirizzo mantenendo le attività visibili
@@ -113,8 +99,8 @@ Il **punteggio medio generale** mostrato sopra al nome è la media di tutte le r
 ---
 
 ### Pagina "Login/Registro"
-- Login: email + password → Supabase signIn
-- Registro: email + password → Supabase signUp + login automatico
+- Login: email + password 
+- Registro: email + password → signUp + login automatico
 
 ---
 
@@ -252,7 +238,6 @@ Ordine di fallback (default):
 
 - Mappe: open source / gratuite (zero costo per uso)
 - Nessuna libreria di terzi a pagamento / con limiti di uso
-- Database: SQL semplice
 - Framework: React Native con TypeScript
 - Deploy: iOS e Android
 - Lazy loading per tutte le liste
