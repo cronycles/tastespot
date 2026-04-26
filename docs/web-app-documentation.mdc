@@ -1,29 +1,20 @@
-# TasteSpot — Documento di conoscimento
-
 ---
+description: How the web application is working for the user
+---
+
+# App Mode of operation
 
 ## Cos'è
 
 Web "Mobile First" che consenta agli utenti di valutare le attività di ristorazione (caffè, drink bar, gelaterie, ristoranti, panifici, enoteche, pasticcerie, pizzerie, ecc.), fornendo, se vogliono, valutazioni specifiche delle diverse categorie di voto.
 
 
-## Descrizione della soluzione
+### Navigation
+- **Public routes** (`/login`, `/register`): component `GuestRoute`
+- **Protected routes**: component `ProtectedRoute` — controls token in `authStore`
+- **Bottom nav**: 4 tabs (Mappa `/`, Preferiti `/favorites`, Vicino `/nearby`, Profilo `/profile`)
 
----
-
-## Layout
-
-Una **quicklink bar fissa in basso** sempre visibile con, nell'ordine:
-1. Icona pagina **Home**
-2. Icona pagina **Preferiti**
-3. Icona pagina **Lista Attività** (Vicino a me)
-4. Icona pagina **Area Privata Home**
-
-
-> Ogni recensione è legata a una specifica tipologia. Un'attività con N tipologie assegnate ha fino a N recensioni separate. Il punteggio medio dell'attività è la media di tutte le recensioni per-tipologia.
----
-
-## Pagine
+## Pages
 
 ### Prima pagina
 Se l'utente non è autenticato → pagina **Login/Registro**  
@@ -33,12 +24,16 @@ Se l'utente è autenticato → pagina **Home**
 
 ### Pagina "Home"
 - Mostra a pagina intera la mappa, con in alto in floating la barra di ricerca
-- La mappa mostra la zona dove si trova l'utente con le icone delle attività vicine cliccabili (vedi sezione *Icone Attività*)
-- Sotto la barra di ricerca ci sono i filtri (vedi sezione *Filtri*)
+- La mappa mostra la zona dove si trova l'utente con le icone delle attività vicine cliccabili (vedi sezione [Icone Attività](#icone-attività))
+- Sotto la barra di ricerca ci sono i filtri (vedi sezione [Filtri](#filtri))
 - In basso al centro: bottone flottante → pagina **Lista Attività** (Vicino a me)
 - In basso a destra: bottone flottante con **"+"** → pagina **Aggiungi nuova attività**
 - Tenendo premuto su un punto vuoto della mappa → popup che chiede se aggiungere una nuova attività → pagina **Aggiungi nuova attività** (pre-compilato solo l'indirizzo)
 - Tenendo premuto su un punto con icona attività OSM → popup → pagina **Aggiungi nuova attività** con nome, indirizzo e telefono già pre-compilati dai dati della mappa
+
+#### Map
+- **Default location fallback**: if cannot geolocalize user is Genova (lat: 44.4056, lng: 8.9463)
+- **POI pre-fill**: click on feature map → query params `name`, `address`, `lat`, `lng`, `phone` → `ActivityFormPage`
 
 #### Funzionalità barra di ricerca
 La barra di ricerca permette di cercare:
@@ -58,8 +53,8 @@ Mentre si scrive (almeno 3 lettere), la barra dà suggerimenti sia sugli indiriz
 Pagina generica per elenchi verticali (Preferiti, Vicino a me, risultati ricerca):
 
 - Elenco verticale di **preview attività (verticale)** ordinate secondo la logica di *Ordinamento*
-- Barra in alto con icone per ordinare (vedi sezione *Ordinamento*)
-- Barra in alto con possibilità di filtrare (vedi sezione *Filtri*)
+- Barra in alto con icone per ordinare (vedi sezione [Ordinamento](#ordinamento))
+- Barra in alto con possibilità di filtrare (vedi sezione [Filtri](#filtri))
 
 ---
 
@@ -84,6 +79,9 @@ Sotto alle foto, nell'ordine:
 - Bottone **Elimina attività**
 
 #### Sezione recensione nel dettaglio
+
+Important: Ogni recensione è legata a una specifica tipologia. Un'attività con N tipologie assegnate ha fino a N recensioni separate. 
+Il punteggio medio dell'attività è la media di tutte le recensioni per-tipologia.
 
 Ogni tipologia assegnata all'attività ha la **propria recensione separata** (es. un'attività con "gelateria" e "bar aperitivi" ha due recensioni indipendenti). Per ogni tipologia si vede:
 - Se **non è stata fatta** la recensione per quella tipologia: bottone "Aggiungi recensione — [Nome Tipologia]" → pagina **Recensione Attività** con la tipologia pre-selezionata
@@ -136,7 +134,10 @@ Lista di **4 categorie** con voto a smile:
 - Servizio
 - Conto (qualità prezzo)
 
-Il voto è a **5 smile**: 😞 😕 😐 🙂 😛 → valori: 1, 3, 5.5, 7.5, 10
+#### Rating system
+- **5 smile**: 😞😕😐🙂😝 → target values are in `web/src/config/scoring.ts`
+- **4 categories**: location, food, service, price/quality
+- **scoring weights are**: in `web/src/config/scoring.ts`
 
 Campi aggiuntivi (non obbligatori):
 - Costo approssimativo per persona
@@ -225,24 +226,3 @@ Ordine di fallback (default):
 - Eliminazione: avvisa che si rimuovono le associazioni → conferma/annulla
 
 ---
-
-## Chiarimenti
-
-- Se la web non riesce a geolocalizzare l'utente → mappa su **Genova** di default
-- Lingue: **italiano** (default), **spagnolo**, **inglese**
-- Messaggi di errore chiari per l'utente in caso di problemi
-
----
-
-## Specifiche Tecniche
-
-- Mappe: open source / gratuite (zero costo per uso)
-- Nessuna libreria di terzi a pagamento / con limiti di uso
-- Framework: React Native con TypeScript
-- Deploy: iOS e Android
-- Lazy loading per tutte le liste
-- Registrazione errori tramite log per il programmatore
-- End of line: LF
-- No metodi statici salvo necessità
-- Commenti solo se il codice non si capisce da solo — se si mettono, devono essere in inglese
-- Stile LEAN e Clean Code

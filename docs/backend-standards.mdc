@@ -1,0 +1,118 @@
+---
+description: Backend development standards, best practices, and conventions for the TasteSpot Laravel 11 + Sanctum application including Domain-Driven Design, SOLID principles, architecture patterns, API design, and testing practices
+globs: ["backend/*"]
+alwaysApply: true
+---
+
+# Backend Project Standards and Best Practices
+
+---
+
+## Overview
+
+This document outlines the best practices, conventions, and standards used in the TasteSpot backend API. The backend follows Domain-Driven Design (DDD) principles and implements a layered architecture to ensure code consistency, maintainability, and scalability.
+
+## Technology Stack
+
+### Core Technologies
+- **Laravel 11**: API application framework
+- **Sanctum**: Database ORM (MySQL on production, SQLite on development)
+
+### Database & ORM
+- ???
+
+### Testing Framework
+- ???
+- **Test Location**: `__tests__` directories
+
+### Development Tools
+- ???
+
+## Architecture Overview
+
+### Laravel Design 
+
+The backend follows a Laravel architecture.
+
+### Project Structure
+
+```
+backend/
+├── routes/api.php          # all the /api/v1/ routes
+│  app/
+│  ├── Http/Controllers/    # Laravel controllers
+│  ├── Models/              # Eloquent models
+├── database/migrations/    # MySQL migrations
+```
+
+#### Photos
+- upload multipart → `storage/app/public/photos/`
+- browser compression with `browser-image-compression`
+
+
+### Code Quality Standards
+
+#### Documentation
+- Write clear, descriptive test names that explain the scenario
+- Add comments for complex test setups
+- Document any special test conditions or edge cases
+- Keep test code as readable as production code
+
+#### Performance Considerations
+- Keep tests fast and focused
+- Avoid unnecessary async operations in tests
+- Use appropriate mock strategies to avoid real I/O
+- Group related tests to minimize setup/teardown overhead
+
+### Integration with Development Workflow
+- Run tests before every commit
+- Ensure all tests pass before merging
+- Update tests when modifying existing functionality
+
+### Common Anti-Patterns to Avoid
+- Don't test implementation details, test behavior
+- Don't create overly complex test setups
+- Don't ignore failing tests or skip error scenarios
+- Don't use real database connections in unit tests
+- Don't create tests that depend on external services
+- Don't write tests that are too tightly coupled to implementation
+
+## Performance Best Practices
+
+### Error Handling Performance
+
+- **Early Returns**: Return early to avoid unnecessary processing
+- **Error Propagation**: Let errors propagate naturally through the call stack
+- **Avoid Over-Wrapping**: Don't wrap errors unnecessarily
+
+## Security Best Practices
+
+### Input Validation
+
+- **Validate All Inputs**: Validate all user inputs before processing
+- **Sanitize Data**: Sanitize data to prevent injection attacks
+
+### Environment Variables
+
+- **Never Commit Secrets**: Never commit `.env` files or secrets to version control
+
+### Dependency Injection
+- **Testability**: Use dependency injection to improve testability
+
+## Development Workflow
+
+### Git Workflow
+- **Descriptive Commits**: Write descriptive commit messages in English
+- **Code Review**: Code review before merging
+- **Small features**: Keep features small and focused
+
+### Code Quality
+- **Laravel Compilation**: Ensure Laravel compiles without errors
+- **All Tests Passing**: Ensure all tests pass before deployment
+- **Code Review**: Review code for adherence to standards
+
+
+## API Health check
+-  `GET /api/v1/ping` → `{"status":"ok"}`
+
+This document serves as the foundation for maintaining code quality and consistency across the LTI backend application. All team members should follow these practices to ensure a maintainable, scalable, and testable codebase.
