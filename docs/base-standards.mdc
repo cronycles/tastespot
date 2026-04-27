@@ -45,6 +45,15 @@ For detailed standards and guidelines specific to different areas of the project
 After each implementation change, review `README.md` and update it if the change affects.
 Keep `README.md` accurate at all times.
 
+## 5.1 Agent Quick References
+Use these entry points first when you need fast project context:
+
+- Main developer onboarding and workflow: [README.md](../README.md)
+- Concise setup navigation page: [docs/development_guide.md](./development_guide.md)
+- Backend architecture and API conventions: [docs/backend-standards.mdc](./backend-standards.mdc)
+- Frontend architecture and web conventions: [docs/frontend-standards.mdc](./frontend-standards.mdc)
+- Backend deploy details (procedural): [backend/DEPLOY.md](../backend/DEPLOY.md)
+
 ## 6. Development Scripts
 
 Root only (orchestrator of backend + web):

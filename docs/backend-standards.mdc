@@ -104,6 +104,14 @@ npm run restore
 npm run start
 ```
 
+## Deploy References (Agent-First)
+- Canonical backend deploy runbook: [backend/DEPLOY.md](../backend/DEPLOY.md)
+- CI/CD and orchestration context: [docs/base-standards.mdc](./base-standards.mdc)
+- Deployment scripts and workflow files to inspect first:
+  - `scripts/deploy.sh`
+  - `.cpanel.yml`
+  - `.github/workflows/deploy.yml`
+
 ## Quality Gates
 - Lint/style clean (Pint)
 - Test suite green (composer test)

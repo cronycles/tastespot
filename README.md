@@ -1,217 +1,219 @@
 # TasteSpot
 
-Web app per valutare e scoprire attività di ristorazione (bar, ristoranti, gelaterie, pizzerie, ecc.) con un sistema di valutazione per categoria (location, cibo, servizio, prezzo).
+TasteSpot is a web app to discover and review food and drink places (bars, restaurants, gelato shops, pizzerias, and more) with category-based ratings (location, food, service, price).
 
-**URL produzione:** `https://tastespot.crointhemorning.com/`  
-**API produzione:** `https://tastespot.crointhemorning.com/api/v1/`
+Production URL: `https://tastespot.crointhemorning.com/`  
+Production API: `https://tastespot.crointhemorning.com/api/v1/`
 
 ---
 
-## Avvio quotidiano (TL;DR)
+## Quick Start (TL;DR)
 
-**Prima installazione:**
+First-time setup:
 
 ```bash
 npm run restore
-# installa le dipendenze di backend e web in un colpo solo
-# nel backend esegue anche php artisan config:clear
 ```
 
-**Avvio (dalla root, consigliato):**
+This installs backend and web dependencies in one go. On backend, it also runs `php artisan config:clear`.
+
+Start everything from the repository root (recommended):
 
 ```bash
 npm run start
-# avvia backend e web in parallelo, output colorato
 ```
 
-**Oppure separati:**
+Or start services separately:
 
 ```bash
-cd backend && npm run start   # solo Laravel su http://127.0.0.1:8001
-cd web && npm run start       # solo web app Vite su http://127.0.0.1:8000
+cd backend && npm run start   # Laravel only on http://127.0.0.1:8001
+cd web && npm run start       # Vite web app only on http://127.0.0.1:8000
 ```
 
 ---
 
-## Stack
+## Tech Stack
 
-### Frontend Web — `web/`
+### Web Frontend (`web/`)
 
-- **React 19** + **Vite** + TypeScript
-- **React Router** — routing SPA
-- **Zustand** — riuso della logica di stato lato web
-- **MapLibre GL JS** — mappa web attiva
-- **Geocoding web via backend proxy** — endpoint `GET /api/v1/geo/search` e `GET /api/v1/geo/reverse` (cache + fallback provider)
-- **Build output** — `web/dist/`, destinato a essere pubblicato nella root web del dominio
+- React 19 + Vite + TypeScript
+- React Router (SPA routing)
+- Zustand (state management)
+- MapLibre GL JS (interactive map)
+- Geocoding via backend proxy:
+    - `GET /api/v1/geo/search`
+    - `GET /api/v1/geo/reverse`
+- Production build output: `web/dist/` (published at domain web root)
 
-### Backend — `backend/`
+### Backend (`backend/`)
 
-- **Laravel 11** — framework PHP, struttura MVC
-- **Laravel Sanctum** — autenticazione via token Bearer (`Authorization: Bearer <token>`)
-- **SQLite** — database locale (`backend/database/database.sqlite`)
-- **MySQL** — database di produzione su SupportHost cPanel
-- **Laravel Storage** — foto in `backend/storage/app/public/photos/`, esposte via `/storage/photos/...`
-- **Symlink storage** — `public/storage → storage/app/public`, ricreato automaticamente ad ogni deploy (non committato in git)
-- **Registrazione configurabile** — `APP_REGISTRATION_ENABLED=false` blocca nuove registrazioni lato API
+- Laravel 11 (PHP MVC)
+- Laravel Sanctum (Bearer token auth)
+- SQLite for local development (`backend/database/database.sqlite`)
+- MySQL in production (SupportHost cPanel)
+- Laravel Storage for uploaded photos (`backend/storage/app/public/photos/`)
+- Storage symlink: `public/storage -> storage/app/public` (recreated at each deploy, not committed)
+- Configurable registration: `APP_REGISTRATION_ENABLED=false` blocks API signups
 
 ---
 
-## Struttura del progetto
+## Project Structure
 
-```
-TasteSpot/                         ← radice del monorepo Git
+```text
+TasteSpot/
 ├── .github/
-│   ├── copilot-instructions.md    ← Istruzioni Copilot: stack, convenzioni, architettura
+│   ├── copilot-instructions.md
 │   ├── instructions/
-│   │   └── plan.instructions.md  ← Piano di sviluppo e stato fasi (auto-loaded da Copilot)
+│   │   └── plan.instructions.md
 │   └── workflows/
-│       ├── deploy.yml             ← GitHub Actions: auto-deploy su push a main
-│       └── web-ci.yml             ← GitHub Actions: lint + build check su develop/main
+│       ├── deploy.yml
+│       └── web-ci.yml
 ├── docs/
-│   └── web-requirements-remediation-plan.md ← Piano canonico web: stato, gap e fasi
+│   └── web-requirements-remediation-plan.md
 ├── scripts/
-│   └── deploy.sh                  ← Script bash eseguito da cPanel al deploy
-├── .cpanel.yml                    ← Entry point deploy cPanel (richiama deploy.sh)
-├── .gitignore                     ← Root gitignore (esclude .DS_Store, keys, ecc.)
-├── README.md                      ← Questo file
-├── backend/                       ← Backend Laravel 11
+│   └── deploy.sh
+├── .cpanel.yml
+├── README.md
+├── backend/
 │   ├── app/
-│   │   ├── Http/Controllers/Api/  ← AuthController, ActivityController, PhotoController, ...
-│   │   └── Models/                ← User, Activity, ActivityType, Review, ActivityPhoto
+│   │   ├── Http/Controllers/Api/
+│   │   └── Models/
 │   ├── database/
-│   │   ├── migrations/            ← Migrazioni database
-│   │   └── database.sqlite        ← IL DATABASE locale (vedi sezione sotto)
-│   ├── routes/api.php             ← Tutte le route sotto /api/v1/
-│   ├── storage/app/public/photos/ ← Foto caricate dall'app
-│   ├── vendor/                    ← Dipendenze PHP (committate — no composer install su server)
-│   ├── .env                       ← Config locale (SQLite, APP_DEBUG=true) — NON in git
-│   ├── .env.production            ← Config produzione — NON in git (solo locale e sul server)
-│   ├── .gitignore
-│   └── DEPLOY.md                  ← Guida completa deploy produzione
-└── web/                           ← Web app React + Vite
-    ├── src/                       ← Router SPA, store Zustand, componenti HTML/CSS
-    │   └── styles/                ← CSS globale diviso per area (base, layout, features)
-    ├── dist/                      ← Build di produzione (committata in git)
-    ├── .env.development           ← VITE_API_URL=http://127.0.0.1:8001/api/v1
-    ├── .env.production            ← VITE_API_URL=/api/v1
-    └── package.json               ← Script dev/build/lint web
+│   │   ├── migrations/
+│   │   └── database.sqlite
+│   ├── routes/api.php
+│   ├── storage/app/public/photos/
+│   ├── vendor/
+│   └── DEPLOY.md
+└── web/
+    ├── src/
+    │   └── styles/
+    ├── dist/
+    ├── .env.development
+    ├── .env.production
+    └── package.json
 ```
 
 ---
 
-## Come accedere alle varie parti
+## Local URLs and Services
 
-### Web app — React + Vite
+### Web app
 
-- URL locale: **http://127.0.0.1:8000** (avviata con `npm run start` da `web/`)
-- URL produzione: **https://tastespot.crointhemorning.com/**
+- Local URL: `http://127.0.0.1:8000`
+- Production URL: `https://tastespot.crointhemorning.com/`
 
-### Backend — Laravel
+### Backend API
 
-- Avviato con `php artisan serve --port=8001` nella cartella `backend/`
-- URL locale: **http://127.0.0.1:8001**
-- Tutti gli endpoint sono sotto `/api/v1/`
-- Log errori: `backend/storage/logs/laravel.log`
-- Foto caricate: `backend/storage/app/public/photos/`
-- URL foto pubbliche: `http://127.0.0.1:8001/storage/photos/<nomefile>`
+- Run with `php artisan serve --port=8001` in `backend/`
+- Local URL: `http://127.0.0.1:8001`
+- API base path: `/api/v1/`
+- Error log: `backend/storage/logs/laravel.log`
+- Uploaded photos: `backend/storage/app/public/photos/`
+- Public photo URL pattern: `http://127.0.0.1:8001/storage/photos/<filename>`
 
-### Database SQLite — come aprirlo graficamente
+---
 
-Il database locale è un singolo file: `backend/database/database.sqlite`
+## Local Database (SQLite)
 
-**Opzione 1 — dentro VS Code (consigliato, zero install extra):**
+The local database is a single file: `backend/database/database.sqlite`.
 
-1. `Cmd+Shift+X` → cerca **"SQLite Viewer"** di _Florian Klampfer_ → Installa
-2. Nel file explorer di VS Code, clicca su `backend/database/database.sqlite`
-3. Si apre come tabella navigabile — puoi sfogliare, filtrare, vedere tutti i record
+Open it with VS Code:
 
-**Opzione 2 — app standalone gratuita:**
+1. Install extension "SQLite Viewer" by Florian Klampfer.
+2. Open `backend/database/database.sqlite` from the VS Code explorer.
+3. Browse tables and rows directly.
 
-- Scarica **[DB Browser for SQLite](https://sqlitebrowser.org)**
-- File → Open Database → seleziona `backend/database/database.sqlite`
+Alternative desktop app:
 
-**Opzione 3 — via terminale:**
+- DB Browser for SQLite: <https://sqlitebrowser.org>
+
+Terminal access:
 
 ```bash
 cd backend
 sqlite3 database/database.sqlite
-.tables                          # lista tabelle
+.tables
 SELECT * FROM activities;
 DELETE FROM activities WHERE id = 'xxx';
 .quit
 ```
 
-**Tabelle principali:**
+Main tables:
 
-| Tabella                  | Contenuto                                    |
-| ------------------------ | -------------------------------------------- |
-| `users`                  | Utenti registrati                            |
-| `activity_types`         | Tipologie (bar, ristorante, ecc.)            |
-| `activities`             | Attività salvate                             |
-| `activity_activity_type` | Relazione molti-a-molti attività ↔ tipologie |
-| `reviews`                | Recensioni (score, note, costi)              |
-| `activity_photos`        | Metadati foto (path su disco)                |
-| `personal_access_tokens` | Token Sanctum (sessioni login)               |
-
----
-
-## API Backend — tutti gli endpoint
-
-Base URL locale: `http://127.0.0.1:8001/api/v1/`
-Base URL produzione: `https://tastespot.crointhemorning.com/api/v1/`
-
-> L'URL radice (`/`) non esiste — è un'API pura. Usa `/api/v1/ping` per verificare che il server sia su.
-> Autenticazione: header `Authorization: Bearer <token>` (🔒 = richiesto)
-
-| Metodo | Path                       | Descrizione                                                 |
-| ------ | -------------------------- | ----------------------------------------------------------- |
-| GET    | `/auth/settings`           | Config pubblica auth (`registration_enabled`)               |
-| GET    | `/geo/search`              | Ricerca geocoding (proxy Nominatim con cache/fallback)      |
-| GET    | `/geo/reverse`             | Reverse geocoding (proxy Nominatim con cache)               |
-| POST   | `/auth/register`           | Registrazione → restituisce token                           |
-| POST   | `/auth/login`              | Login → restituisce token                                   |
-| POST   | `/auth/logout`             | Logout 🔒                                                   |
-| GET    | `/auth/me`                 | Dati utente corrente 🔒                                     |
-| POST   | `/auth/change-password`    | Cambia password con verifica password attuale 🔒            |
-| GET    | `/types`                   | Lista tipologie 🔒                                          |
-| POST   | `/types`                   | Crea tipologia 🔒                                           |
-| PUT    | `/types/:id`               | Modifica tipologia 🔒                                       |
-| DELETE | `/types/:id`               | Elimina tipologia 🔒                                        |
-| POST   | `/types/reorder`           | Riordina tipologie `{ordered: [id, id, ...]}` 🔒            |
-| GET    | `/activities`              | Lista attività (paginata `?offset=&limit=`) 🔒              |
-| POST   | `/activities`              | Crea attività 🔒                                            |
-| GET    | `/activities/:id`          | Dettaglio attività 🔒                                       |
-| PUT    | `/activities/:id`          | Modifica attività 🔒                                        |
-| GET    | `/ping`                    | Health check — risponde `{"status":"ok","version":"x.x.x"}` |
-| DELETE | `/activities/:id`          | Elimina attività → 204 No Content 🔒                        |
-| POST   | `/activities/:id/favorite` | Toggle preferito 🔒                                         |
-| PUT    | `/activities/:id/viewed`   | Aggiorna last_viewed_at 🔒                                  |
-| GET    | `/activities/:id/reviews`  | Lista recensioni 🔒                                         |
-| POST   | `/reviews`                 | Crea/aggiorna recensione (upsert per activity+type) 🔒      |
-| POST   | `/activities/:id/photos`   | Carica foto (multipart/form-data) 🔒                        |
+| Table                    | Purpose                                       |
+| ------------------------ | --------------------------------------------- |
+| `users`                  | Registered users                              |
+| `activity_types`         | Activity categories (bar, restaurant, etc.)   |
+| `activities`             | Saved places                                  |
+| `activity_activity_type` | Many-to-many mapping between places and types |
+| `reviews`                | Ratings, notes, and cost data                 |
+| `activity_photos`        | Photo metadata (file paths)                   |
+| `personal_access_tokens` | Sanctum tokens (authenticated sessions)       |
 
 ---
 
-## Setup da zero (prima volta)
+## Backend API Endpoints
 
-### Prerequisiti
+Local API base URL: `http://127.0.0.1:8001/api/v1/`  
+Production API base URL: `https://tastespot.crointhemorning.com/api/v1/`
 
-- Node.js ≥ 18
-- PHP ≥ 8.3 — macOS: `brew install php`
-- Composer 2 — `brew install composer`
+Notes:
 
-### 1. Installa le dipendenze
+- Root path `/` is not implemented (API-only service).
+- Use `/api/v1/ping` as a health check.
+- Authentication uses `Authorization: Bearer <token>`.
+- 🔒 means authentication required.
+
+| Method | Path                       | Description                                            |
+| ------ | -------------------------- | ------------------------------------------------------ |
+| GET    | `/auth/settings`           | Public auth config (`registration_enabled`)            |
+| GET    | `/geo/search`              | Geocoding search (Nominatim proxy with cache/fallback) |
+| GET    | `/geo/reverse`             | Reverse geocoding (Nominatim proxy with cache)         |
+| POST   | `/auth/register`           | Register user and return token                         |
+| POST   | `/auth/login`              | Login and return token                                 |
+| POST   | `/auth/logout`             | Logout 🔒                                              |
+| GET    | `/auth/me`                 | Current user profile 🔒                                |
+| POST   | `/auth/change-password`    | Change password (requires current password) 🔒         |
+| GET    | `/types`                   | List activity types 🔒                                 |
+| POST   | `/types`                   | Create activity type 🔒                                |
+| PUT    | `/types/:id`               | Update activity type 🔒                                |
+| DELETE | `/types/:id`               | Delete activity type 🔒                                |
+| POST   | `/types/reorder`           | Reorder types with `{ordered: [id, id, ...]}` 🔒       |
+| GET    | `/activities`              | List activities (`?offset=&limit=` pagination) 🔒      |
+| POST   | `/activities`              | Create activity 🔒                                     |
+| GET    | `/activities/:id`          | Activity details 🔒                                    |
+| PUT    | `/activities/:id`          | Update activity 🔒                                     |
+| DELETE | `/activities/:id`          | Delete activity (204 No Content) 🔒                    |
+| POST   | `/activities/:id/favorite` | Toggle favorite 🔒                                     |
+| PUT    | `/activities/:id/viewed`   | Update `last_viewed_at` 🔒                             |
+| GET    | `/activities/:id/reviews`  | List reviews for an activity 🔒                        |
+| POST   | `/reviews`                 | Create/update review (upsert by activity+type) 🔒      |
+| POST   | `/activities/:id/photos`   | Upload photo (`multipart/form-data`) 🔒                |
+| GET    | `/ping`                    | Health check (`{"status":"ok","version":"x.x.x"}`)     |
+
+---
+
+## First-Time Setup
+
+### Prerequisites
+
+- Node.js >= 18
+- PHP >= 8.3
+- Composer 2
+
+### 1. Install dependencies
 
 ```bash
 npm run restore
 ```
 
-Esegue automaticamente in sequenza:
+This runs:
 
-- `backend/`: `composer install` + `php artisan config:clear` + `npm install`
+- `backend/`: `composer install`, `php artisan config:clear`, `npm install`
 - `web/`: `npm install`
 
-### 2. Inizializza il database (solo la prima volta)
+### 2. Initialize local database (first run only)
 
 ```bash
 cd backend
@@ -221,59 +223,73 @@ php artisan migrate
 php artisan storage:link
 ```
 
-Il file `backend/.env` è già incluso nel repo configurato per SQLite locale.  
-Il file `web/.env.development` è già incluso (punta a `http://127.0.0.1:8001/api/v1`).
+Notes:
 
-Per bloccare nuove registrazioni in un ambiente di test o staging, imposta nel backend:
+- `backend/.env` is already included and configured for local SQLite.
+- `web/.env.development` is already included and points to `http://127.0.0.1:8001/api/v1`.
+
+To disable new registrations (for test or staging environments), set:
 
 ```bash
 APP_REGISTRATION_ENABLED=false
 ```
 
-Con questa flag disattiva, `POST /api/v1/auth/register` risponde `403` e non crea utenti.
+With this flag disabled, `POST /api/v1/auth/register` returns `403` and does not create users.
 
 ---
 
-## Deploy in produzione
+## Testing
 
-Il deploy è **automatico solo su `main`** quando cambiano file backend/web o script di deploy.
+Backend tests:
 
-**Regola operativa importante:** se modifichi qualunque file in `web/src/`, `web/public/` o `web/index.html`, prima del push su `main` devi rigenerare `web/dist/` in locale e committarla. In produzione non viene eseguita nessuna build Node: il server copia solo gli artefatti già presenti nel repository.
-
-Per i dettagli completi (setup iniziale server, troubleshooting, gotcha) vedi [`backend/DEPLOY.md`](backend/DEPLOY.md) e [`docs/base-standards.mdc §7`](docs/base-standards.mdc).
-
-**Flusso:**
-
-1. Rigenera la build web localmente: `npm run build:prod`
-2. Committa `web/dist/` e pusha su `main`
-3. GitHub Actions (`deploy.yml`) triggera il cPanel git pull + deploy
-4. `scripts/deploy.sh` copia `web/dist/*` in `public/` — nessun Node sul server
-
-**Checklist minima prima del push su `main`:**
-
-1. Se hai toccato il frontend, esegui `npm run build:prod`
-2. Verifica che `web/dist/` sia cambiata insieme ai sorgenti
-3. Committa sia i file sorgente sia `web/dist/`
-4. Solo dopo fai `git push origin main`
-
+```bash
+cd backend
+php artisan test
 ```
+
+Web checks:
+
+```bash
+cd web
+npm run lint
+npm run build
+```
+
+---
+
+## Production Deploy
+
+Deploy is automatic only on `main` when backend/web/deploy files change.
+
+Important rule: if you edit any of `web/src/`, `web/public/`, or `web/index.html`, you must rebuild and commit `web/dist/` before pushing to `main`. Production does not run a Node build; it only deploys prebuilt artifacts from the repository.
+
+Full production setup and troubleshooting are documented in [backend/DEPLOY.md](backend/DEPLOY.md) and [docs/base-standards.mdc](docs/base-standards.mdc).
+
+Deploy flow:
+
+1. Rebuild web locally: `npm run build:prod`
+2. Commit both source changes and `web/dist/`
+3. Push to `main`
+4. GitHub Actions (`deploy.yml`) triggers cPanel pull + deploy script
+
+```text
 git push origin main
-    → GitHub Actions (`.github/workflows/deploy.yml`)
-        → cPanel API: git pull sul server
-        → cPanel API: esegui `.cpanel.yml`
-            → bash scripts/deploy.sh
-                → copia backend/ → public_html/tastespot/
-                → php artisan migrate --force
-                → php artisan config:cache && route:cache
-                → chmod storage/ e bootstrap/cache/
-                → copia web/dist/* in public/ (pre-built, no npm)
+    -> GitHub Actions (.github/workflows/deploy.yml)
+        -> cPanel API: git pull
+        -> cPanel API: run .cpanel.yml
+            -> bash scripts/deploy.sh
+                -> copy backend/ to public_html/tastespot/
+                -> php artisan migrate --force
+                -> php artisan config:cache && route:cache
+                -> set storage and bootstrap/cache permissions
+                -> copy web/dist/* to public/ (prebuilt, no npm on server)
 ```
 
-`develop` resta branch di integrazione: fa lint+build check (`web-ci.yml`) ma non esegue deploy.
+`develop` is the integration branch and runs lint/build checks (`web-ci.yml`) without deploy.
 
-**Verifica deploy:**
+Deploy health check:
 
 ```bash
 curl -s https://tastespot.crointhemorning.com/api/v1/ping
-# Risposta attesa: {"status":"ok","version":"1.0.5"}
+# Expected: {"status":"ok","version":"1.0.5"}
 ```
