@@ -1,187 +1,103 @@
 ---
 description: Frontend development standards, best practices, and conventions for the TasteSpot Web application including component patterns, state management, UI/UX guidelines, and testing practices
 globs: ["web/src/**/*.{js,jsx,ts,tsx}", "web/src/styles/*.{css}", "web/tsconfig.json", "web/package.json"]
-alwaysApply: true
+alwaysApply: false
 ---
 
-# Frontend Project Configuration and Best Practices
+# Frontend Standards (Agent-First)
 
-## Table of Contents
+## Docs
+- Product behavior and page intent: [Web App Documentation](./web-app-documentation.mdc)
 
----
+## URLs
+servers:
+  - url: http://localhost:8000/
+    description: Development server
+  - url: https://tastespot.crointhemorning.com
+    description: Production server
 
-## Overview
+## Core Stack
+- Auth: Laravel Sanctum, Bearer token in localStorage key `@auth_token`
+- React 19 + hooks
+- React Router DOM 7 (`BrowserRouter`, protected/guest routes)
+- Zustand 5 (one store per domain)
+- TypeScript 6
+- Vite 8 + `@vitejs/plugin-react` (host `127.0.0.1`, port `8000`, alias `@ -> src`)
+- HTTP client: `src/lib/api.ts` (native `fetch` wrapper)
+- API base URL: `VITE_API_URL` with fallback `http://localhost:8000/api/v1`
 
-This document outlines the best practices, conventions, and standards used in the TasteSpot frontend application. These practices ensure code consistency, maintainability, and optimal development experience.
+## UI Rules
+- Mobile-first
+- Pure CSS + CSS variables; no Tailwind; no CSS-in-JS
+- Use app primitives in `src/components` (`Button`, `TextField`, `AppLayout`)
+- Icons: `react-icons`
+- Map: `maplibre-gl` + OpenFreeMap style `https://tiles.openfreemap.org/styles/liberty`
+- Geocoding/autocomplete: Nominatim API
+- Primary color: `#FF5A35`
+- User-facing strings in italiano
+- Keep literal UI text centralized in config when possible (future i18n)
 
-## Web Mode of operation
-For detailed of how the web is working for the user and what the pages and the areas are for, refer to:
-- [Web App Documentation](./web-app-documentation.mdc) - how the web works
-
-##
-- **local URL**: `http://localhost:8000`
-- **production URL**: `https://tastespot.crointhemorning.com`
-
-## Technology Stack
-
-### Core Technologies
-- **Auth**: Laravel Sanctum — token in `localStorage`
-- **React 19.2.4**: Modern React with functional components and hooks
-- **Zustand 5.0.12**: State management (one store per domain)
-- **TypeScript 6.0.2**: For type safety and better development experience
-- **Vite 8.0.4**: ???
-
-### UI Guidelines
-- mobile first
-- **CSS**: pure CSS with CSS variables (no Tailwind, no CSS-in-JS)
-- **React Bootstrap 2.10.2**: Bootstrap components for React
-- **React-icons 5.6.0**: Icon library (Ionicons web)
-- **maplibre-gl 5.22.0**: For the map in the home page (MapLibre GL JS + OpenFreeMap tiles
-- **Nominatim API**: for geocoding (free, OSM)
-- **Primary Color**: `#FF5A35`
-- Minimalist style, simple and clean but modern and captivating
-- inspire in the style of google maps and https://macarfi.com/es mobile version
-- All user-facing strings in italiano
-- All texts in config files (thinking in a future i18n develop)
-
-### Development Tools
-- **ESLint**: Code linting with React-specific rules
-- **TypeScript**: Static type checking
-- **Vite**: Front and developing
+## Dev Tooling
+- ESLint 9 flat config: `@eslint/js` + `typescript-eslint` + `react-hooks` + `react-refresh`
+- Typecheck: `tsc -b`
+- Scripts: `npm start`, `npm run build`, `npm run lint`
 
 ## Project Structure
-
-```
+```text
 web/
-├── public/              # Static images
-├── src/
-    ├── components/      # Reusable UI components
-    ├── config/          # Config file, now it stores the categories weight and the smile values
-    ├── lib/api.ts       # HTTP client Sanctum
-    ├── pages/           # One page for every route
-    ├── stores/          # state managment with Zustand (auth, activities, types, reviews, location)
-    ├── styles/          # UI css styles
-    ├── theme/index.ts   # (design tokens TypeScript, colors, spacing, radius)
-    ├── types/           # shared types
-    ├── App.tsx          # Main application component
-    ├── main.tsx         # Application entry point
-    ├── index.css        # styles main file
-    └── vite.config.ts   # vite configuration file
+├── .env.development(.local)   # VITE_API_URL
+├── .env.production            # VITE_API_URL
+├── eslint.config.js
+├── tsconfig*.json
+├── vite.config.ts
+├── public/
+└── src/
+    ├── components/            # UI + route guards + layout
+    ├── config/                # domain config (e.g. scoring)
+    ├── lib/                   # shared libs (api, icons)
+    ├── pages/                 # route-level pages
+    ├── stores/                # zustand stores
+    ├── styles/                # base/layout/features CSS
+    ├── theme/                 # design tokens
+    ├── types/                 # shared TS types/constants
+    ├── App.tsx                # router tree
+    ├── main.tsx               # bootstrap
+    └── index.css              # global style entry
 ```
-## Coding Standards
 
-### Maps
-- **Map style**: `https://tiles.openfreemap.org/styles/liberty` (free, no API key)
-- **Geocoding/autocomplete**: Nominatim API
+## Code Conventions
+- Components/pages/types/interfaces: PascalCase
+- Variables/functions/hooks: camelCase (`use*` for hooks)
+- Constants: UPPER_SNAKE_CASE
+- CSS classes: kebab-case
+- Component/page files: PascalCase
+- Utility/store/lib files: camelCase
 
-### Naming Conventions
+## Component Rules
+- Functional components only
+- TypeScript for new/updated code
+- Typed props
+- Controlled forms
+- Loading + error states mandatory for async flows
 
-- **Component Naming**: Use PascalCase for React components (e.g., `CandidateCard`, `PositionDetails`, `RecruiterDashboard`)
-- **Variable Naming**: Use camelCase for variables and functions (e.g., `candidateId`, `handleSubmit`, `fetchPositions`)
-- **Constants Naming**: Use UPPER_SNAKE_CASE for constants (e.g., `MAX_CANDIDATES_PER_PAGE`, `API_BASE_URL`)
-- **Type/Interface Naming**: Use PascalCase for types and interfaces (e.g., `CandidateData`, `PositionProps`, `ICandidateService`)
-- **File Naming**: Use PascalCase for component files (e.g., `CandidateCard.tsx`, `PositionDetails.tsx`) and camelCase for utility files (e.g., `candidateService.js`, `apiUtils.ts`)
-- **CSS Class Naming**: Use kebab-case for CSS classes (e.g., `candidate-card`, `position-details`)
-- **Hook Naming**: Use camelCase starting with "use" prefix (e.g., `useCandidate`, `usePositionData`, `useFormValidation`)
+## State and Data
+- One Zustand store per domain (`auth`, `activities`, `types`, `reviews`, `location`)
+- Centralize API calls in `src/lib/api.ts`
+- Keep direct `fetch` out of pages/components unless added to the API layer
+- Handle server errors at service layer + surface user-friendly UI feedback
 
-### Component Conventions
+## Navigation and Accessibility
+- Navigation via React Router only
+- Programmatic navigation with `useNavigate`
+- Use semantic HTML + `aria-label` where needed
+- Ensure keyboard navigation and alt text
 
-#### Functional Components
-- **Always use functional components** with hooks instead of class components
-- Use **TypeScript for new components** when possible
+## Performance
+- Prefer lazy loading for heavy routes/components
+- Use memoization (`useMemo`, `useCallback`) only when needed
+- Keep bundle lean (Vite tree shaking, route-level splitting, optimized assets)
 
-#### Component Props
-- **Define TypeScript interfaces** for component props when using TypeScript
-- Use **destructuring** for props
-- Include **default values** where appropriate
-
-### State Management
-- One Zustand store per domain (auth, activities, types, reviews)
-
-#### Local State with Hooks
-- Use **useState** for component-level state
-- Use **useEffect** for side effects and data fetching
-- **Extract custom hooks** for reusable stateful logic
-
-
-#### Loading and Error States
-- **Always handle loading states** for async operations
-- **Implement error handling** with user-friendly messages
-- **Use React Bootstrap Alert** components for feedback
-
-
-### Service Layer Architecture
-
-#### API Services
-- **Centralize API calls** in service files
-- **Client HTTP**: `web/src/lib/api.ts` — adds `Authorization: Bearer {token}` from `authStore`
-- **Token Sanctum**: saved in `localStorage` key `auth_token`
-- **All API calls**: go through `api.get/post/put/delete` — never direct `fetch`
-- **Export service objects** with grouped methods
-- **Handle errors at service level** when appropriate
-
-
-## UI/UX Standards
-
-### Bootstrap Integration
-- Use **Grid layouts** when possible
-
-### Form Handling
-- Use **controlled components** for form inputs
-- Implement **real-time validation** where appropriate
-- **Disable submit buttons** during form submission
-- **Clear form state** after successful submission
-
-### Navigation Patterns
-- Use **React Router** for all navigation
-- **Implement breadcrumbs** with back navigation
-- Use **programmatic navigation** with useNavigate hook
-
-### Accessibility
-- Include **aria-label** attributes for interactive elements
-- Use **semantic HTML** elements
-- Ensure **keyboard navigation** support
-- Provide **alternative text** for images
-
-## Configuration Standards
-
-### ESLint Configuration
-- Extend **React App** configuration
-- **Automatic code formatting** and error detection
-- **Consistent code style** across the project
-
-### Environment Configuration
-- Use **environment variables** for API URLs
-- **Separate configurations** for development and production
-
-## Performance Best Practices
-
-### Component Optimization
-- **Lazy load** components when appropriate
-- **Memoize expensive calculations** with useMemo
-- **Avoid unnecessary re-renders** with useCallback
-- **Extract reusable logic** into custom hooks
-
-### Bundle Optimization
-- **Tree shaking** enabled through Create React App
-- **Code splitting** at route level
-- **Optimize images** and static assets
-- **Monitor bundle size** with build tools
-
-### API Efficiency
-- **Implement proper error handling** for network requests
-- **Cache API responses** where appropriate
-- **Use loading states** to improve perceived performance
-- **Batch API calls** when possible
-
-## Development Workflow
-- **Descriptive Commits**: Write descriptive commit messages in English
-- **Code Review**: Code review before merging
-- **Small Features**: Keep features small and focused
-
-### Code Quality
-- **ESLint validation** before commits
-- **TypeScript compilation** without errors
-- **All tests passing** before deployment
-
-This document serves as the foundation for maintaining code quality and consistency across the TasteSpot frontend application. All team members should follow these practices to ensure a maintainable and scalable codebase.
+## Workflow Gates
+- Lint passes (`npm run lint`)
+- Typecheck/build passes (`npm run build`)
+- Small focused PRs, descriptive commits in English, review before merge

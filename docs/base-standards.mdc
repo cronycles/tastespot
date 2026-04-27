@@ -14,7 +14,6 @@ alwaysApply: true
 - **No comments**: unless the logic is non-obvious.
 - Lean, DRY and Clean Code: no over-engineering, no premature abstractions, no repeat code, human reading code
 
-
 ## 2. Language Standards
 - **English**: All technical artifacts must always use English, including:
     - Code (variables, functions, classes, comments, error messages, log messages)
@@ -31,9 +30,8 @@ alwaysApply: true
 ## 3. Specific standards
 
 For detailed standards and guidelines specific to different areas of the project, refer to:
-
-- [Backend Standards](./backend-standards.mdc) - API development, database patterns, testing, security and backend best practices
-- [Frontend Standards](./frontend-standards.mdc) - React components, UI/UX guidelines, and frontend architecture
+- [Backend Standards](./backend-standards.mdc)
+- [Web (frontend) Standards](./frontend-standards.mdc)
 - [Documentation Standards](./documentation-standards.mdc) - Technical documentation structure, formatting, and maintenance guidelines, including AI standards like this document
 
 ## 4. Project Skills
@@ -56,11 +54,6 @@ npm run restore      # backend restore + web restore
 npm run start        # start backend + web in parallel
 npm run build:prod   # production build of web (web/dist)
 ```
-
-Details of backend/web-specific scripts belong to:
-- [Backend Standards](./backend-standards.mdc)
-- [Frontend Standards](./frontend-standards.mdc)
-
 
 ## 7. Production Environment
 - Host: SupportHost cPanel

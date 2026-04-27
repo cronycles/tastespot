@@ -1,140 +1,118 @@
 ---
-description: Backend development standards, best practices, and conventions for the TasteSpot Laravel 11 + Sanctum application including Domain-Driven Design, SOLID principles, architecture patterns, API design, and testing practices
-globs: ["backend/*"]
-alwaysApply: true
+description: Backend standards for the TasteSpot Laravel 13 + Sanctum API, focused on architecture, contracts, validation, security, and testing
+globs: ["backend/**"]
+alwaysApply: false
 ---
 
-# Backend Project Standards and Best Practices
+# Backend Standards (Agent-First)
 
----
+## Scope
+- Laravel API in backend only
+- Main frontend app lives in web and consumes this API
 
-## Overview
+## URLs
+servers:
+  - url: http://localhost:8001/api/v1/
+    description: Local backend server
+  - url: https://tastespot.crointhemorning.com/api/v1/
+    description: Production server
 
-This document outlines the best practices, conventions, and standards used in the TasteSpot backend API. The backend follows Domain-Driven Design (DDD) principles and implements a layered architecture to ensure code consistency, maintainability, and scalability.
+## Core Stack
+- PHP 8.3+
+- Laravel 13
+- Sanctum 4.3 for token auth
+- Eloquent ORM
+- PHPUnit 12.5 + Mockery + Faker
+- Dev tools: Artisan, Composer, Pint, Pail, Tinker
 
-## Technology Stack
+## Runtime and Auth
+- API routes are versioned under prefix v1
+- Protected routes use middleware auth:sanctum
+- Token lifecycle: login revokes old tokens, issues new token; logout revokes current token
+- Health endpoints:
+  - GET /api/v1/ping -> status ok + version
+  - GET /up -> framework health route
 
-### Core Technologies
-- **Laravel 13**: API application framework
-- **PHP 8.3+**: Runtime
-- **Sanctum 4.3**: Token-based API authentication
-- **Pint**: Code style fixer (Laravel standard)
-- **Pail**: Real-time log viewer
-- **Tinker**: Interactive REPL
+## Exception and Validation Contract
+- API responses are JSON-first
+- Standard mappings in bootstrap/app.php:
+  - AuthenticationException -> 401 Non autenticato.
+  - RouteNotFoundException (login route fallback) -> 401 Non autenticato.
+  - ModelNotFoundException -> 404 Risorsa non trovata.
+  - ValidationException -> 422 with message + errors
+  - HttpException -> status code + message
+- Validate input at controller boundary before domain operations
 
-### Database & ORM
-- **Eloquent ORM**: Laravel's query builder & model mapper
-- **MySQL**: Production database
-- **SQLite**: Development database (`:memory:` in tests)
+## API Surface (v1)
+- Auth: settings, register, login, logout, me, change-password
+- Geo: search, reverse
+- Types: index, store, reorder, update, destroy
+- Activities: index, store, show, update, destroy, toggle favorite, mark viewed
+- Reviews: list for activity, upsert
+- Photos: public show, protected store, protected destroy
 
-### Testing Framework
-- **PHPUnit 12.5.12**: Test runner
-- **Mockery 1.6**: Object mocking
-- **Faker**: Seeding fake test data
-- **Test Location**: `tests/Unit/` (isolated logic) & `tests/Feature/` (API endpoints)
-
-### Development Tools
-- **Artisan CLI**: Laravel command-line interface (`php artisan` commands)
-- **Composer**: PHP package/dependency manager
-- **npm + Vite**: Frontend asset bundler (via `web/` root)
-- **Collision 8.6**: Enhanced error/exception display
-
-## Architecture Overview
-
-### Laravel Design 
-
-The backend follows a Laravel architecture.
-
-### Project Structure
-
-```
+## Project Structure
+```text
 backend/
-├── routes/api.php                # /api/v1/* route definitions (Auth, Activity, Review, etc)
-├── app/
-│  ├── Http/Controllers/Api/      # 6 API controllers (Auth, Activity, ActivityType, Geo, Photo, Review)
-│  ├── Models/                    # Eloquent models (User, Activity, Review, Favorite, etc)
-├── database/
-│  ├── migrations/                # 8 migrations (users, activity_types, reviews, favorites, photos...)
-│  ├── factories/                 # Test model factories
-│  └── seeders/                   # Database seeders
-├── tests/
-│  ├── Unit/                      # Business logic tests
-│  └── Feature/                   # API endpoint tests
-├── config/                       # app, auth, database, cache, mail, session, sanctum configs
-├── storage/app/public/photos/    # Uploaded activity photos
-└── bootstrap/
-   ├── app.php                    # Application bootstrap
-   └── cache/                     # Compiled service providers & packages
+├── app/Http/Controllers/Api/    # API controllers
+├── app/Models/                  # User, Activity, ActivityType, Review, Favorite, ActivityPhoto
+├── routes/api.php               # /api/v1 routes
+├── bootstrap/app.php            # bootstrap + exception rendering
+├── database/migrations/         # schema + sanctum personal_access_tokens
+├── database/factories/
+├── database/seeders/
+├── tests/Unit/
+├── tests/Feature/
+├── config/
+└── storage/app/public/photos/   # uploaded activity photos
 ```
 
-#### Photos
-- upload multipart → `storage/app/public/photos/`
-- browser compression with `browser-image-compression`
+## Code Conventions
+- Keep controllers thin: validate, authorize, delegate/query, return JSON
+- Keep user-facing API messages in italiano
+- Use early returns for auth/ownership checks
+- Enforce ownership for user-scoped resources
+- Prefer deterministic payloads (explicit fields, stable keys)
 
+## Data and Query Rules
+- Use eager loading to avoid N+1 on activity aggregates
+- Keep pagination explicit (offset/limit + has_more where needed)
+- Keep write operations atomic when toggling relational flags (favorites)
+- Keep photo URLs API-served, never expose raw storage paths
 
-### Code Quality Standards
+## Testing Rules
+- Unit tests in tests/Unit, endpoint/integration in tests/Feature
+- Testing DB: sqlite in-memory
+- Test behavior and API contracts, not implementation details
+- Cover: auth failures, ownership violations, validation errors, success flows
 
-#### Documentation
-- Write clear, descriptive test names that explain the scenario
-- Add comments for complex test setups
-- Document any special test conditions or edge cases
-- Keep test code as readable as production code
+## Security Rules
+- Never commit env secrets
+- Never trust client input; always validate
+- Restrict destructive endpoints to authenticated user ownership
+- Sanitize file upload handling and keep mime/size checks in validation
 
-#### Performance Considerations
-- Keep tests fast and focused
-- Avoid unnecessary async operations in tests
-- Use appropriate mock strategies to avoid real I/O
-- Group related tests to minimize setup/teardown overhead
+## Commands
+Backend folder commands:
 
-### Integration with Development Workflow
-- Run tests before every commit
-- Ensure all tests pass before merging
-- Update tests when modifying existing functionality
+```bash
+composer setup
+composer dev
+composer test
+composer run pint
+npm run restore
+npm run start
+```
 
-### Common Anti-Patterns to Avoid
-- Don't test implementation details, test behavior
-- Don't create overly complex test setups
-- Don't ignore failing tests or skip error scenarios
-- Don't use real database connections in unit tests
-- Don't create tests that depend on external services
-- Don't write tests that are too tightly coupled to implementation
+Workspace root commands:
 
-## Performance Best Practices
+```bash
+npm run restore
+npm run start
+```
 
-### Error Handling Performance
-
-- **Early Returns**: Return early to avoid unnecessary processing
-- **Error Propagation**: Let errors propagate naturally through the call stack
-- **Avoid Over-Wrapping**: Don't wrap errors unnecessarily
-
-## Security Best Practices
-
-### Input Validation
-
-- **Validate All Inputs**: Validate all user inputs before processing
-- **Sanitize Data**: Sanitize data to prevent injection attacks
-
-### Environment Variables
-
-- **Never Commit Secrets**: Never commit `.env` files or secrets to version control
-
-### Dependency Injection
-- **Testability**: Use dependency injection to improve testability
-
-## Development Workflow
-
-### Git Workflow
-- **Descriptive Commits**: Write descriptive commit messages in English
-- **Code Review**: Code review before merging
-- **Small features**: Keep features small and focused
-
-### Code Quality
-- **Laravel Compilation**: Ensure Laravel compiles without errors
-- **All Tests Passing**: Ensure all tests pass before deployment
-- **Code Review**: Review code for adherence to standards
-
-
-## API Health check
--  `GET /api/v1/ping` → `{"status":"ok"}`
-
-This document serves as the foundation for maintaining code quality and consistency across the TasteSpot backend application. All team members should follow these practices to ensure a maintainable, scalable, and testable codebase.
+## Quality Gates
+- Lint/style clean (Pint)
+- Test suite green (composer test)
+- API contract unchanged unless explicitly versioned
+- Small focused PRs with descriptive English commits
