@@ -47,27 +47,32 @@ For detailed standards and guidelines specific to different areas of the project
 After each implementation change, review `README.md` and update it if the change affects.
 Keep `README.md` accurate at all times.
 
-## 6. Production Environment
-- Hosting: SupportHost cPanel
-- Production URL: `https://tastespot.crointhemorning.com`
-- Server repository root: `/home/crointhe/repositories/tastespot`
-- Production app root: `/home/crointhe/public_html/tastespot/`
-- Laravel document root: `/home/crointhe/public_html/tastespot/public`
+## 6. Development Scripts
 
-## 7. Deploy
-- Deploy target: backend API and web SPA are deployed together on the same host.
-- Deploy trigger: automatic on push to `main` (or manual `workflow_dispatch`) via `.github/workflows/deploy.yml`.
-- Path filters for auto-deploy: `backend/**`, `web/**`, `scripts/deploy.sh`, `.cpanel.yml`, `.github/workflows/deploy.yml`.
-- Frontend prerequisite: run `npm run build:prod` from repository root and commit `web/dist/` before pushing.
-- Artifact guardrail: `.github/workflows/web-ci.yml` verifies `web/dist/` and built assets exist.
-- Deployment flow:
-  1. GitHub Actions calls cPanel UAPI `VersionControl/update` for `/home/crointhe/repositories/tastespot`.
-  2. GitHub Actions calls cPanel UAPI `VersionControlDeployment/create`.
-  3. cPanel executes `.cpanel.yml`, which runs `bash /home/crointhe/repositories/tastespot/scripts/deploy.sh`.
-  4. `scripts/deploy.sh` performs: repo clean + pull, backend copy (excluding `storage`), Laravel migrate/cache/link, permissions setup, SPA publish (`web/dist/*` to `public/`) with `index.html` existence check.
-- Required GitHub secrets: `CPANEL_USER`, `CPANEL_TOKEN`.
-- Verification after deploy:
-  - Last run in GitHub Actions is green.
-  - `GET /api/v1/ping` returns healthy status.
-  - `https://tastespot.crointhemorning.com/` serves SPA HTML.
-- Source of truth files: `.github/workflows/deploy.yml`, `.github/workflows/web-ci.yml`, `.cpanel.yml`, `scripts/deploy.sh`, `backend/DEPLOY.md`.
+Root only (orchestrator of backend + web):
+
+```bash
+npm run restore      # backend restore + web restore
+npm run start        # start backend + web in parallel
+npm run build:prod   # production build of web (web/dist)
+```
+
+Details of backend/web-specific scripts belong to:
+- [Backend Standards](./backend-standards.mdc)
+- [Frontend Standards](./frontend-standards.mdc)
+
+
+## 7. Production Environment
+- Host: SupportHost cPanel
+- URL: `https://tastespot.crointhemorning.com`
+- Paths: repo `/home/crointhe/repositories/tastespot` | app `/home/crointhe/public_html/tastespot/` | docroot `/home/crointhe/public_html/tastespot/public`
+
+## 8. Deploy
+- Target: backend API + web SPA on same host
+- Trigger: push `main` (auto) or `workflow_dispatch` via `.github/workflows/deploy.yml`
+- Auto-deploy paths: `backend/**`, `web/**`, `scripts/deploy.sh`, `.cpanel.yml`, `.github/workflows/deploy.yml`
+- Prereq: `npm run build:prod` + commit `web/dist/`
+- Secrets: `CPANEL_USER`, `CPANEL_TOKEN`
+- Flow: Actions `VersionControl/update` -> `VersionControlDeployment/create` -> cPanel runs `.cpanel.yml` -> `scripts/deploy.sh`
+- Verify: Actions green, `GET /api/v1/ping` ok, SPA served on production URL
+- Source of truth: `.github/workflows/deploy.yml`, `.github/workflows/web-ci.yml`, `.cpanel.yml`, `scripts/deploy.sh`, `backend/DEPLOY.md`
