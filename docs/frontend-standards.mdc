@@ -7,7 +7,7 @@ alwaysApply: false
 # Frontend Standards (Agent-First)
 
 ## Docs
-- Product behavior and page intent: [Web App Documentation](./web-app-documentation.mdc)
+- Product behavior and page intent: [Web App UX Flow](./web-app-ux-flow.mdc)
 - Cross FE/BE rules (language, security, shared quality): [Documentation Standards](./documentation-standards.mdc)
 
 ## URLs
