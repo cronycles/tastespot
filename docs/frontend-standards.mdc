@@ -1,8 +1,7 @@
 ---
 description: Frontend development standards, best practices, and conventions for the TasteSpot Web application including component patterns, state management, UI/UX guidelines, and testing practices
-globs: ["web/src/**/*.{js,jsx,ts,tsx}", "web/src/styles/*.{css}", "web/tsconfig.json", "web/package.json"]
+globs: ["web/src/**/*.{js,jsx,ts,tsx,css}", "web/tsconfig*.json", "web/eslint.config.js", "web/vite.config.ts", "web/package.json"]
 alwaysApply: false
----
 
 # Frontend Standards (Agent-First)
 
