@@ -45,7 +45,7 @@ When code changes, update affected docs in the same change set.
    - Cross FE/BE rule -> this file.
    - Frontend-only rule -> `docs/frontend-standards.mdc`.
    - Backend-only rule -> `docs/backend-standards.mdc`.
-   - API contract -> `docs/api-spec-TODO.yml`.
+   - API contract -> `docs/api-spec.yml`.
    - Data model -> `docs/data-model.md`.
 3. Keep wording concise and executable (agent-first, no narrative).
 4. If a rule change is driven by user feedback, ask approval before changing standards.

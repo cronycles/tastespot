@@ -1,0 +1,1565 @@
+openapi: 3.0.0
+info:
+    title: TasteSpot API
+    description: |
+        REST API for the TasteSpot platform, focused on gastronomy activity tracking, category-based reviews,
+        favorites, geocoding support, and photo management.
+
+        This API is designed to be agent-first documentation: it mirrors actual Laravel routes/controllers and
+        payloads so AI assistants and developers can quickly understand how backend integration works.
+
+        ## Features
+        - Bearer-token authentication with Laravel Sanctum
+        - Configurable public signup (`APP_REGISTRATION_ENABLED`)
+        - Personal activity type catalog per user
+        - Activity CRUD with pagination and favorite/viewed helpers
+        - Review upsert by `(activity_id, activity_type_id, user_id)`
+        - Geocoding and reverse geocoding proxy endpoints
+        - Image upload and retrieval for activity photos
+
+        ## Conventions
+        - API base path: `/api/v1/`
+        - Activity/type/review/photo IDs are UUID strings (length 36)
+        - Validation errors return HTTP `422` with `{ message, errors }`
+        - Protected routes require `Authorization: Bearer <token>`
+
+        ## Quick Integration Recipes
+        These short flows are intentionally practical and aligned with real backend behavior.
+
+        1) Login and reuse Bearer token
+        - POST `/auth/login` with `{ email, password }`
+        - Read `token` from response
+        - Send `Authorization: Bearer <token>` on protected routes
+
+        2) Create type -> create activity -> upsert review
+        - POST `/types` with `{ name, icon_key }` -> save `type.id`
+        - POST `/activities` with `{ name, type_ids: [type.id], ... }` -> save `activity.id`
+        - POST `/reviews` with `{ activity_id: activity.id, activity_type_id: type.id, score_food, ... }`
+        - Call POST `/reviews` again with same `activity_id + activity_type_id` to update existing review
+
+        3) List and paginate activities
+        - GET `/activities?offset=0&limit=20`
+        - Read `data[]` and `has_more`
+        - If `has_more=true`, next page is `offset + limit`
+
+        4) Favorite and viewed helpers
+        - POST `/activities/{activity}/favorite` toggles favorite state and returns `{ is_favorite }`
+        - PUT `/activities/{activity}/viewed` returns updated `last_viewed_at`
+
+        5) Upload and show photo
+        - POST `/activities/{activity}/photos` with `multipart/form-data` field `photo`
+        - Response includes `storage_path` public URL
+        - GET `/photos/{user}/{filename}` serves image binary
+
+        6) Geocoding UX flow
+        - GET `/geo/search?q=...` for suggestions
+        - GET `/geo/reverse?lat=...&lng=...` after map click/pin drag
+        - Persist `address`, `lat`, `lng` on activity payload
+
+    version: 1.0.0
+    contact:
+        name: TasteSpot Development Team
+    license:
+        name: ISC
+
+servers:
+    - url: http://127.0.0.1:8001/api/v1/
+      description: Local backend server
+    - url: https://tastespot.crointhemorning.com/api/v1/
+      description: Production server
+
+tags:
+    - name: Health
+      description: Service health endpoints
+    - name: Auth
+      description: Authentication and account endpoints
+    - name: Geo
+      description: Geocoding endpoints
+    - name: Activity Types
+      description: User-scoped activity category endpoints
+    - name: Activities
+      description: Activity management endpoints
+    - name: Reviews
+      description: Review listing/upsert endpoints
+    - name: Photos
+      description: Activity photo upload and retrieval endpoints
+
+paths:
+    /ping:
+        get:
+            summary: Health check
+            description: Returns API status and backend version string.
+            tags:
+                - Health
+            responses:
+                "200":
+                    description: Service is healthy
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PingResponse"
+
+    /auth/settings:
+        get:
+            summary: Get public auth settings
+            description: Returns runtime auth flags (currently signup enablement).
+            tags:
+                - Auth
+            responses:
+                "200":
+                    description: Successfully retrieved auth settings
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AuthSettingsResponse"
+
+    /auth/register:
+        post:
+            summary: Register user
+            description: |
+                Creates a new user and immediately returns a Sanctum token.
+                If registration is disabled, returns `403`.
+            tags:
+                - Auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/RegisterRequest"
+            responses:
+                "201":
+                    description: User registered and token issued
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AuthTokenResponse"
+                "403":
+                    description: Registration disabled
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /auth/login:
+        post:
+            summary: Login user
+            description: |
+                Authenticates user credentials, revokes previous tokens, and returns a new token.
+            tags:
+                - Auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/LoginRequest"
+            responses:
+                "200":
+                    description: Login successful
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AuthTokenResponse"
+                "422":
+                    description: Validation or invalid credentials
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /auth/logout:
+        post:
+            summary: Logout current session
+            description: Revokes current access token.
+            tags:
+                - Auth
+            security:
+                - bearerAuth: []
+            responses:
+                "200":
+                    description: Logout successful
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MessageResponse"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+    /auth/me:
+        get:
+            summary: Get current user profile
+            tags:
+                - Auth
+            security:
+                - bearerAuth: []
+            responses:
+                "200":
+                    description: Current authenticated user
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserSummary"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+    /auth/change-password:
+        post:
+            summary: Change password
+            description: Requires old password and new password confirmation.
+            tags:
+                - Auth
+            security:
+                - bearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ChangePasswordRequest"
+            responses:
+                "200":
+                    description: Password updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MessageResponse"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error or old password mismatch
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /geo/search:
+        get:
+            summary: Search places
+            description: |
+                Geocoding search proxy with cache and fallback strategy.
+                Uses Nominatim and Photon upstream providers.
+            tags:
+                - Geo
+            parameters:
+                - in: query
+                  name: q
+                  required: true
+                  schema:
+                      type: string
+                      minLength: 2
+                      maxLength: 120
+                  description: Free-text query
+                - in: query
+                  name: limit
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 20
+                      default: 8
+                  description: Max results
+                - in: query
+                  name: lang
+                  schema:
+                      type: string
+                      default: it,en
+                  description: Preferred languages (accept-language style)
+            responses:
+                "200":
+                    description: Search results
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GeoSearchResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /geo/reverse:
+        get:
+            summary: Reverse geocode coordinates
+            tags:
+                - Geo
+            parameters:
+                - in: query
+                  name: lat
+                  required: true
+                  schema:
+                      type: number
+                      minimum: -90
+                      maximum: 90
+                - in: query
+                  name: lng
+                  required: true
+                  schema:
+                      type: number
+                      minimum: -180
+                      maximum: 180
+                - in: query
+                  name: lang
+                  schema:
+                      type: string
+                      default: it,en
+            responses:
+                "200":
+                    description: Reverse geocode result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GeoReverseResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /types:
+        get:
+            summary: List activity types
+            tags:
+                - Activity Types
+            security:
+                - bearerAuth: []
+            responses:
+                "200":
+                    description: Types list for current user
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/ActivityType"
+                                required:
+                                    - data
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+        post:
+            summary: Create activity type
+            tags:
+                - Activity Types
+            security:
+                - bearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateActivityTypeRequest"
+            responses:
+                "201":
+                    description: Type created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ActivityType"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /types/reorder:
+        post:
+            summary: Reorder activity types
+            description: Reorders current user type list using ordered UUIDs.
+            tags:
+                - Activity Types
+            security:
+                - bearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ReorderActivityTypesRequest"
+            responses:
+                "200":
+                    description: Order updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MessageResponse"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /types/{type}:
+        put:
+            summary: Update activity type
+            tags:
+                - Activity Types
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: type
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity type UUID
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateActivityTypeRequest"
+            responses:
+                "200":
+                    description: Type updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ActivityType"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of resource
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Type not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+        delete:
+            summary: Delete activity type
+            tags:
+                - Activity Types
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: type
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity type UUID
+            responses:
+                "204":
+                    description: Type deleted
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of resource
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Type not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+    /activities:
+        get:
+            summary: List activities
+            description: Returns a paginated slice with offset/limit and has_more flag.
+            tags:
+                - Activities
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: query
+                  name: offset
+                  schema:
+                      type: integer
+                      minimum: 0
+                      default: 0
+                - in: query
+                  name: limit
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+            responses:
+                "200":
+                    description: Activities page
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ActivityListResponse"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+        post:
+            summary: Create activity
+            tags:
+                - Activities
+            security:
+                - bearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateActivityRequest"
+            responses:
+                "201":
+                    description: Activity created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Activity"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /activities/{activity}:
+        get:
+            summary: Get activity details
+            tags:
+                - Activities
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: activity
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity UUID
+            responses:
+                "200":
+                    description: Activity details
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Activity"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of resource
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Activity not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+        put:
+            summary: Update activity
+            tags:
+                - Activities
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: activity
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity UUID
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateActivityRequest"
+            responses:
+                "200":
+                    description: Activity updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Activity"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of resource
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Activity not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+        delete:
+            summary: Delete activity
+            tags:
+                - Activities
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: activity
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity UUID
+            responses:
+                "204":
+                    description: Activity deleted
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of resource
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Activity not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+    /activities/{activity}/favorite:
+        post:
+            summary: Toggle favorite
+            description: Adds or removes favorite relation for current user and activity.
+            tags:
+                - Activities
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: activity
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity UUID
+            responses:
+                "200":
+                    description: Favorite state toggled
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    is_favorite:
+                                        type: boolean
+                                required:
+                                    - is_favorite
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of resource
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Activity not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+    /activities/{activity}/viewed:
+        put:
+            summary: Mark activity as viewed
+            description: Sets `last_viewed_at` to current server timestamp.
+            tags:
+                - Activities
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: activity
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity UUID
+            responses:
+                "200":
+                    description: View timestamp updated
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    last_viewed_at:
+                                        type: string
+                                        format: date-time
+                                required:
+                                    - last_viewed_at
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of resource
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Activity not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+    /activities/{activity}/reviews:
+        get:
+            summary: List reviews for activity
+            tags:
+                - Reviews
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: activity
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity UUID
+            responses:
+                "200":
+                    description: Reviews for the activity
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/Review"
+                                required:
+                                    - data
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of activity
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Activity not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+    /reviews:
+        post:
+            summary: Create or update review
+            description: |
+                Upsert endpoint. If a review already exists for `(activity_id, activity_type_id, user_id)` it is updated,
+                otherwise a new review is created.
+            tags:
+                - Reviews
+            security:
+                - bearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpsertReviewRequest"
+            responses:
+                "200":
+                    description: Review created or updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Review"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /activities/{activity}/photos:
+        post:
+            summary: Upload activity photo
+            description: Uploads image file and appends it to activity photo order.
+            tags:
+                - Photos
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: activity
+                  required: true
+                  schema:
+                      type: string
+                  description: Activity UUID
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                photo:
+                                    type: string
+                                    format: binary
+                                    description: Image file (max 10MB)
+                            required:
+                                - photo
+            responses:
+                "201":
+                    description: Photo uploaded
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ActivityPhoto"
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of activity
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Activity not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "422":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ValidationErrorResponse"
+
+    /photos/{photo}:
+        delete:
+            summary: Delete photo metadata and stored file
+            tags:
+                - Photos
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: photo
+                  required: true
+                  schema:
+                      type: string
+                  description: Photo UUID
+            responses:
+                "204":
+                    description: Photo deleted
+                "401":
+                    description: Not authenticated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "403":
+                    description: Not owner of photo/activity
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                "404":
+                    description: Photo not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+    /photos/{user}/{filename}:
+        get:
+            summary: Serve uploaded photo file
+            description: Public endpoint used by the app to retrieve stored images.
+            tags:
+                - Photos
+            parameters:
+                - in: path
+                  name: user
+                  required: true
+                  schema:
+                      type: integer
+                  description: Numeric user ID owner of photo
+                - in: path
+                  name: filename
+                  required: true
+                  schema:
+                      type: string
+                  description: Stored filename (supports subpaths)
+            responses:
+                "200":
+                    description: Binary image response
+                    content:
+                        image/*:
+                            schema:
+                                type: string
+                                format: binary
+                "404":
+                    description: File not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: Token
+
+    schemas:
+        PingResponse:
+            type: object
+            properties:
+                status:
+                    type: string
+                    example: ok
+                version:
+                    type: string
+                    example: 1.0.4
+            required:
+                - status
+                - version
+
+        UserSummary:
+            type: object
+            properties:
+                id:
+                    type: integer
+                email:
+                    type: string
+                    format: email
+                name:
+                    type: string
+            required:
+                - id
+                - email
+                - name
+
+        AuthSettingsResponse:
+            type: object
+            properties:
+                registration_enabled:
+                    type: boolean
+            required:
+                - registration_enabled
+
+        RegisterRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    maxLength: 255
+                email:
+                    type: string
+                    format: email
+                password:
+                    type: string
+                    minLength: 6
+                password_confirmation:
+                    type: string
+            required:
+                - name
+                - email
+                - password
+                - password_confirmation
+
+        LoginRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    format: email
+                password:
+                    type: string
+            required:
+                - email
+                - password
+
+        ChangePasswordRequest:
+            type: object
+            properties:
+                old_password:
+                    type: string
+                new_password:
+                    type: string
+                    minLength: 8
+                new_password_confirmation:
+                    type: string
+            required:
+                - old_password
+                - new_password
+                - new_password_confirmation
+
+        AuthTokenResponse:
+            type: object
+            properties:
+                token:
+                    type: string
+                user:
+                    $ref: "#/components/schemas/UserSummary"
+            required:
+                - token
+                - user
+
+        MessageResponse:
+            type: object
+            properties:
+                message:
+                    type: string
+            required:
+                - message
+
+        ErrorResponse:
+            type: object
+            properties:
+                message:
+                    type: string
+            required:
+                - message
+
+        ValidationErrorResponse:
+            type: object
+            properties:
+                message:
+                    type: string
+                errors:
+                    type: object
+                    additionalProperties:
+                        type: array
+                        items:
+                            type: string
+            required:
+                - message
+                - errors
+
+        GeoResult:
+            type: object
+            properties:
+                id:
+                    type: string
+                label:
+                    type: string
+                details:
+                    type: string
+                lat:
+                    type: number
+                lng:
+                    type: number
+            required:
+                - id
+                - label
+                - details
+                - lat
+                - lng
+
+        GeoSearchResponse:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/GeoResult"
+                query_used:
+                    type: string
+                fallback_used:
+                    type: boolean
+            required:
+                - results
+                - query_used
+                - fallback_used
+
+        GeoReverseResponse:
+            type: object
+            properties:
+                result:
+                    allOf:
+                        - $ref: "#/components/schemas/GeoResult"
+                    nullable: true
+            required:
+                - result
+
+        ActivityType:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: UUID
+                name:
+                    type: string
+                description:
+                    type: string
+                    nullable: true
+                icon_key:
+                    type: string
+                display_order:
+                    type: integer
+                created_at:
+                    type: string
+                    format: date-time
+            required:
+                - id
+                - name
+                - icon_key
+                - display_order
+                - created_at
+
+        CreateActivityTypeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    maxLength: 255
+                icon_key:
+                    type: string
+                    maxLength: 100
+            required:
+                - name
+                - icon_key
+
+        UpdateActivityTypeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    maxLength: 255
+                icon_key:
+                    type: string
+                    maxLength: 100
+
+        ReorderActivityTypesRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+            required:
+                - ids
+
+        ReviewSummary:
+            type: object
+            properties:
+                activity_type_id:
+                    type: string
+                score_location:
+                    type: number
+                    nullable: true
+                score_food:
+                    type: number
+                    nullable: true
+                score_service:
+                    type: number
+                    nullable: true
+                score_price:
+                    type: number
+                    nullable: true
+                updated_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+            required:
+                - activity_type_id
+                - score_location
+                - score_food
+                - score_service
+                - score_price
+
+        ActivityPhoto:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: UUID
+                activity_id:
+                    type: string
+                    description: UUID
+                storage_path:
+                    type: string
+                    description: Public URL to photo
+                display_order:
+                    type: integer
+                created_at:
+                    type: string
+                    format: date-time
+            required:
+                - id
+                - activity_id
+                - storage_path
+                - display_order
+                - created_at
+
+        Activity:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: UUID
+                user_id:
+                    type: string
+                name:
+                    type: string
+                address:
+                    type: string
+                    nullable: true
+                lat:
+                    type: number
+                    nullable: true
+                lng:
+                    type: number
+                    nullable: true
+                phone:
+                    type: string
+                    nullable: true
+                notes:
+                    type: string
+                    nullable: true
+                tags:
+                    type: array
+                    items:
+                        type: string
+                last_viewed_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                latest_reviewed_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+                type_ids:
+                    type: array
+                    items:
+                        type: string
+                is_favorite:
+                    type: boolean
+                review_summaries:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ReviewSummary"
+                photos:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ActivityPhoto"
+            required:
+                - id
+                - user_id
+                - name
+                - tags
+                - created_at
+                - updated_at
+                - type_ids
+                - is_favorite
+                - review_summaries
+                - photos
+
+        ActivityListResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Activity"
+                has_more:
+                    type: boolean
+            required:
+                - data
+                - has_more
+
+        CreateActivityRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    maxLength: 255
+                address:
+                    type: string
+                    nullable: true
+                lat:
+                    type: number
+                    nullable: true
+                lng:
+                    type: number
+                    nullable: true
+                phone:
+                    type: string
+                    maxLength: 50
+                    nullable: true
+                notes:
+                    type: string
+                    nullable: true
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    nullable: true
+                type_ids:
+                    type: array
+                    items:
+                        type: string
+                    nullable: true
+            required:
+                - name
+
+        UpdateActivityRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    maxLength: 255
+                address:
+                    type: string
+                    nullable: true
+                lat:
+                    type: number
+                    nullable: true
+                lng:
+                    type: number
+                    nullable: true
+                phone:
+                    type: string
+                    maxLength: 50
+                    nullable: true
+                notes:
+                    type: string
+                    nullable: true
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    nullable: true
+                type_ids:
+                    type: array
+                    items:
+                        type: string
+
+        Review:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: UUID
+                activity_id:
+                    type: string
+                    description: UUID
+                user_id:
+                    type: string
+                activity_type_id:
+                    type: string
+                    description: UUID
+                score_location:
+                    type: number
+                    nullable: true
+                score_food:
+                    type: number
+                    nullable: true
+                score_service:
+                    type: number
+                    nullable: true
+                score_price:
+                    type: number
+                    nullable: true
+                cost_per_person:
+                    type: number
+                    nullable: true
+                liked:
+                    type: string
+                    nullable: true
+                disliked:
+                    type: string
+                    nullable: true
+                notes:
+                    type: string
+                    nullable: true
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+                type_name:
+                    type: string
+                type_icon_key:
+                    type: string
+            required:
+                - id
+                - activity_id
+                - user_id
+                - activity_type_id
+                - created_at
+                - updated_at
+                - type_name
+                - type_icon_key
+
+        UpsertReviewRequest:
+            type: object
+            properties:
+                activity_id:
+                    type: string
+                    description: Activity UUID
+                activity_type_id:
+                    type: string
+                    description: Activity type UUID
+                score_location:
+                    type: number
+                    minimum: 0
+                    maximum: 10
+                    nullable: true
+                score_food:
+                    type: number
+                    minimum: 0
+                    maximum: 10
+                    nullable: true
+                score_service:
+                    type: number
+                    minimum: 0
+                    maximum: 10
+                    nullable: true
+                score_price:
+                    type: number
+                    minimum: 0
+                    maximum: 10
+                    nullable: true
+                cost_per_person:
+                    type: number
+                    minimum: 0
+                    nullable: true
+                liked:
+                    type: string
+                    nullable: true
+                disliked:
+                    type: string
+                    nullable: true
+                notes:
+                    type: string
+                    nullable: true
+            required:
+                - activity_id
+                - activity_type_id
