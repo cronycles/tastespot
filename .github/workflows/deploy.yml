@@ -1,55 +1,55 @@
-name: Deploy produzione (backend + web)
+name: Production deploy (backend + web)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'backend/**'
-      - 'web/**'
-      - 'scripts/deploy.sh'
-      - '.cpanel.yml'
-      - '.github/workflows/deploy.yml'
-  workflow_dispatch:   # permette di lanciarlo manualmente da GitHub
+    push:
+        branches: [main]
+        paths:
+            - "backend/**"
+            - "web/**"
+            - "scripts/deploy.sh"
+            - ".cpanel.yml"
+            - ".github/workflows/deploy.yml"
+    workflow_dispatch: # allows manual run from GitHub
 
 jobs:
-  deploy:
-    name: Trigger cPanel Git deploy
-    runs-on: ubuntu-latest
+    deploy:
+        name: Trigger cPanel Git deploy
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Pull aggiornamenti nel repo cPanel
-        run: |
-          RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
-            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-            "https://crointhemorning.com:2083/execute/VersionControl/update?repository_root=/home/crointhe/repositories/tastespot")
-          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
-          BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
-          echo "HTTP: $HTTP_CODE | Body: $BODY"
-          if [ "$HTTP_CODE" != "200" ]; then echo "Errore HTTP $HTTP_CODE" && exit 1; fi
+        steps:
+            - name: Pull updates in cPanel repo
+              run: |
+                  RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
+                    -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+                    "https://crointhemorning.com:2083/execute/VersionControl/update?repository_root=/home/crointhe/repositories/tastespot")
+                  HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+                  BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+                  echo "HTTP: $HTTP_CODE | Body: $BODY"
+                  if [ "$HTTP_CODE" != "200" ]; then echo "HTTP error $HTTP_CODE" && exit 1; fi
 
-      - name: Aspetta che il git pull sia completato
-        run: sleep 15
+            - name: Wait for git pull to complete
+              run: sleep 15
 
-      - name: Esegui deploy (.cpanel.yml tasks)
-        run: |
-          RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
-            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-            "https://crointhemorning.com:2083/execute/VersionControlDeployment/create?repository_root=/home/crointhe/repositories/tastespot")
-          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
-          BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
-          echo "HTTP: $HTTP_CODE"
-          echo "Response: $BODY"
-          if [ "$HTTP_CODE" != "200" ]; then echo "Errore HTTP $HTTP_CODE" && exit 1; fi
-          echo "$BODY" | python3 -c "
-          import sys, json
-          try:
-            r = json.load(sys.stdin)
-            if r.get('status') == 1:
-              print('Deploy completato con successo')
-            else:
-              print('Deploy fallito:', r)
-              sys.exit(1)
-          except Exception as e:
-            print('Errore parsing risposta:', e)
-            sys.exit(1)
-          "
+            - name: Run deploy (.cpanel.yml tasks)
+              run: |
+                  RESPONSE=$(curl -k -s -w "\nHTTP_CODE:%{http_code}" \
+                    -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+                    "https://crointhemorning.com:2083/execute/VersionControlDeployment/create?repository_root=/home/crointhe/repositories/tastespot")
+                  HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+                  BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+                  echo "HTTP: $HTTP_CODE"
+                  echo "Response: $BODY"
+                  if [ "$HTTP_CODE" != "200" ]; then echo "HTTP error $HTTP_CODE" && exit 1; fi
+                  echo "$BODY" | python3 -c "
+                  import sys, json
+                  try:
+                    r = json.load(sys.stdin)
+                    if r.get('status') == 1:
+                      print('Deploy completed successfully')
+                    else:
+                      print('Deploy failed:', r)
+                      sys.exit(1)
+                  except Exception as e:
+                    print('Response parsing error:', e)
+                    sys.exit(1)
+                  "
