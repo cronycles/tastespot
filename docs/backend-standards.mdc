@@ -15,18 +15,29 @@ This document outlines the best practices, conventions, and standards used in th
 ## Technology Stack
 
 ### Core Technologies
-- **Laravel 11**: API application framework
-- **Sanctum**: Database ORM (MySQL on production, SQLite on development)
+- **Laravel 13**: API application framework
+- **PHP 8.3+**: Runtime
+- **Sanctum 4.3**: Token-based API authentication
+- **Pint**: Code style fixer (Laravel standard)
+- **Pail**: Real-time log viewer
+- **Tinker**: Interactive REPL
 
 ### Database & ORM
-- ???
+- **Eloquent ORM**: Laravel's query builder & model mapper
+- **MySQL**: Production database
+- **SQLite**: Development database (`:memory:` in tests)
 
 ### Testing Framework
-- ???
-- **Test Location**: `__tests__` directories
+- **PHPUnit 12.5.12**: Test runner
+- **Mockery 1.6**: Object mocking
+- **Faker**: Seeding fake test data
+- **Test Location**: `tests/Unit/` (isolated logic) & `tests/Feature/` (API endpoints)
 
 ### Development Tools
-- ???
+- **Artisan CLI**: Laravel command-line interface (`php artisan` commands)
+- **Composer**: PHP package/dependency manager
+- **npm + Vite**: Frontend asset bundler (via `web/` root)
+- **Collision 8.6**: Enhanced error/exception display
 
 ## Architecture Overview
 
@@ -38,11 +49,22 @@ The backend follows a Laravel architecture.
 
 ```
 backend/
-├── routes/api.php          # all the /api/v1/ routes
-│  app/
-│  ├── Http/Controllers/    # Laravel controllers
-│  ├── Models/              # Eloquent models
-├── database/migrations/    # MySQL migrations
+├── routes/api.php                # /api/v1/* route definitions (Auth, Activity, Review, etc)
+├── app/
+│  ├── Http/Controllers/Api/      # 6 API controllers (Auth, Activity, ActivityType, Geo, Photo, Review)
+│  ├── Models/                    # Eloquent models (User, Activity, Review, Favorite, etc)
+├── database/
+│  ├── migrations/                # 8 migrations (users, activity_types, reviews, favorites, photos...)
+│  ├── factories/                 # Test model factories
+│  └── seeders/                   # Database seeders
+├── tests/
+│  ├── Unit/                      # Business logic tests
+│  └── Feature/                   # API endpoint tests
+├── config/                       # app, auth, database, cache, mail, session, sanctum configs
+├── storage/app/public/photos/    # Uploaded activity photos
+└── bootstrap/
+   ├── app.php                    # Application bootstrap
+   └── cache/                     # Compiled service providers & packages
 ```
 
 #### Photos
@@ -115,4 +137,4 @@ backend/
 ## API Health check
 -  `GET /api/v1/ping` → `{"status":"ok"}`
 
-This document serves as the foundation for maintaining code quality and consistency across the LTI backend application. All team members should follow these practices to ensure a maintainable, scalable, and testable codebase.
+This document serves as the foundation for maintaining code quality and consistency across the TasteSpot backend application. All team members should follow these practices to ensure a maintainable, scalable, and testable codebase.
