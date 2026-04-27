@@ -8,6 +8,7 @@ alwaysApply: false
 
 ## Docs
 - Product behavior and page intent: [Web App Documentation](./web-app-documentation.mdc)
+- Cross FE/BE rules (language, security, shared quality): [Documentation Standards](./documentation-standards.mdc)
 
 ## URLs
 servers:
@@ -24,7 +25,7 @@ servers:
 - TypeScript 6
 - Vite 8 + `@vitejs/plugin-react` (host `127.0.0.1`, port `8000`, alias `@ -> src`)
 - HTTP client: `src/lib/api.ts` (native `fetch` wrapper)
-- API base URL: `VITE_API_URL` with fallback `http://localhost:8000/api/v1`
+- API base URL: `VITE_API_URL` with fallback `http://127.0.0.1:8001/api/v1`
 
 ## UI Rules
 - Mobile-first
@@ -34,7 +35,6 @@ servers:
 - Map: `maplibre-gl` + OpenFreeMap style `https://tiles.openfreemap.org/styles/liberty`
 - Geocoding/autocomplete: Nominatim API
 - Primary color: `#FF5A35`
-- User-facing strings in italiano
 - Keep literal UI text centralized in config when possible (future i18n)
 
 ## Dev Tooling
@@ -100,4 +100,3 @@ web/
 ## Workflow Gates
 - Lint passes (`npm run lint`)
 - Typecheck/build passes (`npm run build`)
-- Small focused PRs, descriptive commits in English, review before merge

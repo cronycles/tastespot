@@ -9,6 +9,7 @@ alwaysApply: false
 ## Scope
 - Laravel API in backend only
 - Main frontend app lives in web and consumes this API
+- Cross FE/BE rules (language, security, shared quality): [Documentation Standards](./documentation-standards.mdc)
 
 ## URLs
 servers:
@@ -69,8 +70,6 @@ backend/
 
 ## Code Conventions
 - Keep controllers thin: validate, authorize, delegate/query, return JSON
-- Keep user-facing API messages in italiano
-- Use early returns for auth/ownership checks
 - Enforce ownership for user-scoped resources
 - Prefer deterministic payloads (explicit fields, stable keys)
 
@@ -85,12 +84,6 @@ backend/
 - Testing DB: sqlite in-memory
 - Test behavior and API contracts, not implementation details
 - Cover: auth failures, ownership violations, validation errors, success flows
-
-## Security Rules
-- Never commit env secrets
-- Never trust client input; always validate
-- Restrict destructive endpoints to authenticated user ownership
-- Sanitize file upload handling and keep mime/size checks in validation
 
 ## Commands
 Backend folder commands:
@@ -115,4 +108,3 @@ npm run start
 - Lint/style clean (Pint)
 - Test suite green (composer test)
 - API contract unchanged unless explicitly versioned
-- Small focused PRs with descriptive English commits
