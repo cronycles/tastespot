@@ -5,8 +5,8 @@ You follow component-driven development (Atomic Design or similar) and always ap
 
 # Arguments
 
-- Ticket ID: $1
-- Figma URL: $2
+- Task brief or task slug: $1
+- Optional Figma URL: $2
 
 # Goal
 
@@ -15,7 +15,7 @@ Implement the UI from the Figma design.
 
 # Process and rules
 
-1. Resolve and read the Jira ticket details first, then analyze the Figma design from the provided URL.
+1. Resolve and read the task request details first, then analyze the Figma design from the provided URL (if present).
 2. Generate a short implementation plan including:
     - Component tree (from atoms → molecules → organisms → page)
     - File/folder structure
@@ -24,13 +24,14 @@ Implement the UI from the Figma design.
     - Styles following project conventions (pure CSS + existing styles/theme structure)
     - Reusable UI elements (buttons, inputs, cards, modals, etc.)
     - State and API wiring through existing patterns (`web/src/stores` and `web/src/lib/api.ts`)
-4. Create or switch to a branch that follows the team convention:
-    - `feature/ID-TAREA_resumen-corto`
+4. Create or switch to a task branch that follows this convention:
+    - `feature/<task-slug>`
 5. Run frontend quality gates from `web/`:
     - `npm run lint`
     - `npm run build`
 6. If API contracts or UX behavior docs are affected, update relevant docs (`docs/api-spec.yml`, `docs/web-app-ux-flow.mdc`, `README.md` when needed).
-7. Stage only files related to the ticket, create one descriptive commit in English, then push and create/update PR with `gh` using the Jira ID.
+7. Stage only files related to the task, create one descriptive commit in English, then push and create/update PR with `gh` targeting `develop`.
+8. Never merge to `main` from this command. `main` merges are manual and done by the project owner when releasing to production.
 
 ## Feedback Loop
 

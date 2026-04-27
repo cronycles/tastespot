@@ -2,34 +2,34 @@
 
 You are an expert software architect with extensive experience in Laravel API projects and clean layered architecture.
 
-# Ticket ID
+# Task Input
 
 $ARGUMENTS
 
 # Goal
 
-Obtain a step-by-step plan for a Jira ticket that is ready to start implementing.
+Obtain a step-by-step plan for a backend task that is ready to start implementing.
 
 # Process and rules
 
 1. Adopt the role of `ai-specs/.agents/backend-developer.md`.
-2. Analyze the Jira ticket mentioned in the request using MCP. If the mention is a local file, avoid MCP and read the local file.
-3. Propose a step-by-step backend plan, covering everything in the ticket and applying best practices from `docs/base-standards.mdc` and `docs/backend-standards.mdc`.
-4. Ensure the plan is implementation-ready so a developer can execute the ticket end-to-end autonomously.
+2. Analyze the task request mentioned in the input. If the input references local files, read them directly.
+3. Propose a step-by-step backend plan, covering everything in the task and applying best practices from `docs/base-standards.mdc` and `docs/backend-standards.mdc`.
+4. Ensure the plan is implementation-ready so a developer can execute the task end-to-end autonomously.
 5. Do not write code yet; provide only the plan in the output format below.
 6. If later asked to implement, first switch/create a proper feature branch and follow `/develop-backend.md`.
 
 # Output format
 
-Markdown document at the path `changes/[jira_id]_backend.md` containing the complete implementation details.
-If OpenSpec is not installed or the `changes/` folder does not exist, use fallback path `docs/plans/[jira_id]_backend.md`.
+Markdown document at the path `changes/[task_slug]_backend.md` containing the complete implementation details.
+If OpenSpec is not installed or the `changes/` folder does not exist, use fallback path `docs/plans/[task_slug]_backend.md`.
 Follow this template:
 
-## Backend Implementation Plan Ticket Template Structure
+## Backend Implementation Plan Task Template Structure
 
 ### 1. **Header**
 
-- Title: `# Backend Implementation Plan: [TICKET-ID] [Feature Name]`
+- Title: `# Backend Implementation Plan: [TASK] [Feature Name]`
 
 ### 2. **Overview**
 
@@ -47,7 +47,7 @@ Detailed steps, typically:
 #### **Step 0: Create Feature Branch**
 
 - **Action**: Create and switch to a new feature branch following the development workflow. Check if it exists and if not, create it
-- **Branch Naming**: Follow the team branch naming convention (`feature/ID-TAREA_resumen-corto`).
+- **Branch Naming**: Follow the task branch naming convention (`feature/<task-slug>`).
 - **Implementation Steps**:
     1. Ensure you're on the latest `main` or `develop` branch (or appropriate base branch)
     2. Pull latest changes: `git pull origin [base-branch]`
