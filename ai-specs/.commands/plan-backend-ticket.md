@@ -1,6 +1,6 @@
 # Role
 
-You are an expert software architect with extensive experience in Node/Express projects applying Domain-Driven Design (DDD).
+You are an expert software architect with extensive experience in Laravel API projects and clean layered architecture.
 
 # Ticket ID
 
@@ -12,12 +12,12 @@ Obtain a step-by-step plan for a Jira ticket that is ready to start implementing
 
 # Process and rules
 
-1. Adopt the role of `.claude/agents/backend-developer.md`
-1. Analyze the Jira ticket mentioned in #ticket using the MCP. If the mention is a local file, then avoid using MCP
-2. Propose a step-by-step plan for the backend part, taking into account everything mentioned in the ticket and applying the project’s best practices and rules you can find in `/docs`. 
-3. Apply the best practices of your role to ensure the developer can be fully autonomous and implement the ticket end-to-end using only your plan. 
-4. Do not write code yet; provide only the plan in the output format defined below.
-5. If you are asked to start implementing at some point, make sure the first thing you do is to move to a branch named after the ticket id (if you are not yet there) and follow the process described in the command /develop-us.md
+1. Adopt the role of `ai-specs/.agents/backend-developer.md`.
+2. Analyze the Jira ticket mentioned in the request using MCP. If the mention is a local file, avoid MCP and read the local file.
+3. Propose a step-by-step backend plan, covering everything in the ticket and applying best practices from `docs/base-standards.mdc` and `docs/backend-standards.mdc`.
+4. Ensure the plan is implementation-ready so a developer can execute the ticket end-to-end autonomously.
+5. Do not write code yet; provide only the plan in the output format below.
+6. If later asked to implement, first switch/create a proper feature branch and follow `/develop-backend.md`.
 
 # Output format
 
@@ -28,29 +28,35 @@ Follow this template:
 ## Backend Implementation Plan Ticket Template Structure
 
 ### 1. **Header**
+
 - Title: `# Backend Implementation Plan: [TICKET-ID] [Feature Name]`
 
 ### 2. **Overview**
-- Brief description of the feature and architecture principles (DDD, clean architecture)
+
+- Brief description of the feature and architecture principles (Laravel API, clean architecture, JSON contract stability)
 
 ### 3. **Architecture Context**
-- Layers involved (Domain, Application, Presentation)
+
+- Layers involved (Presentation/API, Application/Services-Actions, Domain/Models, Infrastructure/Persistence)
 - Components/files referenced
 
 ### 4. **Implementation Steps**
+
 Detailed steps, typically:
 
 #### **Step 0: Create Feature Branch**
+
 - **Action**: Create and switch to a new feature branch following the development workflow. Check if it exists and if not, create it
-- **Branch Naming**: Follow the project's branch naming convention (`feature/[ticket-id]-backend`, make it required to use this naming, don't allow to keep on the general task [ticket-id] if it exists to separate concerns)
+- **Branch Naming**: Follow the team branch naming convention (`feature/ID-TAREA_resumen-corto`).
 - **Implementation Steps**:
-  1. Ensure you're on the latest `main` or `develop` branch (or appropriate base branch)
-  2. Pull latest changes: `git pull origin [base-branch]`
-  3. Create new branch: `git checkout -b [branch-name]`
-  4. Verify branch creation: `git branch`
+    1. Ensure you're on the latest `main` or `develop` branch (or appropriate base branch)
+    2. Pull latest changes: `git pull origin [base-branch]`
+    3. Create new branch: `git checkout -b [branch-name]`
+    4. Verify branch creation: `git branch`
 - **Notes**: This must be the FIRST step before any code changes. Refer to `docs/backend-standards.mdc` section "Development Workflow" for specific branch naming conventions and workflow rules.
 
 #### **Step N: [Action Name]**
+
 - **File**: Target file path
 - **Action**: What to implement
 - **Function Signature**: Code signature
@@ -59,70 +65,85 @@ Detailed steps, typically:
 - **Implementation Notes**: Technical details
 
 Common steps:
-- **Step 1**: Create Validation Function
-- **Step 2**: Create Service Method
-- **Step 3**: Create Controller Method
-- **Step 4**: Add Route
-- **Step 5**: Write Unit Tests (with subcategories: Successful Cases, Validation Errors, Not Found, Reference Validation, Server Errors, Edge Cases)
+
+- **Step 1**: Define/Update request validation
+- **Step 2**: Implement business logic in service/action/model layer
+- **Step 3**: Implement/Update controller method
+- **Step 4**: Add/Update API route under `/api/v1`
+- **Step 5**: Write tests (Feature + Unit where applicable: success, validation, auth, ownership, not found, edge/error cases)
 
 Example of a good structure:
 **Implementation Steps**:
 
 1. **Validate Position Exists**:
-   - Use `Position.findOne(positionId)` to retrieve existing position
-   - If position not found, throw `new Error('Position not found')`
-   - Store the existing position for merging
+    - Use `Position.findOne(positionId)` to retrieve existing position
+    - If position not found, throw `new Error('Position not found')`
+    - Store the existing position for merging
 
 #### **Step N+1: Update Technical Documentation**
+
 - **Action**: Review and update technical documentation according to changes made
 - **Implementation Steps**:
-  1. **Review Changes**: Analyze all code changes made during implementation
-  2. **Identify Documentation Files**: Determine which documentation files need updates based on:
-     - Data model changes → Update `docs/data-model.md`
-     - API endpoint changes → Update `docs/api-spec.yml`
-     - Standards/libraries/config changes → Update relevant `*-standards.mdc` files
-     - Architecture changes → Update relevant architecture documentation
-  3. **Update Documentation**: For each affected file:
-     - Update content in English (as per `documentation-standards.mdc`)
-     - Maintain consistency with existing documentation structure
-     - Ensure proper formatting
-  4. **Verify Documentation**: 
-     - Confirm all changes are accurately reflected
-     - Check that documentation follows established structure
-  5. **Report Updates**: Document which files were updated and what changes were made
-- **References**: 
-  - Follow process described in `docs/documentation-standards.mdc`
-  - All documentation must be written in English
+    1. **Review Changes**: Analyze all code changes made during implementation
+    2. **Identify Documentation Files**: Determine which documentation files need updates based on:
+        - Data model changes → Update `docs/data-model.md`
+        - API endpoint changes → Update `docs/api-spec.yml`
+        - Standards/libraries/config changes → Update relevant `*-standards.mdc` files
+        - Architecture changes → Update relevant architecture documentation
+    3. **Update Documentation**: For each affected file:
+        - Update content in English (as per `documentation-standards.mdc`)
+        - Maintain consistency with existing documentation structure
+        - Ensure proper formatting
+    4. **Verify Documentation**:
+        - Confirm all changes are accurately reflected
+        - Check that documentation follows established structure
+    5. **Report Updates**: Document which files were updated and what changes were made
+- **References**:
+    - Follow process described in `docs/documentation-standards.mdc`
+    - All documentation must be written in English
 - **Notes**: This step is MANDATORY before considering the implementation complete. Do not skip documentation updates.
 
 ### 5. **Implementation Order**
+
 - Numbered list of steps in sequence (must start with Step 0: Create Feature Branch and end with documentation update step)
 
 ### 6. **Testing Checklist**
+
 - Post-implementation verification checklist
 
 ### 7. **Error Response Format**
+
 - JSON structure
 - HTTP status code mapping
 
 ### 8. **Partial Update Support** (if applicable)
+
 - Behavior for partial updates
 
 ### 9. **Dependencies**
+
 - External libraries and tools required
 
+### 9.1 **Quality Gates**
+
+- `composer run pint`
+- `composer test`
+
 ### 10. **Notes**
+
 - Important reminders and constraints
 - Business rules
 - Language requirements
 
 ### 11. **Next Steps After Implementation**
+
 - Post-implementation tasks (documentation is already covered in Step N+1, but may include integration, deployment, etc.)
 
 ### 12. **Implementation Verification**
+
 - Final verification checklist:
-  - Code Quality
-  - Functionality
-  - Testing
-  - Integration
-  - Documentation updates completed
+    - Code Quality
+    - Functionality
+    - Testing
+    - Integration
+    - Documentation updates completed
