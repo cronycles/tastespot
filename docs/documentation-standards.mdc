@@ -12,8 +12,6 @@ AI specs refers to the documents that explain AI agents how to behave, document,
 ## General rules
 - ALWAYS WRITE IN ENGLISH, including comments and any explanation in the files. This applies both to creating new documentation and updating existing one, and it also applies to documentation within the code (comments, explanations of functions or fields, etc.).
 
-
-
 ## Technical Documentation
 Before making any commit or git push, or if you're asked to document a commit, you must ALWAYS review which technical documentation should be updated.
 

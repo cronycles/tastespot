@@ -47,9 +47,27 @@ For detailed standards and guidelines specific to different areas of the project
 After each implementation change, review `README.md` and update it if the change affects.
 Keep `README.md` accurate at all times.
 
-## 6. Deploy
-- `web/dist/` commited pre-built; Auto via GitHub Actions → cPanel API → `scripts/deploy.sh`
-
-
 ## 6. Production Environment
-- Hosting | SupportHost cPanel — `/home/crointhe/public_html/tastespot/`
+- Hosting: SupportHost cPanel
+- Production URL: `https://tastespot.crointhemorning.com`
+- Server repository root: `/home/crointhe/repositories/tastespot`
+- Production app root: `/home/crointhe/public_html/tastespot/`
+- Laravel document root: `/home/crointhe/public_html/tastespot/public`
+
+## 7. Deploy
+- Deploy target: backend API and web SPA are deployed together on the same host.
+- Deploy trigger: automatic on push to `main` (or manual `workflow_dispatch`) via `.github/workflows/deploy.yml`.
+- Path filters for auto-deploy: `backend/**`, `web/**`, `scripts/deploy.sh`, `.cpanel.yml`, `.github/workflows/deploy.yml`.
+- Frontend prerequisite: run `npm run build:prod` from repository root and commit `web/dist/` before pushing.
+- Artifact guardrail: `.github/workflows/web-ci.yml` verifies `web/dist/` and built assets exist.
+- Deployment flow:
+  1. GitHub Actions calls cPanel UAPI `VersionControl/update` for `/home/crointhe/repositories/tastespot`.
+  2. GitHub Actions calls cPanel UAPI `VersionControlDeployment/create`.
+  3. cPanel executes `.cpanel.yml`, which runs `bash /home/crointhe/repositories/tastespot/scripts/deploy.sh`.
+  4. `scripts/deploy.sh` performs: repo clean + pull, backend copy (excluding `storage`), Laravel migrate/cache/link, permissions setup, SPA publish (`web/dist/*` to `public/`) with `index.html` existence check.
+- Required GitHub secrets: `CPANEL_USER`, `CPANEL_TOKEN`.
+- Verification after deploy:
+  - Last run in GitHub Actions is green.
+  - `GET /api/v1/ping` returns healthy status.
+  - `https://tastespot.crointhemorning.com/` serves SPA HTML.
+- Source of truth files: `.github/workflows/deploy.yml`, `.github/workflows/web-ci.yml`, `.cpanel.yml`, `scripts/deploy.sh`, `backend/DEPLOY.md`.
