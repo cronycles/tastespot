@@ -1,12 +1,12 @@
 ---
 name: code-auditing
-description: This skill should be used when the user asks to "audit code", "find technical debt", "perform a security review", "identify dead code", "analyze code quality", "check best practices", "run a code audit", or needs a systematic methodology for comprehensive codebase analysis.
+description: Use this skill when the user asks for a code audit, code review, technical debt analysis, security review, dead code detection, maintainability assessment, or pre-merge quality verification in TasteSpot.
 version: 1.0.0
 ---
 
 # Code Auditing Skill
 
-Comprehensive methodology for systematic code quality audits.
+Comprehensive methodology for systematic code quality audits in this repository (Laravel API + React/Vite web).
 
 ## When to Use
 
@@ -16,63 +16,78 @@ Comprehensive methodology for systematic code quality audits.
 - Pre-release code reviews
 - Best practices verification
 - Library and dependency audits
+- Requests that explicitly ask for a "review"
 
 ## Audit Phases
 
 ### Phase 0: Pre-Analysis Setup
-1. Check for project configuration files (package.json, tsconfig.json, etc.)
-2. Identify tech stack and main libraries
-3. Check for linting/formatting configs
-4. Run existing linting/testing commands as baseline
-5. Load documentation for identified core libraries
+
+1. Read project standards and architecture context first:
+    - `docs/base-standards.mdc`
+    - `docs/backend-standards.mdc`
+    - `docs/frontend-standards.mdc`
+    - `README.md`
+2. Identify impacted scope (`backend/`, `web/`, `docs/`, or cross-cutting).
+3. Check project tooling/config in impacted scope.
+4. Run baseline quality commands when requested or useful:
+    - Backend (`backend/`): `composer run pint`, `composer test`
+    - Frontend (`web/`): `npm run lint`, `npm run build`
 
 ### Phase 1: Discovery
-1. Find all code files by type
-2. Create tracking list for each file
-3. Group files by module/feature for contextual analysis
+
+1. Discover relevant files by module/feature.
+2. Prioritize changed files first, then adjacent files that affect behavior.
+3. Build a short scope map before deep inspection.
 
 ### Phase 2: File-by-File Analysis
+
 For each file, analyze for:
+
 - Dead code (unused functions, variables, imports)
 - Code smells and anti-patterns
-- Custom implementations that could use established libraries
 - Security vulnerabilities
 - Performance issues
 - Outdated patterns or deprecated APIs
 - Missing error handling
 - Overly complex functions
 - Duplicate code
+- API contract consistency (request/response format, status codes)
+- Ownership/auth checks where applicable
 
 ### Phase 3: Best Practices Verification
-For every library and framework:
-1. Retrieve official documentation
-2. Compare implementation against official patterns
-3. Identify deviations from recommendations
-4. Note outdated usage patterns
-5. Flag discouraged anti-patterns
+
+For every impacted framework/library:
+
+1. Compare implementation with repository standards in `docs/`.
+2. Validate against current framework conventions (Laravel 13, React 19, Router 7, Zustand).
+3. Flag deprecated or discouraged patterns.
 
 ### Phase 4: Pattern Detection
+
 Look for recurring issues:
+
 - Common anti-patterns across files
 - Duplicated logic that could be abstracted
 - Inconsistent coding styles
 - Missing error handling patterns
+- Repeated violations of project conventions
 
 ### Phase 5: Library Recommendations
+
 For custom implementations:
-1. Check if current libraries provide the functionality
-2. Search for mature ecosystem packages
-3. Verify library health (commits, issues, activity)
-4. Check compatibility with project setup
+
+1. Prefer existing project stack first.
+2. Recommend new dependencies only when strictly necessary.
+3. Explain cost/benefit and integration impact.
 
 ### Phase 6: Comprehensive Report
+
 Generate detailed report with:
-- Executive summary
-- Critical issues requiring immediate attention
-- File-by-file findings
-- Prioritized action plan
-- Effort estimates
-- Library recommendations
+
+- Findings first, ordered by severity
+- File-level references and concrete impact
+- Residual risks and testing gaps
+- Secondary summary and suggested next actions
 
 ## Issue Priority Levels
 
@@ -85,6 +100,7 @@ Generate detailed report with:
 ## Analysis Categories
 
 ### Security
+
 - Hardcoded secrets
 - SQL injection risks
 - XSS vulnerabilities
@@ -92,6 +108,7 @@ Generate detailed report with:
 - Exposed sensitive data
 
 ### Performance
+
 - Inefficient algorithms
 - Blocking operations
 - Memory leaks
@@ -99,17 +116,27 @@ Generate detailed report with:
 - N+1 query patterns
 
 ### TypeScript/Type Safety
+
 - Missing type annotations
 - Use of `any` type
 - Custom types duplicating official types
 - Missing @types packages
 
+### Laravel/API Correctness
+
+- Route protection and `auth:sanctum` usage
+- Validation and exception mapping consistency
+- Ownership checks for user-scoped resources
+- Eager loading and query efficiency
+
 ### Async/Promise Issues
+
 - Missing await keywords
 - Unhandled promise rejections
 - Callback hell
 
 ### Dead Code
+
 - Unused imports and exports
 - Unused functions, classes, and methods
 - Unused variables and types
@@ -118,12 +145,14 @@ Generate detailed report with:
 - Unused dependencies
 
 **Tools:**
-- JavaScript/TypeScript: `npx knip --reporter json`
-- Python: `deadcode . --dry`
+
+- JavaScript/TypeScript (web): `cd web && npx knip --reporter json`
+- General reference search: `rg` / `grep`
 
 **Important:** Always verify tool findings before reporting. Check for:
+
 - Dynamic imports (`import(variable)`)
-- Framework patterns (React components, decorators)
+- Framework patterns (React components, Laravel route/controller bindings)
 - Re-exports for public API
 - Entry points (CLI scripts, serverless handlers)
 
@@ -137,12 +166,14 @@ See the reference documents for complete methodologies:
 ## Quick Reference
 
 ### Before Starting
+
 - [ ] Read project configuration files
-- [ ] Identify tech stack and libraries
+- [ ] Read project standards in `docs/`
 - [ ] Run existing linters as baseline
 - [ ] Create file tracking list
 
 ### During Audit
+
 - [ ] Mark files as in-progress
 - [ ] Analyze each category systematically
 - [ ] Note specific line numbers
@@ -150,7 +181,7 @@ See the reference documents for complete methodologies:
 - [ ] Mark files as completed
 
 ### After Audit
-- [ ] Categorize all findings by priority
-- [ ] Generate comprehensive report
-- [ ] Save report to project root
-- [ ] Provide brief console summary
+
+- [ ] Present findings ordered by severity
+- [ ] Include file-level references and testing gaps
+- [ ] Provide a concise change/risk summary after findings
