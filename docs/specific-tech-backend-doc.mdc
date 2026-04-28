@@ -4,27 +4,36 @@ globs: ["backend/**"]
 alwaysApply: false
 ---
 
-# Backend Standards (Agent-First)
+# Docs
+- Product behavior and flow: [Business Doc](./business-doc.mdc)
+- Cross FE/BE rules (language, security, shared quality): [Specific Tech Doc](./specific-tech-doc.mdc)
+- [Specific API Model](./specific-api-model.yml) - how the api works
+- Specific Data Model:(./specific-data-model.yml) - how the data model for DB works
 
-## Scope
+# Scope
 - Laravel API in backend only
 - Main frontend app lives in web and consumes this API
-- Cross FE/BE rules (language, security, shared quality): [Documentation Standards](./documentation-standards.mdc)
 
-## URLs
+# URLs
 servers:
   - url: http://localhost:8001/api/v1/
     description: Local backend server
   - url: https://tastespot.crointhemorning.com/api/v1/
     description: Production server
 
-## Core Stack
+# Core Stack
 - PHP 8.3+
 - Laravel 13
 - Sanctum 4.3 for token auth
 - Eloquent ORM
 - PHPUnit 12.5 + Mockery + Faker
 - Dev tools: Artisan, Composer, Pint, Pail, Tinker
+
+# Runtime Contract
+- Keep response payloads deterministic (stable keys, explicit fields).
+
+# API Rules
+- API responses are JSON-first
 
 ## Runtime and Auth
 - API routes are versioned under prefix v1
@@ -34,8 +43,7 @@ servers:
   - GET /api/v1/ping -> status ok + version
   - GET /up -> framework health route
 
-## Exception and Validation Contract
-- API responses are JSON-first
+# Exception and Validation Contract
 - Standard mappings in bootstrap/app.php:
   - AuthenticationException -> 401 Non autenticato.
   - RouteNotFoundException (login route fallback) -> 401 Non autenticato.
@@ -44,7 +52,7 @@ servers:
   - HttpException -> status code + message
 - Validate input at controller boundary before domain operations
 
-## API Surface (v1)
+# API Surface (v1)
 - Auth: settings, register, login, logout, me, change-password
 - Geo: search, reverse
 - Types: index, store, reorder, update, destroy
@@ -52,7 +60,7 @@ servers:
 - Reviews: list for activity, upsert
 - Photos: public show, protected store, protected destroy
 
-## Project Structure
+# Project Structure
 ```text
 backend/
 ├── app/Http/Controllers/Api/    # API controllers
@@ -68,25 +76,25 @@ backend/
 └── storage/app/public/photos/   # uploaded activity photos
 ```
 
-## Code Conventions
+# Code Conventions
 - Keep controllers thin: validate, authorize, delegate/query, return JSON
 - Enforce ownership for user-scoped resources
 - Prefer deterministic payloads (explicit fields, stable keys)
 
-## Data and Query Rules
+# Data and Query Rules
 - Use eager loading to avoid N+1 on activity aggregates
 - Keep pagination explicit (offset/limit + has_more where needed)
 - Keep write operations atomic when toggling relational flags (favorites)
 - Keep photo URLs API-served, never expose raw storage paths
 
-## Testing Rules
+# Testing Rules
 - Unit tests in tests/Unit, endpoint/integration in tests/Feature
 - Testing DB: sqlite in-memory
 - Test behavior and API contracts, not implementation details
 - Cover: auth failures, ownership violations, validation errors, success flows
 
-## Commands
-Backend folder commands:
+# Commands
+## Backend folder commands:
 
 ```bash
 composer setup
@@ -97,14 +105,14 @@ npm run restore
 npm run start
 ```
 
-Workspace root commands:
+## Workspace root commands:
 
 ```bash
 npm run restore
 npm run start
 ```
 
-## Deploy References (Agent-First)
+# Deploy References (Agent-First)
 - Canonical backend deploy runbook: [backend/DEPLOY.md](../backend/DEPLOY.md)
 - CI/CD and orchestration context: [docs/base-standards.mdc](./base-standards.mdc)
 - Deployment scripts and workflow files to inspect first:
@@ -112,7 +120,7 @@ npm run start
   - `.cpanel.yml`
   - `.github/workflows/deploy.yml`
 
-## Quality Gates
+# Quality Gates
 - Lint/style clean (Pint)
 - Test suite green (composer test)
 - API contract unchanged unless explicitly versioned

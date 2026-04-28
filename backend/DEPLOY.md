@@ -1,3 +1,8 @@
+---
+description: This document contains procedure to deploy the backend application.
+alwaysApply: false
+---
+
 # Deploy TasteSpot Backend - SupportHost (cPanel)
 
 ## Current Status (Infrastructure Already Configured)

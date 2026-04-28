@@ -50,8 +50,8 @@ If the user **explicitly** requested no git operations (e.g. "no PR", "only comm
 
 ## 3. Commit message
 
-- Write the commit message **in English** (per `docs/base-standards.mdc`).
-- Make it **descriptive** (per Git Workflow in `backend-standards.mdc` and `frontend-standards.mdc`).
+- Write the commit message **in English** (per `docs/tech-doc.mdc`).
+- Make it **descriptive** (per Git Workflow in `tech-doc.mdc`).
 - Structure it so that:
     - **Subject line**: Short, imperative summary (e.g. "Add candidate filters to position list", "Fix validation for application deadline"). Optionally prefix with a scope or task slug (e.g. `activities: add map filters`).
     - **Body** (if needed): Bullet points or short paragraphs describing what changed and why (areas touched, new behavior, fixes).
@@ -81,8 +81,7 @@ If the user **explicitly** requested no git operations (e.g. "no PR", "only comm
 
 # References
 
-- `docs/base-standards.mdc`: English-only for commit messages and technical artifacts.
-- `docs/backend-standards.mdc` and `docs/frontend-standards.mdc`: Git Workflow (feature branches, descriptive commits, small focused branches).
+- `docs/tech-doc.mdc`: English-only, Git Workflow (feature branches, descriptive commits, small focused branches).
 - `ai-specs/.commands/develop-backend.md` and `ai-specs/.commands/develop-frontend.md`: Use `gh` for GitHub and PR creation; task-based branch and PR linking.
 
 # Notes

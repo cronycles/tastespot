@@ -14,7 +14,7 @@ Obtain a step-by-step plan for a frontend task that is ready to start implementi
 
 1. Adopt the role of `ai-specs/.agents/frontend-developer.md`.
 2. Analyze the task request mentioned in the input. If the mention is a local file, read it directly.
-3. Propose a step-by-step plan for the frontend part, taking into account everything mentioned in the task and applying project rules from `docs/base-standards.mdc` and `docs/frontend-standards.mdc`.
+3. Propose a step-by-step plan for the frontend part, taking into account everything mentioned in the task and applying project rules from `docs/tech-doc.mdc` and `docs/specific-tech-frontend-doc.mdc`.
 4. Apply the best practices of your role to ensure the developer can be fully autonomous and implement the task end-to-end using only your plan.
 5. Do not write code yet; provide only the plan in the output format defined below.
 6. If you are asked to start implementing at some point, make sure the first thing you do is to move to a proper feature branch and follow the process described in `/develop-frontend.md`.
@@ -55,7 +55,7 @@ Detailed steps, typically:
     2. Pull latest changes: `git pull origin [base-branch]`
     3. Create new branch: `git checkout -b [branch-name]`
     4. Verify branch creation: `git branch`
-- **Notes**: This must be the FIRST step before any code changes. Refer to `docs/frontend-standards.mdc` section "Development Workflow" for specific branch naming conventions and workflow rules.
+- **Notes**: This must be the FIRST step before any code changes. Refer to `docs/specific-tech-frontend-doc.mdc` section "Development Workflow" for specific branch naming conventions and workflow rules.
 
 #### **Step N: [Action Name]**
 
@@ -80,10 +80,10 @@ Common steps:
 - **Implementation Steps**:
     1. **Review Changes**: Analyze all code changes made during implementation
     2. **Identify Documentation Files**: Determine which documentation files need updates based on:
-        - API endpoint changes → Update `docs/api-spec.yml`
-        - UI/UX patterns or component patterns → Update `docs/frontend-standards.mdc`
+        - API endpoint changes → Update `docs/specific-api-model.yml`
+        - UI/UX patterns or component patterns → Update `docs/specific-tech-frontend-doc.mdc`
         - Routing changes → Update routing documentation
-        - New dependencies or configuration changes → Update `docs/frontend-standards.mdc`
+        - New dependencies or configuration changes → Update `docs/specific-tech-frontend-doc.mdc`
         - Test patterns or Cypress changes → Update testing documentation
     3. **Update Documentation**: For each affected file:
         - Update content in English (as per `documentation-standards.mdc`)
@@ -94,7 +94,7 @@ Common steps:
         - Check that documentation follows established structure
     5. **Report Updates**: Document which files were updated and what changes were made
 - **References**:
-    - Follow process described in `docs/documentation-standards.mdc`
+    - Follow process described in `docs/tech-doc.mdc`
     - All documentation must be written in English
 - **Notes**: This step is MANDATORY before considering the implementation complete. Do not skip documentation updates.
 

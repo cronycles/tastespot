@@ -1,14 +1,13 @@
 ---
-description: Complete UX behavior and user flow for the web app (agent-first, concise)
+description: This document is the root to navigate throught the documentation that helps the agent to know how the application flows(UX, UI, behaviours, structure, etc.).
+alwaysApply: true
 ---
 
-# Web App UX Flow
-
-## Product Goal
+# Product Goal
 - Mobile-first web app where users save food/drink places and rate them.
 - Core entities: activity, activity type, per-type review, favorites.
 
-## Routing and Access
+# Routing and Access
 - Public routes: `/login`, `/register` via `GuestRoute`.
 - Protected routes: all app routes via `ProtectedRoute` (token in `authStore`).
 - Bottom navigation tabs:
@@ -20,7 +19,7 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
   - Not authenticated -> login/register page.
   - Authenticated -> home/map page.
 
-## Home (Map) Page
+# Home (Map) Page
 - Full-screen map.
 - Floating search bar at top.
 - Filter controls under search.
@@ -31,11 +30,11 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
   - Empty map point -> confirm add activity, prefill address.
   - OSM POI point -> confirm add activity, prefill name/address/phone.
 
-### Map Rules
+## Map Rules
 - Geolocation fallback: Genova `44.4056, 8.9463`.
 - POI prefill to form through query params: `name`, `address`, `lat`, `lng`, `phone`.
 
-### Search Behavior
+## Search Behavior
 - Search scope:
   - User-saved activities (name, tags, address).
   - Addresses/places.
@@ -46,12 +45,12 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
   - Address suggestion -> recenter map, keep activity markers visible.
 - Enter on typed text -> activity list page with matching filters (name/tag/address).
 
-## Activity List Page
+# Activity List Page
 - Generic vertical list used by favorites, nearby, and search results.
 - Shows vertical activity preview cards.
 - Top bar supports sorting and filtering.
 
-## Activity Detail Page
+# Activity Detail Page
 - Top area: swipeable photo carousel.
 - Clicking photo opens gallery (black background, swipe navigation; landscape-friendly).
 - Content order:
@@ -64,7 +63,7 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
   - Per-type review section.
   - Delete activity action.
 
-### Review Model (Critical)
+## Review Model (Critical)
 - Reviews are per assigned activity type, not one review per activity.
 - If an activity has `N` assigned types, it can have up to `N` separate reviews.
 - Overall activity score = average of all per-type review scores.
@@ -72,11 +71,11 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
   - If missing review -> show "Add review - <Type Name>" action, open review page with type preselected.
   - If review exists -> show score breakdown, creation date, notes, edit action, and update date when present.
 
-## Login/Register Page
+# Login/Register Page
 - Login: email + password.
 - Register: email + password, then auto-login.
 
-## Add Activity Page
+# Add Activity Page
 - Entry points: `+` button or map long-press.
 - Prefill:
   - OSM POI long-press -> name/address/phone.
@@ -89,7 +88,7 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
   - Phone.
   - Optional action to open review page immediately.
 
-## Activity Review Page
+# Activity Review Page
 - Receives target activity type as parameter and displays it in title.
 - Mandatory score inputs:
   - Location
@@ -106,20 +105,20 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
   - Additional notes.
 - Edit mode for existing per-type review supports full update and shows creation/update timestamps.
 
-## Map Marker Rules
+# Map Marker Rules
 - Custom activity markers are clickable and open activity detail.
 - Show only user-created activities (not native OSM markers).
 - Marker icon selection:
   - One assigned type -> that type icon.
   - Multiple assigned types -> generic multi-type icon (`apps-outline`).
 
-## Filters (List Context)
+# Filters (List Context)
 - Type filter: one or more activity types.
 - Overall score filter: min-max on activity average (across all per-type reviews).
 - Category score filter: one or more categories + range; activity matches if at least one per-type review satisfies rule.
 - Favorites-only filter.
 
-## Sorting (List Context)
+# Sorting (List Context)
 - Toggle asc/desc for:
   - Distance from user.
   - Last viewed.
@@ -128,7 +127,7 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
 - Default fallback chain when data is missing:
   - Distance -> Last viewed -> Last reviewed -> Alphabetical.
 
-## Activity Preview Cards
+# Activity Preview Cards
 - Horizontal preview:
   - Top half photo, bottom half name + average score.
   - Favorite icon on photo top-right.
@@ -139,12 +138,12 @@ description: Complete UX behavior and user flow for the web app (agent-first, co
   - Lower section: favorite icon.
   - Card click opens detail; favorite icon only toggles favorite.
 
-## Favorite UI State
+# Favorite UI State
 - Outline heart: not favorite.
 - Filled red heart: favorite.
 - Click toggles state.
 
-## Private Area
+# Private Area
 - Private home page: user email + links to private sections.
 - Security page: password change.
 - Types page: create/edit/delete custom activity types.

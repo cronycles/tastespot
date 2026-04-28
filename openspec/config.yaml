@@ -1,19 +1,12 @@
 schema: spec-driven
 
 context: |
-    Tech stack: React 19, Vite, TypeScript, Laravel 13, Sanctum (MySQL on production, SQLite on local)
     Architecture: Clean Architecture
     We use conventional commits
-    Domain: TasteSpot, web application for saving and rating gastronomy activities
     All code, comments, documentation, and technical artifacts must be in English
 
     Project specs (single source of truth): All artifact creation and implementation MUST follow the project's technical context in ai-specs/. Read and apply these when creating or implementing:
-    - docs/base-standards.mdc — core principles, TDD, language standards, links to backend/frontend/docs standards
-    - docs/backend-standards.mdc — API, database, testing, security (backend changes)
-    - docs/frontend-standards.mdc — React, UI/UX (frontend changes)
-    - docs/api-spec.yml — API contracts and endpoint definitions
-    - docs/data-model.md — domain and data model
-    - docs/documentation-standards.mdc — docs structure and maintenance
+    - docs/base-docs.mdc: base file to start watching. It includes everything from project context to coding standards and best practices. It also includes links to other docs and ai-specs/.agents/ for specific guidelines.
     For implementation: adopt the relevant agent from ai-specs/.agents/ (e.g. backend-developer.md for backend, frontend-developer.md for frontend). Use ai-specs/.commands/ (e.g. develop-backend.md, develop-frontend.md) for workflow guidance when applicable.
 
 # Per-artifact rules (optional)
@@ -21,7 +14,4 @@ context: |
 rules:
     # Global: apply ai-specs when creating any artifact
     _global:
-        - Before creating any artifact, read and apply docs/base-standards.mdc
-        - For backend-related artifacts, read docs/backend-standards.mdc and adopt guidelines from ai-specs/.agents/backend-developer.md
-        - For frontend-related artifacts, read docs/frontend-standards.mdc and adopt guidelines from ai-specs/.agents/frontend-developer.md
-        - Use docs/api-spec.yml and docs/data-model.md for API and data consistency in specs and tasks
+        - Before doing anything, start to read docs/project-doc.mdc to get the context and guidelines.

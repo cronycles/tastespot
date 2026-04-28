@@ -3,20 +3,17 @@ description: Frontend development standards, best practices, and conventions for
 globs: ["web/src/**/*.{js,jsx,ts,tsx,css}", "web/tsconfig*.json", "web/eslint.config.js", "web/vite.config.ts", "web/package.json"]
 alwaysApply: false
 
-# Frontend Standards (Agent-First)
+# Docs
+- Product behavior and flow: [Business Doc](./business-doc.mdc)
 
-## Docs
-- Product behavior and page intent: [Web App UX Flow](./web-app-ux-flow.mdc)
-- Cross FE/BE rules (language, security, shared quality): [Documentation Standards](./documentation-standards.mdc)
-
-## URLs
+# URLs
 servers:
   - url: http://localhost:8000/
     description: Development server
   - url: https://tastespot.crointhemorning.com
     description: Production server
 
-## Core Stack
+# Core Stack
 - Auth: Laravel Sanctum, Bearer token in localStorage key `@auth_token`
 - React 19 + hooks
 - React Router DOM 7 (`BrowserRouter`, protected/guest routes)
@@ -26,7 +23,7 @@ servers:
 - HTTP client: `src/lib/api.ts` (native `fetch` wrapper)
 - API base URL: `VITE_API_URL` with fallback `http://127.0.0.1:8001/api/v1`
 
-## UI Rules
+# UI Rules
 - Mobile-first
 - Pure CSS + CSS variables; no Tailwind; no CSS-in-JS
 - Use app primitives in `src/components` (`Button`, `TextField`, `AppLayout`)
@@ -36,12 +33,12 @@ servers:
 - Primary color: `#FF5A35`
 - Keep literal UI text centralized in config when possible (future i18n)
 
-## Dev Tooling
+# Dev Tooling
 - ESLint 9 flat config: `@eslint/js` + `typescript-eslint` + `react-hooks` + `react-refresh`
 - Typecheck: `tsc -b`
 - Scripts: `npm start`, `npm run build`, `npm run lint`
 
-## Project Structure
+# Project Structure
 ```text
 web/
 ├── .env.development(.local)   # VITE_API_URL
@@ -64,7 +61,7 @@ web/
     └── index.css              # global style entry
 ```
 
-## Code Conventions
+# Code Conventions
 - Components/pages/types/interfaces: PascalCase
 - Variables/functions/hooks: camelCase (`use*` for hooks)
 - Constants: UPPER_SNAKE_CASE
@@ -72,30 +69,30 @@ web/
 - Component/page files: PascalCase
 - Utility/store/lib files: camelCase
 
-## Component Rules
+# Component Rules
 - Functional components only
 - TypeScript for new/updated code
 - Typed props
 - Controlled forms
 - Loading + error states mandatory for async flows
 
-## State and Data
+# State and Data
 - One Zustand store per domain (`auth`, `activities`, `types`, `reviews`, `location`)
 - Centralize API calls in `src/lib/api.ts`
 - Keep direct `fetch` out of pages/components unless added to the API layer
 - Handle server errors at service layer + surface user-friendly UI feedback
 
-## Navigation and Accessibility
+# Navigation and Accessibility
 - Navigation via React Router only
 - Programmatic navigation with `useNavigate`
 - Use semantic HTML + `aria-label` where needed
 - Ensure keyboard navigation and alt text
 
-## Performance
+# Performance
 - Prefer lazy loading for heavy routes/components
 - Use memoization (`useMemo`, `useCallback`) only when needed
 - Keep bundle lean (Vite tree shaking, route-level splitting, optimized assets)
 
-## Workflow Gates
+# Workflow Gates
 - Lint passes (`npm run lint`)
 - Typecheck/build passes (`npm run build`)

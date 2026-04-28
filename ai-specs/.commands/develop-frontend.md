@@ -29,7 +29,7 @@ Implement the UI from the Figma design.
 5. Run frontend quality gates from `web/`:
     - `npm run lint`
     - `npm run build`
-6. If API contracts or UX behavior docs are affected, update relevant docs (`docs/api-spec.yml`, `docs/web-app-ux-flow.mdc`, `README.md` when needed).
+6. If API contracts or UX behavior docs are affected, update relevant docs (`docs/specific-api-model.yml`, `docs/business-doc.mdc`, `README.md` when needed).
 7. Stage only files related to the task, create one descriptive commit in English, then push and create/update PR with `gh` targeting `develop`.
 8. Never merge to `main` from this command. `main` merges are manual and done by the project owner when releasing to production.
 
@@ -60,7 +60,7 @@ When receiving user feedback or corrections:
 - Use component-driven architecture (Atomic Design or similar)
 - Extract shared/reusable UI elements into a `/shared` or `/ui` folder when appropriate
 - Maintain clean separation between **layout components** and **UI components**
-- Follow frontend standards in `docs/frontend-standards.mdc`
+- Follow frontend standards in `docs/specific-tech-frontend-doc.mdc`
 
 # Libraries
 

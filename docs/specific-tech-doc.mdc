@@ -1,0 +1,42 @@
+---
+description: This document contains all specific development rules and guidelines for this project, applicable to all AI agents (Claude, Cursor, Codex, Gemini, etc.).
+alwaysApply: true
+---
+
+# Specific Links
+Use these entry points first when you need fast project context:
+- [Specific Tech Backend Doc](./specific-tech-backend-doc.mdc) - Backend architecture and API conventions
+- [Specific Tech Web (frontend) Doc](./specific-tech-frontend-doc.mdc) - Frontend architecture and web conventions
+
+# Shared Runtime Contract
+- API contract is JSON-first.
+- Public API surface is versioned under `/api/v1`.
+- Auth contract is Sanctum Bearer token based (client sends `Authorization: Bearer <token>`).
+- Keep response payloads deterministic (stable keys, explicit fields).
+
+
+# Development Scripts
+
+Root only (orchestrator of backend + web):
+
+```bash
+npm run restore      # backend restore + web restore
+npm run start        # start backend + web in parallel
+npm run build:prod   # production build of web (web/dist)
+```
+
+# Production Environment
+- Host: SupportHost cPanel
+- URL: `https://tastespot.crointhemorning.com`
+- Paths: repo `/home/crointhe/repositories/tastespot` | app `/home/crointhe/public_html/tastespot/` | docroot `/home/crointhe/public_html/tastespot/public`
+
+# Deploy
+- Target: backend API + web SPA on same host
+- Trigger: push `main` (auto) or `workflow_dispatch` via `.github/workflows/deploy.yml`
+- Auto-deploy paths: `backend/**`, `web/**`, `scripts/deploy.sh`, `.cpanel.yml`, `.github/workflows/deploy.yml`
+- Prereq: `npm run build:prod` + commit `web/dist/`
+- Secrets: `CPANEL_USER`, `CPANEL_TOKEN`
+- Flow: Actions `VersionControl/update` -> `VersionControlDeployment/create` -> cPanel runs `.cpanel.yml` -> `scripts/deploy.sh`
+- Verify: Actions green, `GET /api/v1/ping` ok, SPA served on production URL
+- Source of truth: `.github/workflows/deploy.yml`, `.github/workflows/web-ci.yml`, `.cpanel.yml`, `scripts/deploy.sh`, `backend/DEPLOY.md`
+- [backend/DEPLOY.md](../backend/DEPLOY.md) - Backend deploy details (procedural)

@@ -1,0 +1,17 @@
+---
+description: This document is the root to navigate throught the documentation that helps the agent to know all development rules and guidelines for this project, applicable to all AI agents (Claude, Cursor, Codex, Gemini, etc.).
+alwaysApply: true
+---
+
+## Standards and Guidelines
+For detailed standards and guidelines specific to different areas of the project, refer to:
+- [Tech Doc](./tech-doc.mdc)
+
+## UI/UX flow and Data
+For how the application works really for the user, refer to:
+- [Business Doc](./business-doc.mdc)
+
+## README file
+/README.md is a file for developers that explains them how to install, build, deploy the web, etc. 
+After each implementation change, review `README.md` and update it if the change affects.
+Keep `README.md` accurate at all times.
