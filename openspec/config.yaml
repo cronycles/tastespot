@@ -1,7 +1,7 @@
 schema: spec-driven
 
 context: |
-    Tech stack: React 19, Vite, TypeScript, Laravel 11, Sanctum (MySQL on production, SQLite on local)
+    Tech stack: React 19, Vite, TypeScript, Laravel 13, Sanctum (MySQL on production, SQLite on local)
     Architecture: Clean Architecture
     We use conventional commits
     Domain: TasteSpot, web application for saving and rating gastronomy activities
