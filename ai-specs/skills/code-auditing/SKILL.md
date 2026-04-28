@@ -23,9 +23,7 @@ Comprehensive methodology for systematic code quality audits in this repository 
 ### Phase 0: Pre-Analysis Setup
 
 1. Read project standards and architecture context first:
-    - `docs/base-standards.mdc`
-    - `docs/backend-standards.mdc`
-    - `docs/frontend-standards.mdc`
+    - `docs/project-doc.mdc`
     - `README.md`
 2. Identify impacted scope (`backend/`, `web/`, `docs/`, or cross-cutting).
 3. Check project tooling/config in impacted scope.

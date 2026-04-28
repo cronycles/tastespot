@@ -14,7 +14,7 @@ Obtain a step-by-step plan for a frontend task that is ready to start implementi
 
 1. Adopt the role of `ai-specs/.agents/frontend-developer.md`.
 2. Analyze the task request mentioned in the input. If the mention is a local file, read it directly.
-3. Propose a step-by-step plan for the frontend part, taking into account everything mentioned in the task and applying project rules from `docs/tech-doc.mdc` and `docs/specific-tech-frontend-doc.mdc`.
+3. Propose a step-by-step plan for the frontend part, taking into account everything mentioned in the task and applying project rules from `docs/tech-doc.mdc` , focusing mainly to the frontend doc if present.
 4. Apply the best practices of your role to ensure the developer can be fully autonomous and implement the task end-to-end using only your plan.
 5. Do not write code yet; provide only the plan in the output format defined below.
 6. If you are asked to start implementing at some point, make sure the first thing you do is to move to a proper feature branch and follow the process described in `/develop-frontend.md`.
@@ -55,7 +55,7 @@ Detailed steps, typically:
     2. Pull latest changes: `git pull origin [base-branch]`
     3. Create new branch: `git checkout -b [branch-name]`
     4. Verify branch creation: `git branch`
-- **Notes**: This must be the FIRST step before any code changes. Refer to `docs/specific-tech-frontend-doc.mdc` section "Development Workflow" for specific branch naming conventions and workflow rules.
+- **Notes**: This must be the FIRST step before any code changes. Refer to `docs/tech-doc.mdc`, focusing mainly to the **frontend** doc if present.
 
 #### **Step N: [Action Name]**
 

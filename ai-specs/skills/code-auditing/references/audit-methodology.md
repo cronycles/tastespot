@@ -12,9 +12,7 @@ Before analyzing code, establish the context:
     - Backend: Laravel API in `backend/`
     - Frontend: React + TypeScript app in `web/`
 - **Project docs first**:
-    - `docs/base-standards.mdc`
-    - `docs/backend-standards.mdc`
-    - `docs/frontend-standards.mdc`
+    - `docs/project-doc.mdc`
     - `README.md`
 
 ### 2. Baseline Checks
@@ -329,7 +327,7 @@ cd web && npm run lint && npm run build
 1. **Don't rely on assumptions** - Always verify with documentation
 2. **Don't suggest outdated patterns** - Check current best practices
 3. **Don't recommend unmaintained libraries** - Verify activity
-4. **Don't ignore project conventions** - Respect `docs/base-standards.mdc` and area standards
+4. **Don't ignore project conventions** - Respect `docs/tech-doc.mdc` and area standards
 5. **Don't break functionality** - Ensure fixes are safe
 6. **Don't over-engineer** - Consider cost/benefit ratio
 7. **Don't skip TypeScript type checks** - Types are documentation

@@ -14,7 +14,7 @@ Obtain a step-by-step plan for a backend task that is ready to start implementin
 
 1. Adopt the role of `ai-specs/.agents/backend-developer.md`.
 2. Analyze the task request mentioned in the input. If the input references local files, read them directly.
-3. Propose a step-by-step backend plan, covering everything in the task and applying best practices from `docs/tech-doc.mdc` and `docs/specific-tech-backend-doc.mdc`.
+3. Propose a step-by-step backend plan, covering everything in the task and applying best practices from `docs/tech-doc.mdc`, mainly the backend practice in the documentation starting from that document.
 4. Ensure the plan is implementation-ready so a developer can execute the task end-to-end autonomously.
 5. Do not write code yet; provide only the plan in the output format below.
 6. If later asked to implement, first switch/create a proper feature branch and follow `/develop-backend.md`.
@@ -53,7 +53,7 @@ Detailed steps, typically:
     2. Pull latest changes: `git pull origin [base-branch]`
     3. Create new branch: `git checkout -b [branch-name]`
     4. Verify branch creation: `git branch`
-- **Notes**: This must be the FIRST step before any code changes. Refer to `docs/specific-tech-backend-doc.mdc` section "Development Workflow" for specific branch naming conventions and workflow rules.
+- **Notes**: This must be the FIRST step before any code changes. Refer to `docs/tech-doc.mdc`, focusing mainly to the **backend** doc if present.
 
 #### **Step N: [Action Name]**
 
@@ -86,8 +86,8 @@ Example of a good structure:
 - **Implementation Steps**:
     1. **Review Changes**: Analyze all code changes made during implementation
     2. **Identify Documentation Files**: Determine which documentation files need updates based on:
-        - Data model changes → Update `docs/specific-data-model.md`
-        - API endpoint changes → Update `docs/specific-api-model.yml`
+        - Data model changes → Update `docs/specific-data-model.md`, if exists
+        - API endpoint changes → Update `docs/specific-api-model.yml`, if exists
         - Standards/libraries/config changes → Update relevant `*-standards.mdc` files
         - Architecture changes → Update relevant architecture documentation
     3. **Update Documentation**: For each affected file:
