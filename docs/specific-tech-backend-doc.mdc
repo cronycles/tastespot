@@ -7,8 +7,8 @@ alwaysApply: false
 # Docs
 - Product behavior and flow: [Business Doc](./business-doc.mdc)
 - Cross FE/BE rules (language, security, shared quality): [Specific Tech Doc](./specific-tech-doc.mdc)
-- [Specific API Model](./specific-api-model.yml) - how the api works
-- Specific Data Model:(./specific-data-model.yml) - how the data model for DB works
+- [Specific API Model](./specific-api-model.yml) - how the API works
+- [Specific Data Model](./specific-data-model.md) - how the DB data model works
 
 # Scope
 - Laravel API in backend only
@@ -33,7 +33,7 @@ servers:
 - Keep response payloads deterministic (stable keys, explicit fields).
 
 # API Rules
-- API responses are JSON-first
+- API responses are JSON-first.
 
 ## Runtime and Auth
 - API routes are versioned under prefix v1
@@ -89,7 +89,7 @@ backend/
 
 # Testing Rules
 - Unit tests in tests/Unit, endpoint/integration in tests/Feature
-- Testing DB: sqlite in-memory
+- Testing DB: SQLite in-memory
 - Test behavior and API contracts, not implementation details
 - Cover: auth failures, ownership violations, validation errors, success flows
 
@@ -114,7 +114,7 @@ npm run start
 
 # Deploy References (Agent-First)
 - Canonical backend deploy runbook: [backend/DEPLOY.md](../backend/DEPLOY.md)
-- CI/CD and orchestration context: [docs/base-standards.mdc](./base-standards.mdc)
+- CI/CD and orchestration context: [Specific Tech Doc](./specific-tech-doc.mdc)
 - Deployment scripts and workflow files to inspect first:
   - `scripts/deploy.sh`
   - `.cpanel.yml`

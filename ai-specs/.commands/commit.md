@@ -7,7 +7,7 @@ You are an expert in version control and release workflows. You create clear, co
 **Optional.** `$ARGUMENTS` may contain:
 
 - **Nothing (empty)**: Stage and commit all relevant changes in the working tree, then open a single PR.
-- **Feature/task identifiers**: e.g. task slugs (e.g. `refactor-activity-filters`), branch names, or short feature labels. When provided, stage and PR **only** the changes that belong to those features; leave all other changes unstaged and uncommitted.
+- **Feature/task identifiers**: e.g. task slugs (for example, `refactor-activity-filters`), branch names, or short feature labels. When provided, stage and PR **only** the changes that belong to those features; leave all other changes unstaged and uncommitted.
 - **Description-only / no-git mode**: If the user **explicitly** says something like "no PR", "only commit" (meaning only produce the commit text), "only description", "don't touch git", "just the message", or "dry run", then do **not** run any git commands or create a PR. Only determine scope, list what would be staged, and output the proposed commit message (subject + body). The user can copy and run git commands themselves.
 
 # Goal
@@ -81,7 +81,7 @@ If the user **explicitly** requested no git operations (e.g. "no PR", "only comm
 
 # References
 
-- `docs/tech-doc.mdc`: English-only, Git Workflow (feature branches, descriptive commits, small focused branches).
+- `docs/tech-doc.mdc`: English-only, Git workflow (feature branches, descriptive commits, small focused branches).
 - `ai-specs/.commands/develop-backend.md` and `ai-specs/.commands/develop-frontend.md`: Use `gh` for GitHub and PR creation; task-based branch and PR linking.
 
 # Notes

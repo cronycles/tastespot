@@ -53,7 +53,7 @@ Detailed steps, typically:
     2. Pull latest changes: `git pull origin [base-branch]`
     3. Create new branch: `git checkout -b [branch-name]`
     4. Verify branch creation: `git branch`
-- **Notes**: This must be the FIRST step before any code changes. Refer to `docs/tech-doc.mdc`, focusing mainly to the **backend** doc if present.
+- **Notes**: This must be the FIRST step before any code changes. Refer to `docs/tech-doc.mdc`, focusing mainly on the **backend** doc when present.
 
 #### **Step N: [Action Name]**
 
@@ -86,8 +86,8 @@ Example of a good structure:
 - **Implementation Steps**:
     1. **Review Changes**: Analyze all code changes made during implementation
     2. **Identify Documentation Files**: Determine which documentation files need updates based on:
-        - Data model changes → Update `docs/specific-data-model.md`, if exists
-        - API endpoint changes → Update `docs/specific-api-model.yml`, if exists
+        - Data model changes → Update `docs/specific-data-model.md` when applicable
+        - API endpoint changes → Update `docs/specific-api-model.yml` when applicable
         - Standards/libraries/config changes → Update relevant `*-standards.mdc` files
         - Architecture changes → Update relevant architecture documentation
     3. **Update Documentation**: For each affected file:

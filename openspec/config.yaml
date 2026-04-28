@@ -6,7 +6,7 @@ context: |
     All code, comments, documentation, and technical artifacts must be in English
 
     Project specs (single source of truth): All artifact creation and implementation MUST follow the project's technical context in ai-specs/. Read and apply these when creating or implementing:
-    - docs/base-docs.mdc: base file to start watching. It includes everything from project context to coding standards and best practices. It also includes links to other docs and ai-specs/.agents/ for specific guidelines.
+    - docs/project-doc.mdc: base file to start watching. It includes everything from project context to coding standards and best practices. It also includes links to other docs and ai-specs/.agents/ for specific guidelines.
     For implementation: adopt the relevant agent from ai-specs/.agents/ (e.g. backend-developer.md for backend, frontend-developer.md for frontend). Use ai-specs/.commands/ (e.g. develop-backend.md, develop-frontend.md) for workflow guidance when applicable.
 
 # Per-artifact rules (optional)

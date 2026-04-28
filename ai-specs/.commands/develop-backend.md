@@ -7,12 +7,12 @@ Follow these steps:
 3. Create or switch to a task branch following this convention:
     - `feature/<task-slug>`
     - Example: `feature/refactor-activity-filters`
-4. Implement the task in small incremental steps, following project standards in `docs/tech-doc.mdc`, specially the **backend** standards mentioned in the documentation starting from that document
+4. Implement the task in small incremental steps, following project standards in `docs/tech-doc.mdc`, especially the **backend** standards referenced from that document.
 5. Add or update backend tests in `backend/tests/Feature` and `backend/tests/Unit` according to the change scope.
 6. Run backend quality gates from `backend/`:
     - `composer run pint`
     - `composer test`
-7. If API exists and API behavior changed, update `docs/specific-api-model.yml` if exists; if data model changed, update `docs/specific-data-model.md` if exists; review `README.md` when relevant.
+7. If the API exists and behavior changed, update `docs/specific-api-model.yml` when applicable. If the data model changed, update `docs/specific-data-model.md` when applicable. Review `README.md` when relevant.
 8. Stage only files related to the task, leaving unrelated working tree changes untouched.
 9. Create one descriptive commit message in English.
 10. Push the branch and create/update PR with `gh` targeting `develop`.

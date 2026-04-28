@@ -1,5 +1,5 @@
 ---
-description: This document is the root to navigate throught the documentation that helps the agent to know how the application flows(UX, UI, behaviours, structure, etc.).
+description: This document is the root entry point for understanding how the application works (UX, UI, behaviors, and structure).
 alwaysApply: true
 ---
 

@@ -47,7 +47,7 @@ cd web && npm run start       # Vite web app only on http://127.0.0.1:8000
 
 ### Backend (`backend/`)
 
-- Laravel 11 (PHP MVC)
+- Laravel 13 (PHP MVC)
 - Laravel Sanctum (Bearer token auth)
 - SQLite for local development (`backend/database/database.sqlite`)
 - MySQL in production (SupportHost cPanel)
@@ -62,17 +62,23 @@ cd web && npm run start       # Vite web app only on http://127.0.0.1:8000
 ```text
 TasteSpot/
 ├── .github/
-│   ├── copilot-instructions.md
-│   ├── instructions/
-│   │   └── plan.instructions.md
+│   ├── prompts/
+│   ├── skills/
 │   └── workflows/
 │       ├── deploy.yml
 │       └── web-ci.yml
 ├── docs/
-│   └── web-requirements-remediation-plan.md
+│   ├── project-doc.mdc
+│   ├── tech-doc.mdc
+│   ├── business-doc.mdc
+│   └── specific-*.md(c|yml)
 ├── scripts/
 │   └── deploy.sh
 ├── .cpanel.yml
+├── AGENTS.md
+├── CLAUDE.md
+├── codex.md
+├── GEMINI.md
 ├── README.md
 ├── backend/
 │   ├── app/
@@ -141,15 +147,15 @@ DELETE FROM activities WHERE id = 'xxx';
 
 Main tables:
 
-| Table                    | Purpose                                       |
-| ------------------------ | --------------------------------------------- |
-| `users`                  | Registered users                              |
-| `activity_types`         | Activity categories (bar, restaurant, etc.)   |
-| `activities`             | Saved places                                  |
-| `activity_activity_type` | Many-to-many mapping between places and types |
-| `reviews`                | Ratings, notes, and cost data                 |
-| `activity_photos`        | Photo metadata (file paths)                   |
-| `personal_access_tokens` | Sanctum tokens (authenticated sessions)       |
+| Table                       | Purpose                                       |
+| --------------------------- | --------------------------------------------- |
+| `users`                     | Registered users                              |
+| `activity_types`            | Activity categories (bar, restaurant, etc.)   |
+| `activities`                | Saved places                                  |
+| `activity_type_assignments` | Many-to-many mapping between places and types |
+| `reviews`                   | Ratings, notes, and cost data                 |
+| `activity_photos`           | Photo metadata (file paths)                   |
+| `personal_access_tokens`    | Sanctum tokens (authenticated sessions)       |
 
 ---
 
@@ -263,7 +269,7 @@ Deploy is automatic only on `main` when backend/web/deploy files change.
 
 Important rule: if you edit any of `web/src/`, `web/public/`, or `web/index.html`, you must rebuild and commit `web/dist/` before pushing to `main`. Production does not run a Node build; it only deploys prebuilt artifacts from the repository.
 
-Full production setup and troubleshooting are documented in [backend/DEPLOY.md](backend/DEPLOY.md) and [docs/base-standards.mdc](docs/base-standards.mdc).
+Full production setup and troubleshooting are documented in [backend/DEPLOY.md](backend/DEPLOY.md) and [docs/specific-tech-doc.mdc](docs/specific-tech-doc.mdc).
 
 Deploy flow:
 

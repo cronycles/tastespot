@@ -4,7 +4,7 @@ alwaysApply: true
 ---
 
 # Core Principles
-- **Open source or free**: Use only open source code or free code. also never use something may have costs in the future  
+- **Open source or free**: Use only open source or free solutions. Avoid choices that may introduce future mandatory costs.
 - **Small tasks, one at a time**: Always work in baby steps, one at a time. Never go forward more than one step.
 - **Type Safety**: All code must be fully typed.
 - **Clear Naming**: Use clear, descriptive names for all variables and functions.
@@ -13,7 +13,7 @@ alwaysApply: true
 - **Pattern Detection**: Detect and highlight repeated code patterns.
 - **No comments**: unless the logic is non-obvious.
 - **Lean, DRY and Clean Code**: no over-engineering, no premature abstractions, no repeat code, human reading code
-- **Config data and DB Use**: Prioritize configuration files for stable contents and DB for operative dynamic data. Do not leave text, static data or values or important things lost in the code.
+- **Config data and DB Use**: Prioritize configuration files for stable content and DB for operational dynamic data. Do not leave important text, static data, or values scattered in code.
 
 # Language Standards
 - **English**: All technical artifacts must always use English, including:
@@ -23,14 +23,15 @@ alwaysApply: true
     - Configuration files and scripts
     - Git commit messages
     - Test names and descriptions
-- **Italian and Spanish**: Our conversations in the chat can be in italian or spanish:
-    - If I talk to you in italian you answer me in italian.
-    - If I talk to you in spanish you answer me in spanish.
-    - code references can be in english
+- **Exception**: User-facing product copy and API response messages may be localized when intentionally defined by product behavior.
+- **Italian and Spanish**: Chat conversations can be in Italian or Spanish:
+  - If I talk to you in Italian, you answer in Italian.
+  - If I talk to you in Spanish, you answer in Spanish.
+  - Code references can be in English.
 
 # Specific standards
 
-For detailed standards and guidelines specific for this application refer to:
+For detailed standards and guidelines specific to this application, refer to:
 - [Specific Tech Doc](./specific-tech-doc.mdc)
 
 # Code Conventions

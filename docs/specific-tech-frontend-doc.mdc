@@ -2,6 +2,7 @@
 description: Frontend development standards, best practices, and conventions for the TasteSpot Web application including component patterns, state management, UI/UX guidelines, and testing practices
 globs: ["web/src/**/*.{js,jsx,ts,tsx,css}", "web/tsconfig*.json", "web/eslint.config.js", "web/vite.config.ts", "web/package.json"]
 alwaysApply: false
+---
 
 # Docs
 - Product behavior and flow: [Business Doc](./business-doc.mdc)
@@ -80,7 +81,7 @@ web/
 - One Zustand store per domain (`auth`, `activities`, `types`, `reviews`, `location`)
 - Centralize API calls in `src/lib/api.ts`
 - Keep direct `fetch` out of pages/components unless added to the API layer
-- Handle server errors at service layer + surface user-friendly UI feedback
+- Handle server errors at service layer and surface user-friendly UI feedback
 
 # Navigation and Accessibility
 - Navigation via React Router only
