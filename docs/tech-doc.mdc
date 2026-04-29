@@ -46,12 +46,30 @@ For detailed standards and guidelines specific to this application, refer to:
 - Keep upload handling constrained by validation (mime/size/type).
 
 # Documentation Update Rules
+
+> **MANDATORY: Any code change MUST include documentation updates in the same changeset. No exceptions.**
+
 When code changes, update affected docs in the same change set.
 
-1. Identify impacted surfaces: API, auth flow, data model, tooling, security rules, standards, flows, etc..
-2. Update the proper file. (doc, prompt or skill or rule)
+1. Identify impacted surfaces: API, auth flow, data model, tooling, security rules, standards, flows, etc.
+2. Update the proper file (doc, prompt, skill, or rule) — see mapping below.
 3. Keep wording concise and executable (agent-first, no narrative).
 4. If a rule change is driven by user feedback, ask approval before changing standards.
+
+## Change → Doc Mapping
+
+| What changed | Files to update |
+|---|---|
+| API endpoint added/changed/removed | `README.md` (endpoint table) · `docs/specific-api-model.yml` · `docs/specific-tech-backend-doc.mdc` (API Surface section) |
+| DB schema / migration added/changed | `docs/specific-data-model.md` · `README.md` (tables section) |
+| Auth flow changed | `docs/specific-tech-backend-doc.mdc` · `docs/specific-tech-frontend-doc.mdc` |
+| Frontend route / page / UX behavior changed | `docs/business-doc.mdc` |
+| Frontend stack / tooling / convention changed | `docs/specific-tech-frontend-doc.mdc` |
+| Backend stack / tooling / convention changed | `docs/specific-tech-backend-doc.mdc` |
+| Dev scripts / setup / deploy changed | `README.md` · `docs/specific-tech-doc.mdc` · `backend/DEPLOY.md` (if deploy-related) |
+| Security rule changed | `docs/tech-doc.mdc` (Security Rules section) |
+| New skill or OpenSpec change added | `ai-specs/skills/` or `openspec/` — update or create relevant artifact |
+| General coding standard changed | `docs/tech-doc.mdc` |
 
 # Project Skills
 
