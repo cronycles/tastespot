@@ -4,6 +4,7 @@ import { IoChevronBackOutline, IoChevronForwardOutline, IoCloseOutline } from "r
 import { IoCreateOutline, IoHeart, IoHeartOutline, IoTrashOutline } from "react-icons/io5";
 import { IoCallOutline, IoNavigateOutline, IoPricetagOutline, IoReaderOutline } from "react-icons/io5";
 import { Button } from "@/components/Button";
+import { PageHeader } from "@/components/PageHeader";
 import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
 import { type UpdateActivityData, useActivitiesStore } from "@/stores/activitiesStore";
 import { calcActivityAvgScore, calcCategoryAvgs, useReviewsStore } from "@/stores/reviewsStore";
@@ -211,32 +212,57 @@ export function ActivityDetailPage() {
     }
 
     const typeById = new Map(types.map(type => [type.id, type]));
+    const detailHeaderActions = (
+        <>
+            <button type="button" className="activity-hero-round-btn" onClick={() => navigate(`/activity/${activity.id}/edit`)} aria-label="Modifica attività">
+                <IoCreateOutline />
+            </button>
+            {totalPhotos > 0 ? (
+                <button type="button" className="activity-hero-photo-count" onClick={() => openGallery(0)}>
+                    Foto {totalPhotos}
+                </button>
+            ) : null}
+        </>
+    );
 
     return (
         <section className="page-card activity-detail-page">
-            <div className={`activity-detail-hero-v2${heroPhoto ? "" : " no-photo"}`} style={heroPhoto ? { backgroundImage: `url(${heroPhoto.storage_path})` } : undefined}>
-                <div className="activity-detail-hero-scrim" />
-                <div className="activity-detail-hero-top">
-                    <button type="button" className="activity-hero-round-btn" onClick={() => navigate(`/activity/${activity.id}/edit`)} aria-label="Modifica attività">
-                        <IoCreateOutline />
-                    </button>
-                    {totalPhotos > 0 ? (
-                        <button type="button" className="activity-hero-photo-count" onClick={() => openGallery(0)}>
-                            Foto {totalPhotos}
-                        </button>
-                    ) : null}
-                </div>
+            <div className="activity-detail-top">
+                <PageHeader title={activity.name} onBack={() => navigate(-1)} actions={detailHeaderActions} />
 
-                <div className="activity-detail-hero-content">
-                    <h1>{activity.name}</h1>
-                    {activity.address ? <p>{activity.address}</p> : null}
-                    {averageScore !== null ? (
-                        <span className="activity-score-pill">
-                            <strong>{averageScore.toFixed(1)}</strong>
-                            <span className="muted" style={{ fontWeight: 400, fontSize: "0.78rem" }}>
-                                /10
+                <div className="activity-detail-intro">
+                    {activity.address ? <p className="activity-detail-address">{activity.address}</p> : null}
+
+                    <div className="activity-detail-meta-row">
+                        {averageScore !== null ? (
+                            <span className="activity-score-pill activity-score-pill--solid">
+                                <strong>{averageScore.toFixed(1)}</strong>
+                                <span className="muted" style={{ fontWeight: 500, fontSize: "0.78rem" }}>
+                                    /10
+                                </span>
                             </span>
-                        </span>
+                        ) : null}
+
+                        <div className="activity-types-inline">
+                            {activity.type_ids.map(typeId => {
+                                const type = typeById.get(typeId);
+                                const Icon = getActivityTypeIcon(type?.icon_key);
+
+                                return (
+                                    <span className="activity-type-inline-chip" key={`top-${typeId}`}>
+                                        <Icon />
+                                        {type?.name ?? typeNamesById.get(typeId) ?? "Tipo"}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {heroPhoto ? (
+                        <button type="button" className="detail-photo-block" onClick={() => openGallery(0)} aria-label="Apri galleria foto">
+                            <img src={heroPhoto.storage_path} alt={activity.name} className="detail-photo-block-image" />
+                            {totalPhotos > 1 ? <span className="detail-photo-block-count">{totalPhotos} foto</span> : null}
+                        </button>
                     ) : null}
                 </div>
             </div>
@@ -353,29 +379,14 @@ export function ActivityDetailPage() {
                 {metaError ? <div className="status-banner error">{metaError}</div> : null}
 
                 {/* Info row — types + phone */}
-                <div className="ad-info-row">
-                    <div className="ad-info-block">
-                        <span className="ad-label">Tipologie</span>
-                        <div className="activity-types-inline">
-                            {activity.type_ids.map(typeId => {
-                                const type = typeById.get(typeId);
-                                const Icon = getActivityTypeIcon(type?.icon_key);
-                                return (
-                                    <span className="activity-type-inline-chip" key={typeId}>
-                                        <Icon />
-                                        {type?.name ?? typeNamesById.get(typeId) ?? "Tipo"}
-                                    </span>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    {hasPhone ? (
+                {hasPhone ? (
+                    <div className="ad-info-row">
                         <div className="ad-info-block">
                             <span className="ad-label">Telefono</span>
                             <span className="ad-info-value">{activity.phone}</span>
                         </div>
-                    ) : null}
-                </div>
+                    </div>
+                ) : null}
 
                 {/* Score strip */}
                 {averageScore !== null ? (

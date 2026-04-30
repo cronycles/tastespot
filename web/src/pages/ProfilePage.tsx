@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
-import { IoGridOutline, IoLogOutOutline, IoPersonCircleOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
+import { IoGridOutline, IoLogOutOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
 import { Button } from "@/components/Button";
+import { PageHeader } from "@/components/PageHeader";
 import { useAuthStore } from "@/stores/authStore";
 
 export function ProfilePage() {
@@ -17,16 +18,7 @@ export function ProfilePage() {
 
     return (
         <section className="profile-card profile-page">
-            <div className="content-stack profile-hero-card">
-                <p className="eyebrow">Area privata</p>
-                <h1>Profilo</h1>
-                {user ? (
-                    <div className="profile-hero-meta">
-                        <IoPersonCircleOutline />
-                        <span>{user.email}</span>
-                    </div>
-                ) : null}
-            </div>
+            <PageHeader eyebrow="Area privata" title="Profilo" subtitle={user ? user.email : undefined} />
 
             {user ? (
                 <div className="metric-row">

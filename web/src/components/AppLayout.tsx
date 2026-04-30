@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { IoArrowBackOutline, IoHeartOutline, IoMapOutline, IoPersonOutline, IoWalkOutline } from "react-icons/io5";
+import { IoAddOutline, IoHeartOutline, IoMapOutline, IoPersonOutline, IoWalkOutline } from "react-icons/io5";
 
 const navItems = [
     { to: "/", label: "Mappa", icon: IoMapOutline, end: true },
@@ -8,26 +8,26 @@ const navItems = [
     { to: "/profile", label: "Profilo", icon: IoPersonOutline, end: false },
 ] as const;
 
-const TAB_PATHS = ["/favorites", "/nearby", "/profile"];
-
 export function AppLayout() {
-    const location = useLocation();
     const navigate = useNavigate();
-    const isTabRoute = location.pathname === "/" || TAB_PATHS.some(path => location.pathname === path);
-    const isMapRoute = location.pathname === "/";
+    const location = useLocation();
 
     return (
         <div className="app-shell">
             <div className="app-frame">
-                {!isTabRoute ? (
-                    <header className="app-header">
-                        <button type="button" className="app-header-action" onClick={() => navigate(-1)} aria-label="Torna indietro">
-                            <IoArrowBackOutline />
+                <header className="app-header">
+                    <div className="app-header-brand">
+                        <img src="/logo.svg" alt="" className="app-header-logo" aria-hidden="true" />
+                        <span>TasteSpot</span>
+                    </div>
+                    <div className="app-header-actions">
+                        <button type="button" className="app-header-action app-header-action--primary" onClick={() => navigate("/activity/add")} aria-label="Aggiungi attività">
+                            <IoAddOutline />
                         </button>
-                    </header>
-                ) : null}
+                    </div>
+                </header>
 
-                <main className={`app-content${isMapRoute ? " app-content--map" : ""}`}>
+                <main className={`app-content${location.pathname === "/" ? " app-content--map" : ""}`}>
                     <Outlet />
                 </main>
 

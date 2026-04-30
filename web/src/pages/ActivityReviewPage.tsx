@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/Button";
+import { PageHeader } from "@/components/PageHeader";
 import { SMILE_VALUES } from "@/config/scoring";
 import { useActivitiesStore } from "@/stores/activitiesStore";
 import { type ReviewWithType, useReviewsStore } from "@/stores/reviewsStore";
@@ -95,11 +96,7 @@ export function ActivityReviewPage() {
 
     return (
         <section className="page-card review-page">
-            <div className="content-stack review-hero-card">
-                <p className="eyebrow">Recensione attività</p>
-                <h1>{activity.name}</h1>
-                <p className="muted">Tipologia: {typeName}</p>
-            </div>
+            <PageHeader eyebrow="Recensione attività" title={activity.name} subtitle={`Tipologia: ${typeName}`} onBack={() => navigate(-1)} />
 
             <ReviewFormCard
                 key={`${safeTypeId}-${existing?.id ?? "new"}-${existing?.updated_at ?? "0"}`}

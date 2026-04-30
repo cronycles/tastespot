@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/Button";
 import { api } from "@/lib/api";
+import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/PageHeader";
 
 type PasswordFormState = {
     oldPassword: string;
@@ -44,6 +46,7 @@ function parsePasswordErrors(error: unknown): { message: string; fieldErrors: Pa
 }
 
 export function SecurityPage() {
+    const navigate = useNavigate();
     const [passwordForm, setPasswordForm] = useState<PasswordFormState>({
         oldPassword: "",
         newPassword: "",
@@ -105,11 +108,7 @@ export function SecurityPage() {
 
     return (
         <section className="profile-card profile-page">
-            <div className="content-stack security-hero-card">
-                <p className="eyebrow">Privacy e accesso</p>
-                <h1>Sicurezza account</h1>
-                <p className="muted">Aggiorna la password del tuo account.</p>
-            </div>
+            <PageHeader eyebrow="Privacy e accesso" title="Sicurezza account" subtitle="Aggiorna la password del tuo account." onBack={() => navigate(-1)} />
 
             <form className="profile-security-form" onSubmit={event => void handlePasswordSubmit(event)}>
                 <div className="content-stack">
