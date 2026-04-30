@@ -523,6 +523,7 @@ class ComposerStaticInitc57754c93ae34ac3b9b716a0fd2f2149
         'App\\Http\\Controllers\\Api\\ActivityController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/ActivityController.php',
         'App\\Http\\Controllers\\Api\\ActivityTypeController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/ActivityTypeController.php',
         'App\\Http\\Controllers\\Api\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/AuthController.php',
+        'App\\Http\\Controllers\\Api\\GeoController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/GeoController.php',
         'App\\Http\\Controllers\\Api\\PhotoController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/PhotoController.php',
         'App\\Http\\Controllers\\Api\\ReviewController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/ReviewController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',

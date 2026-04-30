@@ -233,14 +233,15 @@ export function ActivityDetailPage() {
                     {averageScore !== null ? (
                         <span className="activity-score-pill">
                             <strong>{averageScore.toFixed(1)}</strong>
-                            <span className="muted" style={{ fontWeight: 400, fontSize: '0.78rem' }}>/10</span>
+                            <span className="muted" style={{ fontWeight: 400, fontSize: "0.78rem" }}>
+                                /10
+                            </span>
                         </span>
                     ) : null}
                 </div>
             </div>
 
             <div className="activity-detail-sheet">
-
                 {/* Quick actions */}
                 <div className="activity-detail-quick-actions">
                     <button type="button" className="activity-quick-action" onClick={() => void toggleFavorite(activity.id)}>
@@ -292,56 +293,6 @@ export function ActivityDetailPage() {
                         </button>
                     ) : null}
                 </div>
-
-                {/* Info row — types + phone */}
-                <div className="ad-info-row">
-                    <div className="ad-info-block">
-                        <span className="ad-label">Tipologie</span>
-                        <div className="activity-types-inline">
-                            {activity.type_ids.map(typeId => {
-                                const type = typeById.get(typeId);
-                                const Icon = getActivityTypeIcon(type?.icon_key);
-                                return (
-                                    <span className="activity-type-inline-chip" key={typeId}>
-                                        <Icon />
-                                        {type?.name ?? typeNamesById.get(typeId) ?? "Tipo"}
-                                    </span>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    {hasPhone ? (
-                        <div className="ad-info-block">
-                            <span className="ad-label">Telefono</span>
-                            <span className="ad-info-value">{activity.phone}</span>
-                        </div>
-                    ) : null}
-                </div>
-
-                {/* Score strip */}
-                {averageScore !== null ? (
-                    <div className="ad-score-strip">
-                        <span className="ad-label">Punteggi medi</span>
-                        <div className="ad-score-cells">
-                            <div className="ad-score-cell">
-                                <span className="ad-score-cell-label">Location</span>
-                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.location)}</strong>
-                            </div>
-                            <div className="ad-score-cell">
-                                <span className="ad-score-cell-label">Cibo</span>
-                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.food)}</strong>
-                            </div>
-                            <div className="ad-score-cell">
-                                <span className="ad-score-cell-label">Servizio</span>
-                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.service)}</strong>
-                            </div>
-                            <div className="ad-score-cell">
-                                <span className="ad-score-cell-label">Conto</span>
-                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.price)}</strong>
-                            </div>
-                        </div>
-                    </div>
-                ) : null}
 
                 {/* Note editor */}
                 {editingNotes ? (
@@ -401,6 +352,56 @@ export function ActivityDetailPage() {
 
                 {metaError ? <div className="status-banner error">{metaError}</div> : null}
 
+                {/* Info row — types + phone */}
+                <div className="ad-info-row">
+                    <div className="ad-info-block">
+                        <span className="ad-label">Tipologie</span>
+                        <div className="activity-types-inline">
+                            {activity.type_ids.map(typeId => {
+                                const type = typeById.get(typeId);
+                                const Icon = getActivityTypeIcon(type?.icon_key);
+                                return (
+                                    <span className="activity-type-inline-chip" key={typeId}>
+                                        <Icon />
+                                        {type?.name ?? typeNamesById.get(typeId) ?? "Tipo"}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    {hasPhone ? (
+                        <div className="ad-info-block">
+                            <span className="ad-label">Telefono</span>
+                            <span className="ad-info-value">{activity.phone}</span>
+                        </div>
+                    ) : null}
+                </div>
+
+                {/* Score strip */}
+                {averageScore !== null ? (
+                    <div className="ad-score-strip">
+                        <span className="ad-label">Punteggi medi</span>
+                        <div className="ad-score-cells">
+                            <div className="ad-score-cell">
+                                <span className="ad-score-cell-label">Location</span>
+                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.location)}</strong>
+                            </div>
+                            <div className="ad-score-cell">
+                                <span className="ad-score-cell-label">Cibo</span>
+                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.food)}</strong>
+                            </div>
+                            <div className="ad-score-cell">
+                                <span className="ad-score-cell-label">Servizio</span>
+                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.service)}</strong>
+                            </div>
+                            <div className="ad-score-cell">
+                                <span className="ad-score-cell-label">Conto</span>
+                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.price)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
+
                 {/* Reviews per type */}
                 <div className="ad-reviews-section">
                     <span className="ad-label">Recensioni per tipologia</span>
@@ -417,15 +418,9 @@ export function ActivityDetailPage() {
                                     <div className="ad-review-card-header">
                                         <div className="ad-review-card-title-row">
                                             <h4 className="ad-review-card-title">{typeName}</h4>
-                                            {reviewAverage !== null ? (
-                                                <span className="ad-review-avg-badge">{reviewAverage.toFixed(1)}</span>
-                                            ) : null}
+                                            {reviewAverage !== null ? <span className="ad-review-avg-badge">{reviewAverage.toFixed(1)}</span> : null}
                                         </div>
-                                        <button
-                                            type="button"
-                                            className="ad-edit-pill"
-                                            onClick={() => navigate(`/activity/${activity.id}/review/${typeId}`)}
-                                        >
+                                        <button type="button" className="ad-edit-pill" onClick={() => navigate(`/activity/${activity.id}/review/${typeId}`)}>
                                             <IoCreateOutline />
                                             {existingReview ? "Modifica" : "Aggiungi"}
                                         </button>
@@ -434,10 +429,22 @@ export function ActivityDetailPage() {
                                     {existingReview ? (
                                         <>
                                             <div className="ad-review-scores">
-                                                <span className="ad-review-score-item"><span className="ad-review-score-label">Location</span><strong>{formatScore(reviewCategoryAvgs?.location ?? null)}</strong></span>
-                                                <span className="ad-review-score-item"><span className="ad-review-score-label">Cibo</span><strong>{formatScore(reviewCategoryAvgs?.food ?? null)}</strong></span>
-                                                <span className="ad-review-score-item"><span className="ad-review-score-label">Servizio</span><strong>{formatScore(reviewCategoryAvgs?.service ?? null)}</strong></span>
-                                                <span className="ad-review-score-item"><span className="ad-review-score-label">Conto</span><strong>{formatScore(reviewCategoryAvgs?.price ?? null)}</strong></span>
+                                                <span className="ad-review-score-item">
+                                                    <span className="ad-review-score-label">Location</span>
+                                                    <strong>{formatScore(reviewCategoryAvgs?.location ?? null)}</strong>
+                                                </span>
+                                                <span className="ad-review-score-item">
+                                                    <span className="ad-review-score-label">Cibo</span>
+                                                    <strong>{formatScore(reviewCategoryAvgs?.food ?? null)}</strong>
+                                                </span>
+                                                <span className="ad-review-score-item">
+                                                    <span className="ad-review-score-label">Servizio</span>
+                                                    <strong>{formatScore(reviewCategoryAvgs?.service ?? null)}</strong>
+                                                </span>
+                                                <span className="ad-review-score-item">
+                                                    <span className="ad-review-score-label">Conto</span>
+                                                    <strong>{formatScore(reviewCategoryAvgs?.price ?? null)}</strong>
+                                                </span>
                                             </div>
                                             {existingReview.notes ? <p className="ad-review-notes">{existingReview.notes}</p> : null}
                                             <p className="muted ad-review-date">

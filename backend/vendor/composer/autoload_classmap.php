@@ -9,6 +9,7 @@ return array(
     'App\\Http\\Controllers\\Api\\ActivityController' => $baseDir . '/app/Http/Controllers/Api/ActivityController.php',
     'App\\Http\\Controllers\\Api\\ActivityTypeController' => $baseDir . '/app/Http/Controllers/Api/ActivityTypeController.php',
     'App\\Http\\Controllers\\Api\\AuthController' => $baseDir . '/app/Http/Controllers/Api/AuthController.php',
+    'App\\Http\\Controllers\\Api\\GeoController' => $baseDir . '/app/Http/Controllers/Api/GeoController.php',
     'App\\Http\\Controllers\\Api\\PhotoController' => $baseDir . '/app/Http/Controllers/Api/PhotoController.php',
     'App\\Http\\Controllers\\Api\\ReviewController' => $baseDir . '/app/Http/Controllers/Api/ReviewController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
