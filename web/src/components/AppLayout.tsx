@@ -17,8 +17,11 @@ export function AppLayout() {
             <div className="app-frame">
                 <header className="app-header">
                     <div className="app-header-brand">
-                        <img src="/logo.svg" alt="" className="app-header-logo" aria-hidden="true" />
-                        <span>TasteSpot</span>
+                        <img src="/icon.svg" alt="" className="app-header-logo" aria-hidden="true" />
+                        <span>
+                            <span className="app-header-brand-taste">Taste</span>
+                            <span className="app-header-brand-spot">Spot</span>
+                        </span>
                     </div>
                     <div className="app-header-actions">
                         <button type="button" className="app-header-action app-header-action--primary" onClick={() => navigate("/activity/add")} aria-label="Aggiungi attività">

@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Orange location pin -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 6 76 91">
+  <!-- Orange pin -->
   <path d="M50 6C29 6 12 23 12 44C12 61 22 74 35 82L50 97L65 82C78 74 88 61 88 44C88 23 71 6 50 6Z" fill="#FF5A35"/>
   <!-- White inner circle -->
   <circle cx="50" cy="42" r="23" fill="white"/>
@@ -9,7 +9,7 @@
   <rect x="47.5" y="21" width="5" height="22" rx="2.5" fill="#1E2D4F"/>
   <!-- Navy fork: right tine -->
   <rect x="55" y="21" width="5" height="22" rx="2.5" fill="#1E2D4F"/>
-  <!-- Fork connection bar -->
+  <!-- Fork connection -->
   <rect x="40" y="36" width="20" height="7" fill="#1E2D4F"/>
   <!-- Fork stem -->
   <rect x="47.5" y="41" width="5" height="22" rx="2.5" fill="#1E2D4F"/>

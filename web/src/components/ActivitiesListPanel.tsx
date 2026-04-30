@@ -309,19 +309,9 @@ export function ActivitiesListPanel({
 
     return (
         <section className="page-card activities-panel">
-            <div className="activities-panel-head">
-                <div className="panel-title-row">
-                    <PageHeader
-                        title={title}
-                        eyebrow={eyebrow}
-                        actions={
-                            <Button type="button" onClick={() => navigate("/activity/add")}>
-                                + Aggiungi
-                            </Button>
-                        }
-                    />
-                </div>
+            <PageHeader title={title} eyebrow={eyebrow} />
 
+            <div className="activities-panel-head">
                 <div className="search-bar-row">
                     <div className="activities-search-input-wrap">
                         <IoSearchOutline className="activities-search-icon" />
