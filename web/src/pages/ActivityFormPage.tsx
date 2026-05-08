@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import imageCompression from "browser-image-compression";
 import { Button } from "@/components/Button";
+import { PageHeader } from "@/components/PageHeader";
 import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
 import { api } from "@/lib/api";
 import { useActivitiesStore, type ActivityWithDetails, type CreateActivityData, type UpdateActivityData } from "@/stores/activitiesStore";
@@ -245,10 +246,7 @@ export function ActivityFormPage({ mode, activity }: Props) {
 
     return (
         <section className="page-card form-page">
-            <div className="content-stack">
-                <h1>{mode === "add" ? "Nuova attivita'" : "Modifica attivita'"}</h1>
-                <p className="muted">Compila i dettagli del posto che vuoi salvare.</p>
-            </div>
+            <PageHeader title={mode === "add" ? "Nuova attività" : "Modifica attività"} subtitle="Compila i dettagli del posto che vuoi salvare." onBack={() => navigate(-1)} />
 
             <form className="activity-form" onSubmit={event => void handleSubmit(event)}>
                 <div className="field">
@@ -258,7 +256,13 @@ export function ActivityFormPage({ mode, activity }: Props) {
 
                 <div className="field">
                     <label htmlFor="activity-address">Indirizzo *</label>
-                    <input id="activity-address" value={form.address} onChange={event => updateField("address", event.target.value)} placeholder="Es. Via Roma 10, Genova" required />
+                    <input
+                        id="activity-address"
+                        value={form.address}
+                        onChange={event => updateField("address", event.target.value)}
+                        placeholder="Es. Via Roma 10, Genova"
+                        required
+                    />
                 </div>
 
                 <div className="activity-coords-grid">
@@ -292,7 +296,9 @@ export function ActivityFormPage({ mode, activity }: Props) {
                     {types.length === 0 ? (
                         <p className="muted">Nessuna tipologia disponibile. Creane almeno una per continuare.</p>
                     ) : (
-                        <p className="muted">Seleziona una o piu' tipologie per classificare l'attivita'. Se non ne scegli nessuna verra' usata una tipologia generica solo se gia' presente.</p>
+                        <p className="muted">
+                            Seleziona una o piu' tipologie per classificare l'attivita'. Se non ne scegli nessuna verra' usata una tipologia generica solo se gia' presente.
+                        </p>
                     )}
                     <div className="activity-types-grid">
                         {typeOptions.map(type => (

@@ -1,0 +1,99 @@
+---
+description: Frontend development standards, best practices, and conventions for the TasteSpot Web application including component patterns, state management, UI/UX guidelines, and testing practices
+globs: ["web/src/**/*.{js,jsx,ts,tsx,css}", "web/tsconfig*.json", "web/eslint.config.js", "web/vite.config.ts", "web/package.json"]
+alwaysApply: false
+---
+
+# Docs
+- Product behavior and flow: [Business Doc](./business-doc.mdc)
+
+# URLs
+servers:
+  - url: http://localhost:8000/
+    description: Development server
+  - url: https://tastespot.crointhemorning.com
+    description: Production server
+
+# Core Stack
+- Auth: Laravel Sanctum, Bearer token in localStorage key `@auth_token`
+- React 19 + hooks
+- React Router DOM 7 (`BrowserRouter`, protected/guest routes)
+- Zustand 5 (one store per domain)
+- TypeScript 6
+- Vite 8 + `@vitejs/plugin-react` (host `127.0.0.1`, port `8000`, alias `@ -> src`)
+- HTTP client: `src/lib/api.ts` (native `fetch` wrapper)
+- API base URL: `VITE_API_URL` with fallback `http://127.0.0.1:8001/api/v1`
+
+# UI Rules
+- Mobile-first
+- Pure CSS + CSS variables; no Tailwind; no CSS-in-JS
+- Use app primitives in `src/components` (`Button`, `TextField`, `AppLayout`)
+- Icons: `react-icons`
+- Map: `maplibre-gl` + OpenFreeMap style `https://tiles.openfreemap.org/styles/liberty`
+- Geocoding/autocomplete: Nominatim API
+- Primary color: `#FF5A35`
+- Keep literal UI text centralized in config when possible (future i18n)
+
+# Dev Tooling
+- ESLint 9 flat config: `@eslint/js` + `typescript-eslint` + `react-hooks` + `react-refresh`
+- Typecheck: `tsc -b`
+- Scripts: `npm start`, `npm run build`, `npm run lint`
+
+# Project Structure
+```text
+web/
+├── .env.development(.local)   # VITE_API_URL
+├── .env.production            # VITE_API_URL
+├── eslint.config.js
+├── tsconfig*.json
+├── vite.config.ts
+├── public/
+└── src/
+    ├── components/            # UI + route guards + layout
+    ├── config/                # domain config (e.g. scoring)
+    ├── lib/                   # shared libs (api, icons)
+    ├── pages/                 # route-level pages
+    ├── stores/                # zustand stores
+    ├── styles/                # base/layout/features CSS
+    ├── theme/                 # design tokens
+    ├── types/                 # shared TS types/constants
+    ├── App.tsx                # router tree
+    ├── main.tsx               # bootstrap
+    └── index.css              # global style entry
+```
+
+# Code Conventions
+- Components/pages/types/interfaces: PascalCase
+- Variables/functions/hooks: camelCase (`use*` for hooks)
+- Constants: UPPER_SNAKE_CASE
+- CSS classes: kebab-case
+- Component/page files: PascalCase
+- Utility/store/lib files: camelCase
+
+# Component Rules
+- Functional components only
+- TypeScript for new/updated code
+- Typed props
+- Controlled forms
+- Loading + error states mandatory for async flows
+
+# State and Data
+- One Zustand store per domain (`auth`, `activities`, `types`, `reviews`, `location`)
+- Centralize API calls in `src/lib/api.ts`
+- Keep direct `fetch` out of pages/components unless added to the API layer
+- Handle server errors at service layer and surface user-friendly UI feedback
+
+# Navigation and Accessibility
+- Navigation via React Router only
+- Programmatic navigation with `useNavigate`
+- Use semantic HTML + `aria-label` where needed
+- Ensure keyboard navigation and alt text
+
+# Performance
+- Prefer lazy loading for heavy routes/components
+- Use memoization (`useMemo`, `useCallback`) only when needed
+- Keep bundle lean (Vite tree shaking, route-level splitting, optimized assets)
+
+# Workflow Gates
+- Lint passes (`npm run lint`)
+- Typecheck/build passes (`npm run build`)

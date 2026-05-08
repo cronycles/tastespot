@@ -4,6 +4,7 @@ import { IoChevronBackOutline, IoChevronForwardOutline, IoCloseOutline } from "r
 import { IoCreateOutline, IoHeart, IoHeartOutline, IoTrashOutline } from "react-icons/io5";
 import { IoCallOutline, IoNavigateOutline, IoPricetagOutline, IoReaderOutline } from "react-icons/io5";
 import { Button } from "@/components/Button";
+import { PageHeader } from "@/components/PageHeader";
 import { getActivityTypeIcon } from "@/lib/activityTypeIcons";
 import { type UpdateActivityData, useActivitiesStore } from "@/stores/activitiesStore";
 import { calcActivityAvgScore, calcCategoryAvgs, useReviewsStore } from "@/stores/reviewsStore";
@@ -211,36 +212,62 @@ export function ActivityDetailPage() {
     }
 
     const typeById = new Map(types.map(type => [type.id, type]));
+    const detailHeaderActions = (
+        <>
+            <button type="button" className="activity-hero-round-btn" onClick={() => navigate(`/activity/${activity.id}/edit`)} aria-label="Modifica attività">
+                <IoCreateOutline />
+            </button>
+            {totalPhotos > 0 ? (
+                <button type="button" className="activity-hero-photo-count" onClick={() => openGallery(0)}>
+                    Foto {totalPhotos}
+                </button>
+            ) : null}
+        </>
+    );
 
     return (
         <section className="page-card activity-detail-page">
-            <div className={`activity-detail-hero-v2${heroPhoto ? "" : " no-photo"}`} style={heroPhoto ? { backgroundImage: `url(${heroPhoto.storage_path})` } : undefined}>
-                <div className="activity-detail-hero-scrim" />
-                <div className="activity-detail-hero-top">
-                    <button type="button" className="activity-hero-round-btn" onClick={() => navigate(`/activity/${activity.id}/edit`)} aria-label="Modifica attività">
-                        <IoCreateOutline />
-                    </button>
-                    {totalPhotos > 0 ? (
-                        <button type="button" className="activity-hero-photo-count" onClick={() => openGallery(0)}>
-                            Foto {totalPhotos}
-                        </button>
-                    ) : null}
-                </div>
+            <div className="activity-detail-top">
+                <PageHeader title={activity.name} onBack={() => navigate(-1)} actions={detailHeaderActions} />
 
-                <div className="activity-detail-hero-content">
-                    <h1>{activity.name}</h1>
-                    {activity.address ? <p>{activity.address}</p> : null}
-                    {averageScore !== null ? (
-                        <span className="activity-score-pill">
-                            <strong>{averageScore.toFixed(1)}</strong>
-                            <span className="muted" style={{ fontWeight: 400, fontSize: '0.78rem' }}>/10</span>
-                        </span>
+                <div className="activity-detail-intro">
+                    {activity.address ? <p className="activity-detail-address">{activity.address}</p> : null}
+
+                    <div className="activity-detail-meta-row">
+                        {averageScore !== null ? (
+                            <span className="activity-score-pill activity-score-pill--solid">
+                                <strong>{averageScore.toFixed(1)}</strong>
+                                <span className="muted" style={{ fontWeight: 500, fontSize: "0.78rem" }}>
+                                    /10
+                                </span>
+                            </span>
+                        ) : null}
+
+                        <div className="activity-types-inline">
+                            {activity.type_ids.map(typeId => {
+                                const type = typeById.get(typeId);
+                                const Icon = getActivityTypeIcon(type?.icon_key);
+
+                                return (
+                                    <span className="activity-type-inline-chip" key={`top-${typeId}`}>
+                                        <Icon />
+                                        {type?.name ?? typeNamesById.get(typeId) ?? "Tipo"}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {heroPhoto ? (
+                        <button type="button" className="detail-photo-block" onClick={() => openGallery(0)} aria-label="Apri galleria foto">
+                            <img src={heroPhoto.storage_path} alt={activity.name} className="detail-photo-block-image" />
+                            {totalPhotos > 1 ? <span className="detail-photo-block-count">{totalPhotos} foto</span> : null}
+                        </button>
                     ) : null}
                 </div>
             </div>
 
             <div className="activity-detail-sheet">
-
                 {/* Quick actions */}
                 <div className="activity-detail-quick-actions">
                     <button type="button" className="activity-quick-action" onClick={() => void toggleFavorite(activity.id)}>
@@ -292,56 +319,6 @@ export function ActivityDetailPage() {
                         </button>
                     ) : null}
                 </div>
-
-                {/* Info row — types + phone */}
-                <div className="ad-info-row">
-                    <div className="ad-info-block">
-                        <span className="ad-label">Tipologie</span>
-                        <div className="activity-types-inline">
-                            {activity.type_ids.map(typeId => {
-                                const type = typeById.get(typeId);
-                                const Icon = getActivityTypeIcon(type?.icon_key);
-                                return (
-                                    <span className="activity-type-inline-chip" key={typeId}>
-                                        <Icon />
-                                        {type?.name ?? typeNamesById.get(typeId) ?? "Tipo"}
-                                    </span>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    {hasPhone ? (
-                        <div className="ad-info-block">
-                            <span className="ad-label">Telefono</span>
-                            <span className="ad-info-value">{activity.phone}</span>
-                        </div>
-                    ) : null}
-                </div>
-
-                {/* Score strip */}
-                {averageScore !== null ? (
-                    <div className="ad-score-strip">
-                        <span className="ad-label">Punteggi medi</span>
-                        <div className="ad-score-cells">
-                            <div className="ad-score-cell">
-                                <span className="ad-score-cell-label">Location</span>
-                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.location)}</strong>
-                            </div>
-                            <div className="ad-score-cell">
-                                <span className="ad-score-cell-label">Cibo</span>
-                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.food)}</strong>
-                            </div>
-                            <div className="ad-score-cell">
-                                <span className="ad-score-cell-label">Servizio</span>
-                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.service)}</strong>
-                            </div>
-                            <div className="ad-score-cell">
-                                <span className="ad-score-cell-label">Conto</span>
-                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.price)}</strong>
-                            </div>
-                        </div>
-                    </div>
-                ) : null}
 
                 {/* Note editor */}
                 {editingNotes ? (
@@ -401,6 +378,41 @@ export function ActivityDetailPage() {
 
                 {metaError ? <div className="status-banner error">{metaError}</div> : null}
 
+                {/* Info row — types + phone */}
+                {hasPhone ? (
+                    <div className="ad-info-row">
+                        <div className="ad-info-block">
+                            <span className="ad-label">Telefono</span>
+                            <span className="ad-info-value">{activity.phone}</span>
+                        </div>
+                    </div>
+                ) : null}
+
+                {/* Score strip */}
+                {averageScore !== null ? (
+                    <div className="ad-score-strip">
+                        <span className="ad-label">Punteggi medi</span>
+                        <div className="ad-score-cells">
+                            <div className="ad-score-cell">
+                                <span className="ad-score-cell-label">Location</span>
+                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.location)}</strong>
+                            </div>
+                            <div className="ad-score-cell">
+                                <span className="ad-score-cell-label">Cibo</span>
+                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.food)}</strong>
+                            </div>
+                            <div className="ad-score-cell">
+                                <span className="ad-score-cell-label">Servizio</span>
+                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.service)}</strong>
+                            </div>
+                            <div className="ad-score-cell">
+                                <span className="ad-score-cell-label">Conto</span>
+                                <strong className="ad-score-cell-value">{formatScore(categoryAvgs.price)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
+
                 {/* Reviews per type */}
                 <div className="ad-reviews-section">
                     <span className="ad-label">Recensioni per tipologia</span>
@@ -417,15 +429,9 @@ export function ActivityDetailPage() {
                                     <div className="ad-review-card-header">
                                         <div className="ad-review-card-title-row">
                                             <h4 className="ad-review-card-title">{typeName}</h4>
-                                            {reviewAverage !== null ? (
-                                                <span className="ad-review-avg-badge">{reviewAverage.toFixed(1)}</span>
-                                            ) : null}
+                                            {reviewAverage !== null ? <span className="ad-review-avg-badge">{reviewAverage.toFixed(1)}</span> : null}
                                         </div>
-                                        <button
-                                            type="button"
-                                            className="ad-edit-pill"
-                                            onClick={() => navigate(`/activity/${activity.id}/review/${typeId}`)}
-                                        >
+                                        <button type="button" className="ad-edit-pill" onClick={() => navigate(`/activity/${activity.id}/review/${typeId}`)}>
                                             <IoCreateOutline />
                                             {existingReview ? "Modifica" : "Aggiungi"}
                                         </button>
@@ -434,10 +440,22 @@ export function ActivityDetailPage() {
                                     {existingReview ? (
                                         <>
                                             <div className="ad-review-scores">
-                                                <span className="ad-review-score-item"><span className="ad-review-score-label">Location</span><strong>{formatScore(reviewCategoryAvgs?.location ?? null)}</strong></span>
-                                                <span className="ad-review-score-item"><span className="ad-review-score-label">Cibo</span><strong>{formatScore(reviewCategoryAvgs?.food ?? null)}</strong></span>
-                                                <span className="ad-review-score-item"><span className="ad-review-score-label">Servizio</span><strong>{formatScore(reviewCategoryAvgs?.service ?? null)}</strong></span>
-                                                <span className="ad-review-score-item"><span className="ad-review-score-label">Conto</span><strong>{formatScore(reviewCategoryAvgs?.price ?? null)}</strong></span>
+                                                <span className="ad-review-score-item">
+                                                    <span className="ad-review-score-label">Location</span>
+                                                    <strong>{formatScore(reviewCategoryAvgs?.location ?? null)}</strong>
+                                                </span>
+                                                <span className="ad-review-score-item">
+                                                    <span className="ad-review-score-label">Cibo</span>
+                                                    <strong>{formatScore(reviewCategoryAvgs?.food ?? null)}</strong>
+                                                </span>
+                                                <span className="ad-review-score-item">
+                                                    <span className="ad-review-score-label">Servizio</span>
+                                                    <strong>{formatScore(reviewCategoryAvgs?.service ?? null)}</strong>
+                                                </span>
+                                                <span className="ad-review-score-item">
+                                                    <span className="ad-review-score-label">Conto</span>
+                                                    <strong>{formatScore(reviewCategoryAvgs?.price ?? null)}</strong>
+                                                </span>
                                             </div>
                                             {existingReview.notes ? <p className="ad-review-notes">{existingReview.notes}</p> : null}
                                             <p className="muted ad-review-date">

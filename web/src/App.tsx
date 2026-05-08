@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { GuestRoute } from "@/components/GuestRoute";
+import { PageHeader } from "@/components/PageHeader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
@@ -36,9 +37,7 @@ function App() {
         return (
             <div className="boot-screen">
                 <div className="boot-panel">
-                    <p className="eyebrow">TasteSpot</p>
-                    <h1>Caricamento...</h1>
-                    <p className="muted">Attendi un istante.</p>
+                    <PageHeader eyebrow="TasteSpot" title="Caricamento..." subtitle="Attendi un istante." />
                 </div>
             </div>
         );

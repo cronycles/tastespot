@@ -32,11 +32,28 @@
 }
 
 .app-header-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     font-family: var(--font-heading);
     font-size: 1.2rem;
     font-weight: 800;
-    color: var(--color-text-primary);
     letter-spacing: -0.02em;
+}
+
+.app-header-brand-taste {
+    color: #1e2d4f;
+}
+
+.app-header-brand-spot {
+    color: #ff5a35;
+}
+
+.app-header-logo {
+    width: 30px;
+    height: 30px;
+    display: block;
+    object-fit: contain;
 }
 
 .app-header-actions {
@@ -78,6 +95,20 @@
 
 .app-header-action:active {
     transform: scale(0.97);
+}
+
+.app-header-action--primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    font-size: 1.25rem;
+}
+
+.app-header-action--primary:hover,
+.app-header-action--primary:focus-visible {
+    background: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    color: #fff;
 }
 
 .app-content {
@@ -229,6 +260,75 @@
 
 .app-content > *:nth-child(3) {
     animation-delay: 90ms;
+}
+
+/* ---- PageHeader ---- */
+
+.page-header {
+    margin-bottom: var(--space-md);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.page-header-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.page-header-back {
+    flex-shrink: 0;
+    margin-top: 2px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-primary);
+    display: grid;
+    place-items: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition:
+        border-color 120ms ease,
+        background 120ms ease,
+        color 120ms ease;
+}
+
+.page-header-back:hover,
+.page-header-back:focus-visible {
+    border-color: var(--color-primary);
+    background: var(--color-accent-soft);
+    color: var(--color-primary-dark);
+}
+
+.page-header-back:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.page-header-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.page-header-body h1 {
+    font-size: clamp(1.3rem, 4.5vw, 1.8rem);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.page-header-subtitle {
+    margin: 6px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.page-header-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 @keyframes fade-slide-in {

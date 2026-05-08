@@ -14,6 +14,7 @@ When the user's prompt is clearly a question, identify the **skill gap** behind 
 
 - **If arguments are provided** ($ARGUMENTS): Use them as the user prompt (question or request to explain) and proceed with the response below.
 - **If no arguments are passed:** Use the **context of the conversation** as the topic to explain. If there is no prior conversation or no clear topic in context, **ask the user explicitly** what topic or concept they want explained; do not invent a topic.
+- When relevant, ground the explanation in this project's standards and architecture documents in `docs/`.
 
 ---
 
@@ -25,9 +26,9 @@ Given the topic (from arguments or conversation context), produce a **concept-fo
 
 - **If the prompt is a question**: State briefly what skill or concept gap the question reveals (e.g. "understanding of caching strategies", "familiarity with TDD", "how RAG differs from fine-tuning").
 - **Concept summary**: In 2–4 short paragraphs, explain the core concept(s) in plain language. Your explanation should answer:
-  - **What** is happening?
-  - **Why** does it behave this way?
-  - **Where** in the system does this effect originate? (when relevant)
+    - **What** is happening?
+    - **Why** does it behave this way?
+    - **Where** in the system does this effect originate? (when relevant)
 - Cover **technical concepts** when relevant: e.g. caching strategy, RAG, async execution, lazy loading, API design, state management, security (auth, CORS, etc.).
 - Cover **design and process concepts** when relevant: e.g. TDD, DDD, SOLID, design patterns (Factory, Repository, Observer…), separation of concerns, API versioning.
 - Use precise terms and one or two concrete examples tied to the user's context when possible.
@@ -37,23 +38,24 @@ Given the topic (from arguments or conversation context), produce a **concept-fo
 - List **2–4 alternative approaches** to solving the same problem or achieving the same goal.
 - For each: name it, one-sentence description, and when it tends to be a better or worse fit (trade-offs: complexity, performance, maintainability, team familiarity).
 - **Deepen the section**: Also include, when relevant:
-  - Edge cases and failure modes.
-  - Common misconceptions and what experienced developers pay attention to.
+    - Edge cases and failure modes.
+    - Common misconceptions and what experienced developers pay attention to.
 - Keep it scoped to what the user asked; avoid unnecessary breadth.
+- Prefer alternatives that are realistic for this stack (Laravel API + React/Vite frontend) when the topic is implementation-related.
 
 ### 3. Visual or mental model (when appropriate)
 
 - If the concept benefits from structure or flow, provide **one** of:
-  - A **mental model** (e.g. "Think of X as…", "The flow is: 1)… 2)…").
-  - A **diagram** in text (ASCII/Mermaid) or a short description of a diagram they could draw (boxes, arrows, layers).
+    - A **mental model** (e.g. "Think of X as…", "The flow is: 1)… 2)…").
+    - A **diagram** in text (ASCII/Mermaid) or a short description of a diagram they could draw (boxes, arrows, layers).
 - Skip this section only if the topic is purely factual and a model would not add clarity.
 
 ### 4. Quiz to validate learnings (interactive)
 
 - Provide **3–5 short quiz questions** (multiple choice or short answer) that check:
-  - Understanding of the main concept.
-  - When to choose one approach over another.
-  - Common pitfalls or misconceptions.
+    - Understanding of the main concept.
+    - When to choose one approach over another.
+    - Common pitfalls or misconceptions.
 - **Do not give the answers yet.** Present only the questions. Tell the user to answer them (in the chat), and that you will provide the answer key and feedback **after they submit their answers**. Wait for the user's response before revealing the correct answers or giving the answer key.
 
 ### Adaptive strategies
@@ -63,7 +65,7 @@ Given the topic (from arguments or conversation context), produce a **concept-fo
 
 ### Success criterion
 
-A successful response should make the user feel: *"I understand how this system works and why it behaves that way."* Not: *"I applied a fix."*
+A successful response should make the user feel: _"I understand how this system works and why it behaves that way."_ Not: _"I applied a fix."_
 
 ---
 

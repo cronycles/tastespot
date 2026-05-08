@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
+import { PageHeader } from "@/components/PageHeader";
 import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -37,8 +38,7 @@ export function LoginPage() {
             <div className="auth-card">
                 <div className="auth-header">
                     <img src="/logo.svg" alt="TasteSpot" className="auth-logo" />
-                    <h1>Accedi</h1>
-                    <p className="muted">Entra nel tuo account per continuare.</p>
+                    <PageHeader title="Accedi" subtitle="Entra nel tuo account per continuare." />
                 </div>
 
                 <form className="auth-form" onSubmit={handleSubmit}>

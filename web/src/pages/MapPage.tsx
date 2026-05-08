@@ -25,6 +25,33 @@ function sortByName(entries: ActivityWithDetails[]): ActivityWithDetails[] {
     return [...entries].sort((first, second) => first.name.localeCompare(second.name, "it"));
 }
 
+function isFiniteNumber(value: unknown): value is number {
+    return typeof value === "number" && Number.isFinite(value);
+}
+
+function isValidLngLat(lng: unknown, lat: unknown): lng is number {
+    return isFiniteNumber(lng) && isFiniteNumber(lat) && lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90;
+}
+
+function toSafeLngLat(lng: unknown, lat: unknown, fallback: [number, number]): [number, number] {
+    if (isValidLngLat(lng, lat)) {
+        return [Number(lng), Number(lat)];
+    }
+
+    return fallback;
+}
+
+function clearMarkerRoots(markerRootsRef: { current: Root[] }): void {
+    const currentRoots = markerRootsRef.current;
+    markerRootsRef.current = [];
+
+    currentRoots.forEach(root => {
+        queueMicrotask(() => {
+            root.unmount();
+        });
+    });
+}
+
 type PlaceSuggestion = {
     id: string;
     label: string;
@@ -178,8 +205,9 @@ export function MapPage() {
 
         void requestAndFetch().then(() => {
             const latest = useLocationStore.getState().coords;
+            const center = toSafeLngLat(latest.lng, latest.lat, [8.9463, 44.4056]);
             mapRef.current?.flyTo({
-                center: [latest.lng, latest.lat],
+                center,
                 zoom: 13,
                 duration: 900,
             });
@@ -191,12 +219,16 @@ export function MapPage() {
             return;
         }
 
+        const initialCenter = toSafeLngLat(initialCoordsRef.current.lng, initialCoordsRef.current.lat, [8.9463, 44.4056]);
+        const restoredCenter = lastMapView ? toSafeLngLat(lastMapView.center[0], lastMapView.center[1], initialCenter) : initialCenter;
+
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
             style: MAP_STYLE_URL,
-            center: lastMapView?.center ?? [initialCoordsRef.current.lng, initialCoordsRef.current.lat],
+            center: restoredCenter,
             zoom: lastMapView?.zoom ?? 12,
             attributionControl: false,
+            validateStyle: false,
         });
 
         const LONG_PRESS_MS = 500;
@@ -327,8 +359,7 @@ export function MapPage() {
 
         return () => {
             window.removeEventListener("resize", onResize);
-            markerRootsRef.current.forEach(root => root.unmount());
-            markerRootsRef.current = [];
+            clearMarkerRoots(markerRootsRef);
             markersRef.current.forEach(marker => marker.remove());
             markersRef.current = [];
             placeMarkerRef.current?.remove();
@@ -354,6 +385,12 @@ export function MapPage() {
     useEffect(() => {
         const map = mapRef.current;
         if (!map) {
+            return;
+        }
+
+        if (!isValidLngLat(coords.lng, coords.lat)) {
+            userMarkerRef.current?.remove();
+            userMarkerRef.current = null;
             return;
         }
 
@@ -419,13 +456,16 @@ export function MapPage() {
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !selectedActivity || selectedActivity.lat == null || selectedActivity.lng == null) {
+        if (!map || !selectedActivity || !isValidLngLat(selectedActivity.lng, selectedActivity.lat)) {
             activityPopupRef.current?.remove();
             activityPopupRef.current = null;
             return;
         }
 
         activityPopupRef.current?.remove();
+
+        const activityLng = Number(selectedActivity.lng);
+        const activityLat = Number(selectedActivity.lat);
 
         const popupContent = document.createElement("div");
         popupContent.className = "map-activity-popup";
@@ -461,7 +501,7 @@ export function MapPage() {
         });
 
         const popup = new maplibregl.Popup({ offset: [0, -30], closeButton: false, closeOnClick: false });
-        popup.setLngLat([selectedActivity.lng, selectedActivity.lat]).setDOMContent(popupContent).addTo(map);
+        popup.setLngLat([activityLng, activityLat]).setDOMContent(popupContent).addTo(map);
         activityPopupRef.current = popup;
     }, [selectedActivity, typeNamesById, navigate]);
 
@@ -473,13 +513,15 @@ export function MapPage() {
 
         markersRef.current.forEach(marker => marker.remove());
         markersRef.current = [];
-        markerRootsRef.current.forEach(root => root.unmount());
-        markerRootsRef.current = [];
+        clearMarkerRoots(markerRootsRef);
 
         visibleActivities.forEach(entry => {
-            if (entry.lat == null || entry.lng == null) {
+            if (!isValidLngLat(entry.lng, entry.lat)) {
                 return;
             }
+
+            const entryLng = Number(entry.lng);
+            const entryLat = Number(entry.lat);
 
             const markerEl = document.createElement("button");
             markerEl.type = "button";
@@ -499,10 +541,10 @@ export function MapPage() {
                 setSelectedPlace(null);
                 placeMarkerRef.current?.remove();
                 placeMarkerRef.current = null;
-                map.flyTo({ center: [entry.lng!, entry.lat!], zoom: 16.5, duration: 700 });
+                map.flyTo({ center: [entryLng, entryLat], zoom: 16.5, duration: 700 });
             };
 
-            const marker = new maplibregl.Marker({ element: markerEl, anchor: "bottom" }).setLngLat([entry.lng, entry.lat]).addTo(map);
+            const marker = new maplibregl.Marker({ element: markerEl, anchor: "bottom" }).setLngLat([entryLng, entryLat]).addTo(map);
 
             markersRef.current.push(marker);
         });
@@ -511,8 +553,9 @@ export function MapPage() {
     async function handleCenterOnUser(): Promise<void> {
         await requestAndFetch();
         const latest = useLocationStore.getState().coords;
+        const center = toSafeLngLat(latest.lng, latest.lat, [8.9463, 44.4056]);
         mapRef.current?.flyTo({
-            center: [latest.lng, latest.lat],
+            center,
             zoom: 15,
             duration: 800,
         });

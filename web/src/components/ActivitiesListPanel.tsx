@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { IoFunnelOutline, IoHeart, IoHeartOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
+import { PageHeader } from "@/components/PageHeader";
 import { useActivitiesStore, type ActivityWithDetails } from "@/stores/activitiesStore";
 import { useLocationStore } from "@/stores/locationStore";
 import { calcActivityAvgScore } from "@/stores/reviewsStore";
@@ -156,7 +157,15 @@ function sortActivities(entries: ActivityWithDetails[], sortKey: SortKey, sortDi
     });
 }
 
-export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow, initialSortKey = "alpha", initialSortDir = "asc", autoRequestLocation = false, initialQuery = "" }: Props) {
+export function ActivitiesListPanel({
+    title,
+    fixedFavoritesOnly = false,
+    eyebrow,
+    initialSortKey = "alpha",
+    initialSortDir = "asc",
+    autoRequestLocation = false,
+    initialQuery = "",
+}: Props) {
     const navigate = useNavigate();
     const { activities, loading, hasMore, fetch, toggleFavorite } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
@@ -245,7 +254,23 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
         });
 
         return sortActivities(filtered, sortKey, sortDir, coords.lat, coords.lng);
-    }, [activities, avgScoreMax, avgScoreMin, categoryScoreMax, categoryScoreMin, coords.lat, coords.lng, favoritesOnly, fixedFavoritesOnly, query, selectedCategories, selectedTypeIds, sortDir, sortKey, typeNamesById]);
+    }, [
+        activities,
+        avgScoreMax,
+        avgScoreMin,
+        categoryScoreMax,
+        categoryScoreMin,
+        coords.lat,
+        coords.lng,
+        favoritesOnly,
+        fixedFavoritesOnly,
+        query,
+        selectedCategories,
+        selectedTypeIds,
+        sortDir,
+        sortKey,
+        typeNamesById,
+    ]);
 
     function toggleTypeFilter(typeId: string): void {
         setSelectedTypeIds(current => (current.includes(typeId) ? current.filter(entry => entry !== typeId) : [...current, typeId]));
@@ -284,17 +309,9 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
 
     return (
         <section className="page-card activities-panel">
-            <div className="activities-panel-head">
-                <div className="panel-title-row">
-                    <div className="content-stack">
-                        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-                        <h1>{title}</h1>
-                    </div>
-                    <Button type="button" onClick={() => navigate("/activity/add")}>
-                        + Aggiungi
-                    </Button>
-                </div>
+            <PageHeader title={title} eyebrow={eyebrow} />
 
+            <div className="activities-panel-head">
                 <div className="search-bar-row">
                     <div className="activities-search-input-wrap">
                         <IoSearchOutline className="activities-search-icon" />
@@ -325,7 +342,11 @@ export function ActivitiesListPanel({ title, fixedFavoritesOnly = false, eyebrow
 
                 <div className="chips-section">
                     <div className="activities-filter-toggle-row">
-                        <button type="button" className={`activities-filter-btn${showFilters ? " open" : ""}${activeFiltersCount > 0 ? " has-filters" : ""}`} onClick={() => setShowFilters(current => !current)}>
+                        <button
+                            type="button"
+                            className={`activities-filter-btn${showFilters ? " open" : ""}${activeFiltersCount > 0 ? " has-filters" : ""}`}
+                            onClick={() => setShowFilters(current => !current)}
+                        >
                             <IoFunnelOutline />
                             <span>Filtri{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}</span>
                         </button>
