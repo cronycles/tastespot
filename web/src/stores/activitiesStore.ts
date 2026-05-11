@@ -40,6 +40,7 @@ type ActivitiesState = {
   hasMore: boolean
   nextOffset: number
   fetch: (reset?: boolean) => Promise<void>
+  fetchAll: () => Promise<void>
   create: (data: CreateActivityData) => Promise<string | null>
   update: (id: string, data: UpdateActivityData) => Promise<string | null>
   remove: (id: string) => Promise<string | null>
@@ -81,6 +82,16 @@ export const useActivitiesStore = create<ActivitiesState>((set, get) => ({
       })
     } catch {
       set({ loading: false })
+    }
+  },
+
+  fetchAll: async () => {
+    if (get().loading) {
+      return
+    }
+    await get().fetch(true)
+    while (get().hasMore && !get().loading) {
+      await get().fetch(false)
     }
   },
 

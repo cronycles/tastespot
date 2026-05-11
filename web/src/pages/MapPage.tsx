@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import maplibregl, { type MapGeoJSONFeature, type Marker } from "maplibre-gl";
-import { IoAdd, IoClose, IoHeart, IoHeartOutline, IoLocateOutline, IoLocationOutline, IoSearchOutline } from "react-icons/io5";
+import { IoAdd, IoClose, IoHeart, IoHeartOutline, IoLocateOutline, IoLocationOutline, IoSearchOutline, IoStorefrontOutline } from "react-icons/io5";
 import { createRoot, type Root } from "react-dom/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
@@ -60,7 +60,10 @@ type PlaceSuggestion = {
     lng: number;
 };
 
-type SearchSuggestion = { kind: "query"; id: string; label: string; details: string } | { kind: "place"; id: string; label: string; details: string; place: PlaceSuggestion };
+type SearchSuggestion =
+    | { kind: "query"; id: string; label: string; details: string }
+    | { kind: "activity"; id: string; label: string; details: string; activityId: string }
+    | { kind: "place"; id: string; label: string; details: string; place: PlaceSuggestion };
 
 function firstNonEmptyString(...values: Array<unknown>): string | null {
     for (const value of values) {
@@ -121,7 +124,7 @@ export function MapPage() {
     const userMarkerRef = useRef<Marker | null>(null);
     const activityPopupRef = useRef<maplibregl.Popup | null>(null);
 
-    const { activities, fetch } = useActivitiesStore();
+    const { activities, fetchAll } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
     const { coords, hasPermission, requestAndFetch } = useLocationStore();
     const initialCoordsRef = useRef(coords);
@@ -192,9 +195,9 @@ export function MapPage() {
     }
 
     useEffect(() => {
-        void fetch(true);
+        void fetchAll();
         void fetchTypes();
-    }, [fetch, fetchTypes]);
+    }, [fetchAll, fetchTypes]);
 
     // Auto-request geolocation only on first entry (no saved map view): when returning
     // from add/detail pages we preserve the exact previous view without recentering.
@@ -583,8 +586,11 @@ export function MapPage() {
                 const limit = searchResultsMode ? 20 : 8;
 
                 try {
+                    const locationParams = hasPermission && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)
+                        ? `&lat=${encodeURIComponent(String(coords.lat))}&lng=${encodeURIComponent(String(coords.lng))}`
+                        : "";
                     const response = await api.get<{ results: PlaceSuggestion[] }>(
-                        `/geo/search?q=${encodeURIComponent(trimmedQuery)}&limit=${limit}&lang=${encodeURIComponent(preferredLanguagesHeader())}`,
+                        `/geo/search?q=${encodeURIComponent(trimmedQuery)}&limit=${limit}&lang=${encodeURIComponent(preferredLanguagesHeader())}${locationParams}`,
                     );
 
                     if (placeSuggestionsRequestRef.current !== requestId) {
@@ -607,7 +613,7 @@ export function MapPage() {
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [hasSuggestionQuery, searchResultsMode, trimmedQuery]);
+    }, [coords.lat, coords.lng, hasPermission, hasSuggestionQuery, searchResultsMode, trimmedQuery]);
 
     const searchSuggestions = useMemo(() => {
         if (!hasSearchText) {
@@ -621,6 +627,22 @@ export function MapPage() {
             details: "Mostra tutti i risultati per questa ricerca",
         };
 
+        const normalizedQuery = normalizeText(trimmedQuery);
+        const activityItems: SearchSuggestion[] = visibleActivities
+            .filter(entry => {
+                const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? "");
+                const haystack = normalizeText([entry.name, entry.address ?? "", ...(entry.tags ?? []), ...typeNames].join(" "));
+                return haystack.includes(normalizedQuery);
+            })
+            .slice(0, 4)
+            .map(entry => ({
+                kind: "activity" as const,
+                id: `activity:${entry.id}`,
+                label: entry.name,
+                details: entry.address ?? (entry.type_ids.map(id => typeNamesById.get(id) ?? "").filter(Boolean).join(", ") || "Attività"),
+                activityId: entry.id,
+            }));
+
         const placeItems = (hasSuggestionQuery ? placeSuggestions : []).map(place => ({
             kind: "place" as const,
             id: `place:${place.id}`,
@@ -629,8 +651,8 @@ export function MapPage() {
             place,
         }));
 
-        return [queryItem, ...placeItems];
-    }, [hasSearchText, hasSuggestionQuery, placeSuggestions, trimmedQuery]);
+        return [queryItem, ...activityItems, ...placeItems];
+    }, [hasSearchText, hasSuggestionQuery, placeSuggestions, trimmedQuery, visibleActivities, typeNamesById]);
 
     function handleSelectSuggestion(suggestion: SearchSuggestion): void {
         setShowSuggestions(false);
@@ -638,6 +660,11 @@ export function MapPage() {
         if (suggestion.kind === "query") {
             setSearchResultsMode(true);
             setShowSuggestions(true);
+            return;
+        }
+
+        if (suggestion.kind === "activity") {
+            navigate(`/activity/${suggestion.activityId}`);
             return;
         }
 
@@ -724,7 +751,7 @@ export function MapPage() {
                                           onMouseDown={event => event.preventDefault()}
                                           onClick={() => handleSelectSuggestion(suggestion)}
                                       >
-                                          <span className="map-search-result-icon">{suggestion.kind === "query" ? <IoSearchOutline /> : <IoLocationOutline />}</span>
+                                          <span className="map-search-result-icon">{suggestion.kind === "query" ? <IoSearchOutline /> : suggestion.kind === "activity" ? <IoStorefrontOutline /> : <IoLocationOutline />}</span>
                                           <span className="map-search-result-text">
                                               <span className="search-suggestion-title">{suggestion.label}</span>
                                               <span className="search-suggestion-subtitle">{suggestion.details}</span>

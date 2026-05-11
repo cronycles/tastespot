@@ -19,20 +19,24 @@ class GeoController extends Controller
             'q' => ['required', 'string', 'min:2', 'max:120'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:20'],
             'lang' => ['nullable', 'string', 'max:120'],
+            'lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $query = trim($validated['q']);
         $limit = (int) ($validated['limit'] ?? 8);
         $lang = trim((string) ($validated['lang'] ?? 'it,en'));
+        $userLat = isset($validated['lat']) ? (float) $validated['lat'] : null;
+        $userLng = isset($validated['lng']) ? (float) $validated['lng'] : null;
         $candidates = array_slice($this->buildFallbackQueries($query), 0, 2);
 
         foreach ($candidates as $candidate) {
-            $cacheKey = sprintf('geo:search:%s:%s:%d', md5($candidate), md5($lang), $limit);
+            $cacheKey = sprintf('geo:search:%s:%s:%d:%s:%s', md5($candidate), md5($lang), $limit, $userLat !== null ? number_format($userLat, 2, '.', '') : 'x', $userLng !== null ? number_format($userLng, 2, '.', '') : 'x');
             $cached = Cache::get($cacheKey);
             if (is_array($cached)) {
                 $items = $cached;
             } else {
-                $items = $this->fetchSearch($candidate, $limit, $lang);
+                $items = $this->fetchSearch($candidate, $limit, $lang, $userLat, $userLng);
                 if (count($items) > 0) {
                     Cache::put($cacheKey, $items, now()->addMinutes(15));
                 } else {
@@ -113,21 +117,32 @@ class GeoController extends Controller
         return $unique;
     }
 
-    private function fetchSearch(string $query, int $limit, string $lang): array
+    private function fetchSearch(string $query, int $limit, string $lang, ?float $userLat = null, ?float $userLng = null): array
     {
+        $nominatimParams = [
+            'q' => $query,
+            'format' => 'jsonv2',
+            'addressdetails' => 1,
+            'limit' => $limit,
+            'accept-language' => $lang,
+        ];
+
+        if ($userLat !== null && $userLng !== null) {
+            // Bias results toward a ~50km box around the user.
+            $delta = 0.45; // ~50km in degrees
+            $nominatimParams['viewbox'] = sprintf('%s,%s,%s,%s',
+                $userLng - $delta, $userLat + $delta,
+                $userLng + $delta, $userLat - $delta
+            );
+        }
+
         $response = Http::connectTimeout(1)->timeout(2)
             ->acceptJson()
             ->withHeaders($this->nominatimHeaders())
-            ->get(self::BASE_URL.'/search', [
-                'q' => $query,
-                'format' => 'jsonv2',
-                'addressdetails' => 1,
-                'limit' => $limit,
-                'accept-language' => $lang,
-            ]);
+            ->get(self::BASE_URL.'/search', $nominatimParams);
 
         if ($response->status() === 429) {
-            return $this->fetchPhotonSearch($query, $limit, $lang);
+            return $this->fetchPhotonSearch($query, $limit, $lang, $userLat, $userLng);
         }
 
         if (! $response->ok()) {
@@ -168,20 +183,27 @@ class GeoController extends Controller
             return $results;
         }
 
-        return $this->fetchPhotonSearch($query, $limit, $lang);
+        return $this->fetchPhotonSearch($query, $limit, $lang, $userLat, $userLng);
     }
 
-    private function fetchPhotonSearch(string $query, int $limit, string $lang): array
+    private function fetchPhotonSearch(string $query, int $limit, string $lang, ?float $userLat = null, ?float $userLng = null): array
     {
         unset($lang);
+
+        $photonParams = [
+            'q' => $query,
+            'limit' => $limit,
+        ];
+
+        if ($userLat !== null && $userLng !== null) {
+            $photonParams['lat'] = $userLat;
+            $photonParams['lon'] = $userLng;
+        }
 
         $response = Http::connectTimeout(1)->timeout(2)
             ->acceptJson()
             ->withHeaders($this->nominatimHeaders())
-            ->get(self::PHOTON_BASE_URL.'/api', [
-                'q' => $query,
-                'limit' => $limit,
-            ]);
+            ->get(self::PHOTON_BASE_URL.'/api', $photonParams);
 
         if (! $response->ok()) {
             return [];

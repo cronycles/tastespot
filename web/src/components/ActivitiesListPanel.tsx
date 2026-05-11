@@ -167,7 +167,7 @@ export function ActivitiesListPanel({
     initialQuery = "",
 }: Props) {
     const navigate = useNavigate();
-    const { activities, loading, hasMore, fetch, toggleFavorite } = useActivitiesStore();
+    const { activities, loading, hasMore, fetch, fetchAll, toggleFavorite } = useActivitiesStore();
     const { types, fetch: fetchTypes } = useTypesStore();
     const { coords, hasPermission, requestAndFetch } = useLocationStore();
 
@@ -188,9 +188,9 @@ export function ActivitiesListPanel({
     }, [initialQuery]);
 
     useEffect(() => {
-        void fetch(true);
+        void fetchAll();
         void fetchTypes();
-    }, [fetch, fetchTypes]);
+    }, [fetchAll, fetchTypes]);
 
     useEffect(() => {
         if (!autoRequestLocation) {
