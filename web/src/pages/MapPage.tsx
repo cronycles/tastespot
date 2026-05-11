@@ -418,7 +418,6 @@ export function MapPage() {
     const typeIconKeyById = useMemo(() => new Map(types.map(type => [type.id, type.icon_key])), [types]);
 
     const visibleActivities = useMemo(() => {
-        const normalizedQuery = normalizeText(query);
         const filtered = activities.filter(entry => {
             if (favoritesOnly && !entry.is_favorite) {
                 return false;
@@ -426,17 +425,11 @@ export function MapPage() {
             if (selectedTypeId && !entry.type_ids.includes(selectedTypeId)) {
                 return false;
             }
-            if (!normalizedQuery) {
-                return true;
-            }
-
-            const typeNames = entry.type_ids.map(typeId => typeNamesById.get(typeId) ?? "");
-            const haystack = normalizeText([entry.name, entry.address ?? "", ...(entry.tags ?? []), ...typeNames].join(" "));
-            return haystack.includes(normalizedQuery);
+            return true;
         });
 
         return sortByName(filtered);
-    }, [activities, favoritesOnly, query, selectedTypeId, typeNamesById]);
+    }, [activities, favoritesOnly, selectedTypeId]);
 
     useEffect(() => {
         visibleActivitiesRef.current = visibleActivities;
