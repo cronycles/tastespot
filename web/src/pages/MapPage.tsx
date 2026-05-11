@@ -579,8 +579,12 @@ export function MapPage() {
                 const limit = searchResultsMode ? 20 : 8;
 
                 try {
+                    const mapCenter = mapRef.current?.getCenter();
+                    const latLngParams = mapCenter
+                        ? `&lat=${mapCenter.lat.toFixed(6)}&lng=${mapCenter.lng.toFixed(6)}`
+                        : "";
                     const response = await api.get<{ results: PlaceSuggestion[] }>(
-                        `/geo/search?q=${encodeURIComponent(trimmedQuery)}&limit=${limit}&lang=${encodeURIComponent(preferredLanguagesHeader())}`,
+                        `/geo/search?q=${encodeURIComponent(trimmedQuery)}&limit=${limit}&lang=${encodeURIComponent(preferredLanguagesHeader())}${latLngParams}`,
                     );
 
                     if (placeSuggestionsRequestRef.current !== requestId) {

@@ -282,6 +282,20 @@ paths:
                       type: string
                       default: it,en
                   description: Preferred languages (accept-language style)
+                - in: query
+                  name: lat
+                  schema:
+                      type: number
+                      minimum: -90
+                      maximum: 90
+                  description: User latitude for location bias (optional, soft bias)
+                - in: query
+                  name: lng
+                  schema:
+                      type: number
+                      minimum: -180
+                      maximum: 180
+                  description: User longitude for location bias (optional, soft bias)
             responses:
                 "200":
                     description: Search results
