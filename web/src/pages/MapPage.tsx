@@ -687,12 +687,13 @@ export function MapPage() {
         );
     }
 
-    async function handleSearchSubmit(): Promise<void> {
+    function handleSearchSubmit(): void {
         if (!trimmedQuery) {
             return;
         }
 
-        navigate(`/activities?query=${encodeURIComponent(trimmedQuery)}`);
+        setSearchResultsMode(true);
+        setShowSuggestions(true);
     }
 
     function handleSearchInputKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
@@ -701,7 +702,7 @@ export function MapPage() {
         }
 
         event.preventDefault();
-        void handleSearchSubmit();
+        handleSearchSubmit();
     }
 
     return (
