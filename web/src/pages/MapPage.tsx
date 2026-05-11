@@ -586,11 +586,8 @@ export function MapPage() {
                 const limit = searchResultsMode ? 20 : 8;
 
                 try {
-                    const locationParams = hasPermission && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)
-                        ? `&lat=${encodeURIComponent(String(coords.lat))}&lng=${encodeURIComponent(String(coords.lng))}`
-                        : "";
                     const response = await api.get<{ results: PlaceSuggestion[] }>(
-                        `/geo/search?q=${encodeURIComponent(trimmedQuery)}&limit=${limit}&lang=${encodeURIComponent(preferredLanguagesHeader())}${locationParams}`,
+                        `/geo/search?q=${encodeURIComponent(trimmedQuery)}&limit=${limit}&lang=${encodeURIComponent(preferredLanguagesHeader())}`,
                     );
 
                     if (placeSuggestionsRequestRef.current !== requestId) {
@@ -613,7 +610,7 @@ export function MapPage() {
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [coords.lat, coords.lng, hasPermission, hasSuggestionQuery, searchResultsMode, trimmedQuery]);
+    }, [hasSuggestionQuery, searchResultsMode, trimmedQuery]);
 
     const searchSuggestions = useMemo(() => {
         if (!hasSearchText) {
