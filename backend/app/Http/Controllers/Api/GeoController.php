@@ -115,16 +115,20 @@ class GeoController extends Controller
 
     private function fetchSearch(string $query, int $limit, string $lang): array
     {
-        $response = Http::connectTimeout(1)->timeout(2)
-            ->acceptJson()
-            ->withHeaders($this->nominatimHeaders())
-            ->get(self::BASE_URL.'/search', [
-                'q' => $query,
-                'format' => 'jsonv2',
-                'addressdetails' => 1,
-                'limit' => $limit,
-                'accept-language' => $lang,
-            ]);
+        try {
+            $response = Http::connectTimeout(1)->timeout(2)
+                ->acceptJson()
+                ->withHeaders($this->nominatimHeaders())
+                ->get(self::BASE_URL.'/search', [
+                    'q' => $query,
+                    'format' => 'jsonv2',
+                    'addressdetails' => 1,
+                    'limit' => $limit,
+                    'accept-language' => $lang,
+                ]);
+        } catch (\Exception $e) {
+            return $this->fetchPhotonSearch($query, $limit, $lang);
+        }
 
         if ($response->status() === 429) {
             return $this->fetchPhotonSearch($query, $limit, $lang);
@@ -175,13 +179,17 @@ class GeoController extends Controller
     {
         unset($lang);
 
-        $response = Http::connectTimeout(1)->timeout(2)
-            ->acceptJson()
-            ->withHeaders($this->nominatimHeaders())
-            ->get(self::PHOTON_BASE_URL.'/api', [
-                'q' => $query,
-                'limit' => $limit,
-            ]);
+        try {
+            $response = Http::connectTimeout(1)->timeout(2)
+                ->acceptJson()
+                ->withHeaders($this->nominatimHeaders())
+                ->get(self::PHOTON_BASE_URL.'/api', [
+                    'q' => $query,
+                    'limit' => $limit,
+                ]);
+        } catch (\Exception $e) {
+            return [];
+        }
 
         if (! $response->ok()) {
             return [];
@@ -239,16 +247,20 @@ class GeoController extends Controller
 
     private function fetchReverse(float $lat, float $lng, string $lang): ?array
     {
-        $response = Http::connectTimeout(1)->timeout(2)
-            ->acceptJson()
-            ->withHeaders($this->nominatimHeaders())
-            ->get(self::BASE_URL.'/reverse', [
-                'format' => 'jsonv2',
-                'lat' => $lat,
-                'lon' => $lng,
-                'zoom' => 18,
-                'accept-language' => $lang,
-            ]);
+        try {
+            $response = Http::connectTimeout(1)->timeout(2)
+                ->acceptJson()
+                ->withHeaders($this->nominatimHeaders())
+                ->get(self::BASE_URL.'/reverse', [
+                    'format' => 'jsonv2',
+                    'lat' => $lat,
+                    'lon' => $lng,
+                    'zoom' => 18,
+                    'accept-language' => $lang,
+                ]);
+        } catch (\Exception $e) {
+            return null;
+        }
 
         if (! $response->ok()) {
             return null;
